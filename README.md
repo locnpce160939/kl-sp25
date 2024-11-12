@@ -1,4 +1,6 @@
 Freight Truck Connectivity System (FTCS)
+
+
 Freight Truck Connectivity System (FTCS) is an online platform designed to connect truck drivers with available cargo space to customers needing transportation services. The goal of the system is to optimize space utilization, reduce shipping costs, and improve operational efficiency in the logistics industry.
 
 🚀 Objective
