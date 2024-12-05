@@ -24,5 +24,13 @@
             <artifactId>common</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.ftcs</groupId>
+            <artifactId>auth-service</artifactId>
+        </dependency>
     </dependencies>
 </project>
