@@ -16,22 +16,16 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping(AccountURL.ACCOUNT)
 public class AccountController {
-    @Autowired
     private final AccountService accountService;
 
-    @GetMapping
-    public ApiResponse<?> testAccountController() {
-        return new ApiResponse<>("Test");
-    }
-
-
     @PostMapping("/register/send")
-    public ApiResponse<?> registerSendUser(@Valid @RequestBody RegisterDTORequest registerDTORequest, HttpServletRequest request) throws JSONException {
-        return accountService.registerSendUser(registerDTORequest, request);
+    public ApiResponse<?> registerSendUser(@Valid @RequestBody RegisterDTORequest registerDTORequest, HttpServletRequest request) {
+        accountService.registerSendUser(registerDTORequest, request);
+        return new ApiResponse<>("Send mail success");
     }
 
     @PostMapping("/register/confirm")
-    public ApiResponse<?> registerConfirmUser(@Valid @RequestBody RegisterConfirmDTORequest registerConfirmDTORequest, HttpServletRequest request) throws JSONException {
-        return accountService.registerConfirmUser(registerConfirmDTORequest, request);
+    public ApiResponse<?> registerConfirmUser(@Valid @RequestBody RegisterConfirmDTORequest registerConfirmDTORequest, HttpServletRequest request) {
+        return new ApiResponse<>(accountService.registerConfirmUser(registerConfirmDTORequest, request));
     }
 }

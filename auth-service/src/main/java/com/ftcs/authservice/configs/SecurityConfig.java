@@ -50,8 +50,7 @@ public class SecurityConfig {
             "/swagger-ui.html",
             "/api/account/reset-password",
             "/api/account/reset-password/**",
-            "/api/account/register/send",
-            "/api/account/register/confirm"
+            "/api/account/register/**",
     };
 
     private final LogoutHandler logoutHandler;

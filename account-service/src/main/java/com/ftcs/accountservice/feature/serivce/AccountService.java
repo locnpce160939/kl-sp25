@@ -2,19 +2,12 @@ package com.ftcs.accountservice.feature.serivce;
 
 import com.ftcs.accountservice.feature.account.dto.RegisterConfirmDTORequest;
 import com.ftcs.accountservice.feature.account.dto.RegisterDTORequest;
-import com.ftcs.accountservice.feature.serivce.Utils.ResponseUtil;
 import com.ftcs.authservice.features.account.Account;
 import com.ftcs.authservice.features.account.AccountRepository;
-import com.ftcs.common.dto.ApiResponse;
-import com.ftcs.common.exception.AppException;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.common.feature.service.SendMailService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -25,14 +18,10 @@ import java.util.Random;
 @Service
 @AllArgsConstructor
 public class AccountService {
-    @Autowired
     private AccountRepository accountRepository;
-    @Autowired
     private SendMailService sendMailService;
-    @Autowired
-    private ResponseUtil responseUtil;
 
-    public ApiResponse<Void> registerSendUser(RegisterDTORequest registerDTORequest, HttpServletRequest request) throws JSONException {
+    public void registerSendUser(RegisterDTORequest registerDTORequest, HttpServletRequest request) {
         if (accountRepository.existsByUsername(registerDTORequest.getUsername())) {
             throw new BadRequestException("Username Exists!");
         }
@@ -49,11 +38,9 @@ public class AccountService {
         sendMailService.send_otp(registerDTORequest.getEmail(), subject, randomNumber);
         request.getSession().setAttribute("code_register", String.valueOf(randomNumber));
         System.out.println(request.getSession().getAttribute("code_register") + "otp gui di" + request.getRequestedSessionId() );
-        JSONObject successResponse = responseUtil.getSuccessResponse("Send OTP success!");
-        return ApiResponse.success(null);
     }
 
-    public ApiResponse<Account> registerConfirmUser(RegisterConfirmDTORequest registerConfirmDTORequest, HttpServletRequest request) throws JSONException {
+    public Account registerConfirmUser(RegisterConfirmDTORequest registerConfirmDTORequest, HttpServletRequest request) {
         String otp = registerConfirmDTORequest.getOtp();
         String sessionOtp = (String) request.getSession().getAttribute("code_register");
         System.out.println(request.getSession().getAttribute("code_register") + "otp nhap vao" + request.getRequestedSessionId() );
@@ -67,7 +54,7 @@ public class AccountService {
             account.setPhone(registerConfirmDTORequest.getPhone());
             account.setRole("customer");
             accountRepository.save(account);
-            return ApiResponse.success(account);
+            return account;
         }
 
     }

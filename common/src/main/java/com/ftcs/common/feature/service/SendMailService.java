@@ -1,9 +1,7 @@
 package com.ftcs.common.feature.service;
 
+import com.ftcs.common.exception.InternalServerException;
 import lombok.AllArgsConstructor;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -19,13 +17,10 @@ import java.util.Locale;
 @Service
 @AllArgsConstructor
 public class SendMailService {
-
-    @Autowired
-    private JavaMailSender javaMailSender;
+    private final JavaMailSender javaMailSender;
 
 
-    public JSONObject send_otp(String email, String body, Integer randomNumber) throws JSONException {
-        JSONObject jsonResult = new JSONObject();
+    public void send_otp(String email, String body, Integer randomNumber) {
         String[] parts = Integer.toString(randomNumber).split("(?<=.)");
         LocalDate currentDate = LocalDate.now();
 
@@ -407,13 +402,9 @@ public class SendMailService {
 
             helper.setText(htmlContent, true);
             javaMailSender.send(message);
-            jsonResult.put("status", "success");
-            jsonResult.put("message", "Email sent successfully");
-            return jsonResult;
-        } catch (MessagingException | MailException | JSONException e) {
-            jsonResult.put("status", "error");
-            jsonResult.put("message", e.getMessage());
-            return jsonResult;
+        } catch (MessagingException | MailException e) {
+            throw new InternalServerException("Error");
         }
     }
+
 }
