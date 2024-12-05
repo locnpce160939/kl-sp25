@@ -19,12 +19,9 @@ import java.util.Locale;
 public class SendMailService {
     private final JavaMailSender javaMailSender;
 
-
     public void send_otp(String email, String body, Integer randomNumber) {
         String[] parts = Integer.toString(randomNumber).split("(?<=.)");
         LocalDate currentDate = LocalDate.now();
-
-
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM, yyyy", Locale.ENGLISH);
         String formattedDate = currentDate.format(formatter);
         try {
@@ -32,8 +29,6 @@ public class SendMailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
             helper.setTo(email);
             helper.setSubject(body);
-
-
             String htmlContent = "<!DOCTYPE html>\n" +
                     "<html lang=\"en\">\n" +
                     "\n" +
@@ -398,13 +393,10 @@ public class SendMailService {
                     "</body>\n" +
                     "\n" +
                     "</html>";
-
-
             helper.setText(htmlContent, true);
             javaMailSender.send(message);
         } catch (MessagingException | MailException e) {
             throw new InternalServerException("Error");
         }
     }
-
 }

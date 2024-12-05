@@ -30,20 +30,17 @@ public class AccountService {
         }
         if (registerDTORequest.getPassword() == null || registerDTORequest.getPhone() == null ||
                 registerDTORequest.getEmail() == null || registerDTORequest.getUsername() == null) {
-
             throw new BadRequestException("Missing Information!");
         }
         int randomNumber = new Random().nextInt(900000) + 100000;
         String subject = "OTP authentication";
         sendMailService.send_otp(registerDTORequest.getEmail(), subject, randomNumber);
         request.getSession().setAttribute("code_register", String.valueOf(randomNumber));
-        System.out.println(request.getSession().getAttribute("code_register") + "otp gui di" + request.getRequestedSessionId() );
     }
 
     public Account registerConfirmUser(RegisterConfirmDTORequest registerConfirmDTORequest, HttpServletRequest request) {
         String otp = registerConfirmDTORequest.getOtp();
         String sessionOtp = (String) request.getSession().getAttribute("code_register");
-        System.out.println(request.getSession().getAttribute("code_register") + "otp nhap vao" + request.getRequestedSessionId() );
         if (!otp.equals(sessionOtp)) {
             throw new BadRequestException("Invalid OTP!");
         }else {
@@ -56,7 +53,6 @@ public class AccountService {
             accountRepository.save(account);
             return account;
         }
-
     }
 
     public String hashString(String input) {
