@@ -67,6 +67,7 @@ public class GlobalException {
         return new ApiResponse<>(400, e.getMessage(), null);
     }
 
+
     @ExceptionHandler(FormValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<?> formValidException(FormValidException e) {
