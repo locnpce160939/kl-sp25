@@ -50,10 +50,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
-            Integer userId = parseToken.getId(authHeader);
+            Integer accountId = parseToken.getId(authHeader);
             String username = parseToken.getUsername(authHeader);
-            request.setAttribute("userId", userId);
+            String role = parseToken.getRole(authHeader);
+            request.setAttribute("accountId", accountId);
             request.setAttribute("username", username);
+            request.setAttribute("role", role);
+
             processAuthentication(authHeader, request);
             System.out.println(authHeader);
             log.debug("Authorization Header: {}", shouldBypassAuthentication(request));

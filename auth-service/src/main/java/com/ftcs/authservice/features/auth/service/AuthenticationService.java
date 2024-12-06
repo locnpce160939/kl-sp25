@@ -12,6 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -28,11 +31,15 @@ public class AuthenticationService {
         if (!passwordEncoder.matches(request.password(), account.getPassword())) {
             throw new UnauthorizedException("Invalid password for username: " + request.username());
         }
-
-        String accessToken = jwtService.generateToken(AccountDto.mapToAccountDto(account));
-
-        return AuthenticationResponse.builder()
-                .accessToken(accessToken)
-                .build();
+        if (account.getStatus().equals("isDisabled")){
+            throw new UnauthorizedException("Account is disabled");
+        }else{
+            account.setLastLogin(LocalDateTime.now());
+            accountRepository.save(account);
+            String accessToken = jwtService.generateToken(AccountDto.mapToAccountDto(account));
+            return AuthenticationResponse.builder()
+                    .accessToken(accessToken)
+                    .build();
+        }
     }
 }

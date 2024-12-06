@@ -1,4 +1,4 @@
-package com.ftcs.accountservice.feature.account.dto;
+package com.ftcs.accountservice.account.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,10 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RegisterConfirmDTORequest {
-    private String username;
-    private String password;
+public class ForgotPasswordAccountDTORequest {
     private String email;
-    private String phone;
     private String otp;
+    private String newPassword;
+    private String confirmPassword;
 }
