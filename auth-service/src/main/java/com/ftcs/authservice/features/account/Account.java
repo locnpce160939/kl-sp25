@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -39,14 +40,31 @@ public class Account {
     @Column(name = "ProfilePicture", length = 255)
     private String profilePicture;
 
+    @Column(name = "Status", length = 20)
+    private String status;
+
+    @Column(name = "Notes", length = 255)
+    private String notes;
+
     @Column(name = "LastLogin")
-    private Instant lastLogin;
+    private LocalDateTime lastLogin;
 
     @CreationTimestamp
     @Column(name = "CreateAt", updatable = false)
-    private Instant createAt;
+    private LocalDateTime createAt;
 
     @UpdateTimestamp
     @Column(name = "UpdateAt")
-    private Instant updateAt;
+    private LocalDateTime updateAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createAt = LocalDateTime.now();
+        updateAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updateAt = LocalDateTime.now();
+    }
 }

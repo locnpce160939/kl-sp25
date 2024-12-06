@@ -56,6 +56,24 @@ public class ParseToken {
         }
     }
 
+    public String getRole(String token) {
+        try {
+            String tokenWithoutBearer = token.substring(7);
+            Claims claims = Jwts.parser()
+                    .verifyWith(getSignInKey())
+                    .build()
+                    .parseSignedClaims(tokenWithoutBearer)
+                    .getPayload();
+
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.convertValue(claims.get("account", Map.class).get("role"), String.class);
+        } catch (Exception e) {
+            throw new UnauthorizedException("Token is expired");
+        }
+    }
+
+
+
     public String getEmployeeFullCode(String token) {
         try {
             String tokenWithoutBearer = token.substring(7);
