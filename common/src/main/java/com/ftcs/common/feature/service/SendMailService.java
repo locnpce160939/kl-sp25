@@ -19,7 +19,7 @@ import java.util.Locale;
 public class SendMailService {
     private final JavaMailSender javaMailSender;
 
-    public void send_otp(String email, String body, Integer randomNumber) {
+    public void sendOtp(String email, String body, Integer randomNumber) {
         String[] parts = Integer.toString(randomNumber).split("(?<=.)");
         LocalDate currentDate = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM, yyyy", Locale.ENGLISH);

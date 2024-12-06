@@ -1,4 +1,4 @@
-package com.ftcs.accountservice.feature.account.dto;
+package com.ftcs.accountservice.account.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

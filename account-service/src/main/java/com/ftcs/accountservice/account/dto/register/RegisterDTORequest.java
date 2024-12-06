@@ -1,4 +1,4 @@
-package com.ftcs.accountservice.feature.account.dto;
+package com.ftcs.accountservice.account.dto.register;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -10,8 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RegisterConfirmDTORequest {
-
+public class RegisterDTORequest {
     @NotBlank(message = "Username must not be null or empty")
     private String username;
 
@@ -28,7 +27,4 @@ public class RegisterConfirmDTORequest {
 
     @NotBlank(message = "Role must not be null or empty")
     private String role;
-
-    @NotBlank(message = "OTP must not be null or empty")
-    private String otp;
 }

@@ -1,15 +1,14 @@
 package com.ftcs.accountservice.account;
 
 import com.ftcs.accountservice.AccountURL;
-import com.ftcs.accountservice.feature.account.dto.*;
-import com.ftcs.accountservice.feature.serivce.AccountService;
+import com.ftcs.accountservice.account.dto.*;
+import com.ftcs.accountservice.account.dto.register.RegisterConfirmDTORequest;
+import com.ftcs.accountservice.account.dto.register.RegisterDTORequest;
+import com.ftcs.accountservice.account.serivce.AccountService;
 import com.ftcs.common.dto.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -53,7 +52,7 @@ public class AccountController {
 
     @GetMapping("/getAllAccount")
     public ApiResponse<?> getAllAccount() {
-        return new ApiResponse<>(accountService.getAllAccount());
+        return new ApiResponse<>(accountService.getAllAccounts());
     }
 
     @GetMapping("/getAccount/{accountId}")
