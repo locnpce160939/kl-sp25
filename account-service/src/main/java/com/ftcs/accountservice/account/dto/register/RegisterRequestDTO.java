@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RegisterDTORequest {
+public class RegisterRequestDTO {
     @NotBlank(message = "Username must not be null or empty")
     private String username;
 
