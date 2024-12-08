@@ -2,8 +2,8 @@ package com.ftcs.accountservice.account;
 
 import com.ftcs.accountservice.AccountURL;
 import com.ftcs.accountservice.account.dto.*;
-import com.ftcs.accountservice.account.dto.register.RegisterConfirmDTORequest;
-import com.ftcs.accountservice.account.dto.register.RegisterDTORequest;
+import com.ftcs.accountservice.account.dto.register.RegisterConfirmRequestDTO;
+import com.ftcs.accountservice.account.dto.register.RegisterRequestDTO;
 import com.ftcs.accountservice.account.serivce.AccountService;
 import com.ftcs.common.dto.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,14 +19,14 @@ public class AccountController {
     private final AccountService accountService;
 
     @PostMapping("/register/send")
-    public ApiResponse<?> registerSendUser(@Valid @RequestBody RegisterDTORequest registerDTORequest, HttpServletRequest request) {
-        accountService.registerSendUser(registerDTORequest, request);
+    public ApiResponse<?> registerSendUser(@Valid @RequestBody RegisterRequestDTO registerRequestDTO, HttpServletRequest request) {
+        accountService.registerSendUser(registerRequestDTO, request);
         return new ApiResponse<>("Send mail success");
     }
 
     @PostMapping("/register/confirm")
-    public ApiResponse<?> registerConfirmUser(@Valid @RequestBody RegisterConfirmDTORequest registerConfirmDTORequest, HttpServletRequest request) {
-        return new ApiResponse<>(accountService.registerConfirmUser(registerConfirmDTORequest, request));
+    public ApiResponse<?> registerConfirmUser(@Valid @RequestBody RegisterConfirmRequestDTO registerConfirmRequestDTO, HttpServletRequest request) {
+        return new ApiResponse<>(accountService.registerConfirmUser(registerConfirmRequestDTO, request));
     }
 
     @DeleteMapping("/isDisable/{accountId}")
@@ -36,8 +36,8 @@ public class AccountController {
     }
 
     @PostMapping("/createAccount")
-    public ApiResponse<?> createNewAccount(@Valid @RequestBody RegisterDTORequest registerDTORequest) {
-        return new ApiResponse<>(accountService.createNewAccount(registerDTORequest));
+    public ApiResponse<?> createNewAccount(@Valid @RequestBody RegisterRequestDTO registerRequestDTO) {
+        return new ApiResponse<>(accountService.createNewAccount(registerRequestDTO));
     }
 
     @GetMapping("/profile")
@@ -46,8 +46,8 @@ public class AccountController {
     }
 
     @PutMapping("/editProfile")
-    public ApiResponse<?> editProfile(@Valid @RequestBody UpdateProfileDTORequest updateProfileDTORequest, @RequestAttribute("accountId") Integer accountId) {
-        return new ApiResponse<>(accountService.updateProfile(updateProfileDTORequest, accountId));
+    public ApiResponse<?> editProfile(@Valid @RequestBody UpdateProfileRequestDTO updateProfileRequestDTO, @RequestAttribute("accountId") Integer accountId) {
+        return new ApiResponse<>(accountService.updateProfile(updateProfileRequestDTO, accountId));
     }
 
     @GetMapping("/getAllAccount")
@@ -61,20 +61,20 @@ public class AccountController {
     }
 
     @PostMapping("/forgotSend")
-    public ApiResponse<?> forgotSend(@Valid @RequestBody ForgotPasswordAccountDTORequest forgotPasswordAccountDTORequest, HttpServletRequest request) {
-        accountService.forgotPasswordAccountSend(forgotPasswordAccountDTORequest, request);
+    public ApiResponse<?> forgotSend(@Valid @RequestBody ForgotPasswordAccountRequestDTO forgotPasswordAccountRequestDTO, HttpServletRequest request) {
+        accountService.forgotPasswordAccountSend(forgotPasswordAccountRequestDTO, request);
         return new ApiResponse<>("Send mail success");
     }
 
     @PostMapping("/forgotConfirm")
-    public ApiResponse<?> forgotConfirm(@Valid @RequestBody ForgotPasswordAccountDTORequest forgotPasswordAccountDTORequest, HttpServletRequest request) {
-        accountService.forgotPasswordAccountConfirm(forgotPasswordAccountDTORequest, request);
+    public ApiResponse<?> forgotConfirm(@Valid @RequestBody ForgotPasswordAccountRequestDTO forgotPasswordAccountRequestDTO, HttpServletRequest request) {
+        accountService.forgotPasswordAccountConfirm(forgotPasswordAccountRequestDTO, request);
         return new ApiResponse<>("Change password success");
     }
 
     @PostMapping("/changePassword")
-    public ApiResponse<?> changePassword(@Valid @RequestBody ChangePasswordDTORequest changePasswordDTORequest, @RequestAttribute("accountId") Integer accountId) {
-        accountService.changePasswordAccount(changePasswordDTORequest, accountId);
+    public ApiResponse<?> changePassword(@Valid @RequestBody ChangePasswordRequestDTO changePasswordRequestDTO, @RequestAttribute("accountId") Integer accountId) {
+        accountService.changePasswordAccount(changePasswordRequestDTO, accountId);
         return new ApiResponse<>("Change password success");
     }
 
