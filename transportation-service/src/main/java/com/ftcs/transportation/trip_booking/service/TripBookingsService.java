@@ -72,17 +72,27 @@ public class TripBookingsService {
         }
     }
 
-    public List<TripBookings> filterTripBookings(FindTripBookingByTimePeriodRequestDTO findTripBookingByTimePeriodRequestDTO) {
+    public List<TripBookings> filterTripBookings(FindTripBookingByTimePeriodRequestDTO request) {
+        boolean hasDateRange = request.getStartDate() != null && request.getEndDate() != null;
+        boolean hasStatus = request.getStatus() != null && !request.getStatus().isEmpty();
         List<TripBookings> tripBookings;
-        if (findTripBookingByTimePeriodRequestDTO.getStartDate() != null && findTripBookingByTimePeriodRequestDTO.getEndDate() != null && findTripBookingByTimePeriodRequestDTO.getStatus() != null && !findTripBookingByTimePeriodRequestDTO.getStatus().isEmpty()) {
-            tripBookings = tripBookingsRepository.findAllByBookingDateBetweenAndStatus(findTripBookingByTimePeriodRequestDTO.getStartDate(), findTripBookingByTimePeriodRequestDTO.getEndDate(), findTripBookingByTimePeriodRequestDTO.getStatus());
-        } else if (findTripBookingByTimePeriodRequestDTO.getStartDate() != null && findTripBookingByTimePeriodRequestDTO.getEndDate() != null) {
-            tripBookings = tripBookingsRepository.findAllByBookingDateBetween(findTripBookingByTimePeriodRequestDTO.getStartDate(), findTripBookingByTimePeriodRequestDTO.getEndDate());
-        } else if (findTripBookingByTimePeriodRequestDTO.getStatus() != null && !findTripBookingByTimePeriodRequestDTO.getStatus().isEmpty()) {
-            tripBookings = tripBookingsRepository.findAllByStatus(findTripBookingByTimePeriodRequestDTO.getStatus());
+        if (hasDateRange && hasStatus) {
+            tripBookings = tripBookingsRepository.findAllByBookingDateBetweenAndStatus(
+                    request.getStartDate(),
+                    request.getEndDate(),
+                    request.getStatus()
+            );
+        } else if (hasDateRange) {
+            tripBookings = tripBookingsRepository.findAllByBookingDateBetween(
+                    request.getStartDate(),
+                    request.getEndDate()
+            );
+        } else if (hasStatus) {
+            tripBookings = tripBookingsRepository.findAllByStatus(request.getStatus());
         } else {
             tripBookings = tripBookingsRepository.findAll();
         }
+
         if (tripBookings.isEmpty()) {
             throw new BadRequestException("No trip bookings found with the given criteria.");
         }

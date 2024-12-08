@@ -59,32 +59,31 @@ public class ScheduleService {
         return scheduleRepository.findAll();
     }
 
-    public List<Schedule> getSchedulesByTimeRangeAndStatus(FindScheduleByTimePeriodRequestDTO findScheduleByTimePeriodRequestDTO) {
+    public List<Schedule> getSchedulesByTimeRangeAndStatus(FindScheduleByTimePeriodRequestDTO requestDTO) {
+        boolean hasDateRange = requestDTO.getStartDate() != null && requestDTO.getEndDate() != null;
+        boolean hasStatus = requestDTO.getStatus() != null && !requestDTO.getStatus().isEmpty();
         List<Schedule> schedules;
-        if (findScheduleByTimePeriodRequestDTO.getStartDate() != null && findScheduleByTimePeriodRequestDTO.getEndDate() != null) {
-            if (findScheduleByTimePeriodRequestDTO.getStatus() != null && !findScheduleByTimePeriodRequestDTO.getStatus().isEmpty()) {
-                schedules = scheduleRepository.findAllByStartDateBetweenAndStatus(
-                        findScheduleByTimePeriodRequestDTO.getStartDate(),
-                        findScheduleByTimePeriodRequestDTO.getEndDate(),
-                        findScheduleByTimePeriodRequestDTO.getStatus());
-            } else {
-                schedules = scheduleRepository.findAllByStartDateBetween(
-                        findScheduleByTimePeriodRequestDTO.getStartDate(),
-                        findScheduleByTimePeriodRequestDTO.getEndDate());
-            }
+        if (hasDateRange && hasStatus) {
+            schedules = scheduleRepository.findAllByStartDateBetweenAndStatus(
+                    requestDTO.getStartDate(),
+                    requestDTO.getEndDate(),
+                    requestDTO.getStatus()
+            );
+        } else if (hasDateRange) {
+            schedules = scheduleRepository.findAllByStartDateBetween(
+                    requestDTO.getStartDate(),
+                    requestDTO.getEndDate()
+            );
+        } else if (hasStatus) {
+            schedules = scheduleRepository.findAllByStatus(requestDTO.getStatus());
         } else {
-            if (findScheduleByTimePeriodRequestDTO.getStatus() != null && !findScheduleByTimePeriodRequestDTO.getStatus().isEmpty()) {
-                schedules = scheduleRepository.findAllByStatus(findScheduleByTimePeriodRequestDTO.getStatus());
-            } else {
-                schedules = scheduleRepository.findAll();
-            }
+            schedules = scheduleRepository.findAll();
         }
         if (schedules.isEmpty()) {
             throw new BadRequestException("No schedules found with the given criteria.");
         }
         return schedules;
     }
-
 
     private void mapScheduleRequestToEntity(ScheduleRequestDTO scheduleRequestDTO, Schedule schedule) {
         schedule.setStartLocation(scheduleRequestDTO.getStartLocation());

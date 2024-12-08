@@ -1,7 +1,7 @@
 package com.ftcs.transportation.schelude.controller;
 
 import com.ftcs.common.dto.ApiResponse;
-import com.ftcs.transportation.schelude.ScheduleURL;
+import com.ftcs.transportation.TransportationURL;
 import com.ftcs.transportation.schelude.dto.FindScheduleByTimePeriodRequestDTO;
 import com.ftcs.transportation.schelude.dto.ScheduleRequestDTO;
 import com.ftcs.transportation.schelude.dto.UpdateStatusScheduleRequestDTO;
@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(ScheduleURL.SCHEDULE)
+@RequestMapping(TransportationURL.SCHEDULE)
 public class ScheduleController {
     private final ScheduleService scheduleService;
 

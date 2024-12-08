@@ -1,8 +1,7 @@
 package com.ftcs.transportation.trip_booking.controller;
 
-import com.ftcs.accountservice.AccountURL;
 import com.ftcs.common.dto.ApiResponse;
-import com.ftcs.transportation.trip_booking.TripBookingsURL;
+import com.ftcs.transportation.TransportationURL;
 import com.ftcs.transportation.trip_booking.dto.FindTripBookingByTimePeriodRequestDTO;
 import com.ftcs.transportation.trip_booking.dto.TripBookingsRequestDTO;
 import com.ftcs.transportation.trip_booking.dto.UpdateStatusTripBookingsRequestDTO;
@@ -12,12 +11,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(TripBookingsURL.TRIP_BOOKINGS)
+@RequestMapping(TransportationURL.TRIP_BOOKINGS)
 public class TripBookingsController {
 
     private final TripBookingsService tripBookingsService;
