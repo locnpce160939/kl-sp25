@@ -83,7 +83,9 @@ public class TripBookingsController {
 
     @PutMapping("/confirmCompleteDelivery/{bookingId}")
     @PreAuthorize("hasPermission(null, 'CUSTOMER') or hasPermission(null, 'DRIVER')")
-    public ApiResponse<?> confirmCompleteDelivery(@Valid @RequestBody UpdateStatusTripBookingsRequestDTO requestDTO, @RequestAttribute("role") String role, @PathVariable("bookingId") Integer bookingId) {
+    public ApiResponse<?> confirmCompleteDelivery(@Valid @RequestBody UpdateStatusTripBookingsRequestDTO requestDTO,
+                                                  @RequestAttribute("role") String role,
+                                                  @PathVariable("bookingId") Integer bookingId) {
         tripBookingsService.confirmCompleteDelivery(requestDTO, role, bookingId);
         return new ApiResponse<>("Trip booking confirmed delivery successfully");
     }

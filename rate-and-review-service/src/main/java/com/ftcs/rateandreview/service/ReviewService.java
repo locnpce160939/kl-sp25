@@ -1,7 +1,5 @@
 package com.ftcs.rateandreview.service;
 
-import com.ftcs.authservice.features.account.Account;
-import com.ftcs.authservice.features.account.AccountRepository;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.rateandreview.dto.ReviewRequestDTO;
 import com.ftcs.rateandreview.model.Review;
@@ -20,7 +18,6 @@ public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final TripBookingsRepository tripBookingsRepository;
-    private final AccountRepository accountRepository;
 
     public void createRateAndReview(Integer accountId, ReviewRequestDTO requestDTO, Integer bookingId, String role) {
         TripBookings tripBookings = getTripBookingsByBookingId(bookingId);
@@ -61,7 +58,7 @@ public class ReviewService {
 
     private void validateOwnership(Integer accountId, TripBookings tripBookings) {
         if (!Objects.equals(tripBookings.getAccountId(), accountId)) {
-            throw new BadRequestException("Yo u are not authorized to perform this action.");
+            throw new BadRequestException("You are not authorized to perform this action.");
         }
     }
 
