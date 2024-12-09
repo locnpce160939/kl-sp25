@@ -1,4 +1,4 @@
-package com.ftcs.common.feature.service;
+package com.ftcs.common.service;
 
 import com.ftcs.common.exception.InternalServerException;
 import lombok.AllArgsConstructor;
