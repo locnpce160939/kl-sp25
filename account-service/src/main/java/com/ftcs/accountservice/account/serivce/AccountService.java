@@ -23,58 +23,55 @@ public class AccountService {
 
     private final PasswordEncoder passwordEncoder;
 
-    public void registerSendUser(RegisterRequestDTO registerRequestDTO, HttpServletRequest request) {
-        if (accountRepository.existsByUsername(registerRequestDTO.getUsername())) {
+    public void registerSendUser(RegisterRequestDTO requestDTO, HttpServletRequest request) {
+        if (accountRepository.existsByUsername(requestDTO.getUsername())) {
             throw new BadRequestException("Username Exists!");
         }
-        if (accountRepository.existsByEmail(registerRequestDTO.getEmail())) {
+        if (accountRepository.existsByEmail(requestDTO.getEmail())) {
             throw new BadRequestException("Email Exists!");
         }
-        if (!registerRequestDTO.getRole().equals("customer") && !registerRequestDTO.getRole().equals("driver")) {
+        if (!requestDTO.getRole().equals("customer") && !requestDTO.getRole().equals("driver")) {
             throw new BadRequestException("Invalid role!");
 
         }
         int randomNumber = generateOtpCode();
         String subject = "OTP authentication";
-        sendMailService.sendOtp(registerRequestDTO.getEmail(), subject, randomNumber);
+        sendMailService.sendOtp(requestDTO.getEmail(), subject, randomNumber);
         request.getSession().setAttribute("code_register", String.valueOf(randomNumber));
     }
 
-    public Account registerConfirmUser(RegisterConfirmRequestDTO registerConfirmRequestDTO, HttpServletRequest request) {
+    public Account registerConfirmUser(RegisterConfirmRequestDTO requestDTO, HttpServletRequest request) {
         String sessionOtp = (String) request.getSession().getAttribute("code_register");
-
-        if (!registerConfirmRequestDTO.getOtp().equals(sessionOtp)) {
+        if (!requestDTO.getOtp().equals(sessionOtp)) {
             throw new BadRequestException("Invalid OTP!");
         }
-        String role = registerConfirmRequestDTO.getRole();
+        String role = requestDTO.getRole();
         if (!role.equals("customer") && !role.equals("driver")) {
             throw new BadRequestException("Invalid role!");
         }
-
         Account account = new Account();
-        account.setUsername(registerConfirmRequestDTO.getUsername());
-        account.setEmail(registerConfirmRequestDTO.getEmail());
-        account.setPassword(passwordEncoder.encode(registerConfirmRequestDTO.getPassword()));
-        account.setPhone(registerConfirmRequestDTO.getPhone());
+        account.setUsername(requestDTO.getUsername());
+        account.setEmail(requestDTO.getEmail());
+        account.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
+        account.setPhone(requestDTO.getPhone());
         account.setStatus("Active");
         account.setRole(role);
-
         return accountRepository.save(account);
     }
 
-    public Account createNewAccount(RegisterRequestDTO registerRequestDTO) {
-        if (accountRepository.existsByUsername(registerRequestDTO.getUsername())) {
+    public Account createNewAccount(RegisterRequestDTO requestDTO) {
+        if (accountRepository.existsByUsername(requestDTO.getUsername())) {
             throw new BadRequestException("Username already exists!");
         }
-        if (accountRepository.existsByEmail(registerRequestDTO.getEmail())) {
+        if (accountRepository.existsByEmail(requestDTO.getEmail())) {
             throw new BadRequestException("Email already exists!");
         }
         Account account = new Account();
-        account.setUsername(registerRequestDTO.getUsername());
-        account.setPassword(passwordEncoder.encode(registerRequestDTO.getPassword()));
-        account.setPhone(registerRequestDTO.getPhone());
-        account.setRole(registerRequestDTO.getRole());
-        account.setEmail(registerRequestDTO.getEmail());
+        account.setUsername(requestDTO.getUsername());
+        account.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
+        account.setPhone(requestDTO.getPhone());
+        account.setRole(requestDTO.getRole());
+        account.setEmail(requestDTO.getEmail());
         account.setStatus("Active");
         return accountRepository.save(account);
     }
@@ -93,10 +90,10 @@ public class AccountService {
         return account;
     }
 
-    public Account updateProfile(UpdateProfileRequestDTO updateProfileRequestDTO, Integer accountId) {
+    public Account updateProfile(UpdateProfileRequestDTO requestDTO, Integer accountId) {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new BadRequestException("Account does not exist!"));
-        account.setPhone(updateProfileRequestDTO.getPhone());
+        account.setPhone(requestDTO.getPhone());
         accountRepository.save(account);
         return account;
     }
@@ -127,7 +124,6 @@ public class AccountService {
 
     public void forgotPasswordAccountConfirm(ForgotPasswordAccountRequestDTO requestDTO, HttpServletRequest request) {
         String sessionOtp = (String) request.getSession().getAttribute("code_forgot");
-
         if (!requestDTO.getOtp().equals(sessionOtp)) {
             throw new BadRequestException("Invalid OTP!");
         }
@@ -143,7 +139,7 @@ public class AccountService {
     }
 
     public void changePasswordAccount(ChangePasswordRequestDTO request, Integer accountId) {
-        Account account = accountRepository.findAccountByAccountId(accountId);
+        Account account = findAccountByAccountId(accountId);
         if (account == null) {
             throw new NotFoundException("Account not found!");
         }
@@ -161,4 +157,8 @@ public class AccountService {
         return new Random().nextInt(900000) + 100000;
     }
 
+    private Account findAccountByAccountId(Integer accountId){
+        return accountRepository.findAccountByAccountId(accountId)
+                .orElseThrow(() -> new BadRequestException("Account does not exist!"));
+    }
 }

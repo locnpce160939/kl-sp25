@@ -20,25 +20,27 @@ public class AccountController {
     private final AccountService accountService;
 
     @PostMapping("/register/send")
-    public ApiResponse<?> registerSendUser(@Valid @RequestBody RegisterRequestDTO registerRequestDTO, HttpServletRequest request) {
-        accountService.registerSendUser(registerRequestDTO, request);
+    public ApiResponse<?> registerSendUser(@Valid @RequestBody RegisterRequestDTO requestDTO, HttpServletRequest request) {
+        accountService.registerSendUser(requestDTO, request);
         return new ApiResponse<>("Send mail success");
     }
 
     @PostMapping("/register/confirm")
-    public ApiResponse<?> registerConfirmUser(@Valid @RequestBody RegisterConfirmRequestDTO registerConfirmRequestDTO, HttpServletRequest request) {
-        return new ApiResponse<>(accountService.registerConfirmUser(registerConfirmRequestDTO, request));
+    public ApiResponse<?> registerConfirmUser(@Valid @RequestBody RegisterConfirmRequestDTO requestDTO, HttpServletRequest request) {
+        return new ApiResponse<>(accountService.registerConfirmUser(requestDTO, request));
     }
 
     @DeleteMapping("/isDisable/{accountId}")
+    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
     public ApiResponse<?> deleteAccount(@Valid @PathVariable("accountId") Integer accountId) {
         accountService.deleteAccount(accountId);
         return new ApiResponse<>("Delete account success");
     }
 
     @PostMapping("/createAccount")
-    public ApiResponse<?> createNewAccount(@Valid @RequestBody RegisterRequestDTO registerRequestDTO) {
-        return new ApiResponse<>(accountService.createNewAccount(registerRequestDTO));
+    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
+    public ApiResponse<?> createNewAccount(@Valid @RequestBody RegisterRequestDTO requestDTO) {
+        return new ApiResponse<>(accountService.createNewAccount(requestDTO));
     }
 
     @GetMapping("/profile")
@@ -47,35 +49,40 @@ public class AccountController {
     }
 
     @PutMapping("/editProfile")
-    public ApiResponse<?> editProfile(@Valid @RequestBody UpdateProfileRequestDTO updateProfileRequestDTO, @RequestAttribute("accountId") Integer accountId) {
-        return new ApiResponse<>(accountService.updateProfile(updateProfileRequestDTO, accountId));
+    public ApiResponse<?> editProfile(@Valid @RequestBody UpdateProfileRequestDTO requestDTO, @RequestAttribute("accountId") Integer accountId) {
+        return new ApiResponse<>(accountService.updateProfile(requestDTO, accountId));
     }
 
     @GetMapping("/getAllAccount")
+    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
     public ApiResponse<?> getAllAccount() {
         return new ApiResponse<>(accountService.getAllAccounts());
     }
 
     @GetMapping("/getAccount/{accountId}")
+    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
     public ApiResponse<?> getAccount(@PathVariable("accountId") Integer accountId) {
         return new ApiResponse<>(accountService.getAccountById(accountId));
     }
 
     @PostMapping("/forgotSend")
-    public ApiResponse<?> forgotSend(@Valid @RequestBody ForgotPasswordAccountRequestDTO forgotPasswordAccountRequestDTO, HttpServletRequest request) {
-        accountService.forgotPasswordAccountSend(forgotPasswordAccountRequestDTO, request);
+    @PreAuthorize("hasPermission(null, 'CUSTOMER') or hasPermission(null, 'DRIVER')")
+    public ApiResponse<?> forgotSend(@Valid @RequestBody ForgotPasswordAccountRequestDTO requestDTO, HttpServletRequest request) {
+        accountService.forgotPasswordAccountSend(requestDTO, request);
         return new ApiResponse<>("Send mail success");
     }
 
     @PostMapping("/forgotConfirm")
-    public ApiResponse<?> forgotConfirm(@Valid @RequestBody ForgotPasswordAccountRequestDTO forgotPasswordAccountRequestDTO, HttpServletRequest request) {
-        accountService.forgotPasswordAccountConfirm(forgotPasswordAccountRequestDTO, request);
+    @PreAuthorize("hasPermission(null, 'CUSTOMER') or hasPermission(null, 'DRIVER')")
+    public ApiResponse<?> forgotConfirm(@Valid @RequestBody ForgotPasswordAccountRequestDTO requestDTO, HttpServletRequest request) {
+        accountService.forgotPasswordAccountConfirm(requestDTO, request);
         return new ApiResponse<>("Change password success");
     }
 
     @PostMapping("/changePassword")
-    public ApiResponse<?> changePassword(@Valid @RequestBody ChangePasswordRequestDTO changePasswordRequestDTO, @RequestAttribute("accountId") Integer accountId) {
-        accountService.changePasswordAccount(changePasswordRequestDTO, accountId);
+    @PreAuthorize("hasPermission(null, 'CUSTOMER') or hasPermission(null, 'DRIVER')")
+    public ApiResponse<?> changePassword(@Valid @RequestBody ChangePasswordRequestDTO requestDTO, @RequestAttribute("accountId") Integer accountId) {
+        accountService.changePasswordAccount(requestDTO, accountId);
         return new ApiResponse<>("Change password success");
     }
 

@@ -18,26 +18,26 @@ public class ScheduleService {
 
     private final ScheduleRepository scheduleRepository;
 
-    public Schedule createSchedule(ScheduleRequestDTO scheduleRequestDTO, Integer accountId) {
-        validateScheduleDates(scheduleRequestDTO.getStartDate(), scheduleRequestDTO.getEndDate());
+    public Schedule createSchedule(ScheduleRequestDTO requestDTO, Integer accountId) {
+        validateScheduleDates(requestDTO.getStartDate(), requestDTO.getEndDate());
         Schedule schedule = new Schedule();
         schedule.setAccountId(accountId);
-        mapScheduleRequestToEntity(scheduleRequestDTO, schedule);
+        mapScheduleRequestToEntity(requestDTO, schedule);
         schedule.setStatus("Waiting for delivery");
         return scheduleRepository.save(schedule);
     }
 
-    public void updateSchedule(ScheduleRequestDTO scheduleRequestDTO, Integer scheduleId) {
+    public void updateSchedule(ScheduleRequestDTO requestDTO, Integer scheduleId) {
         Schedule schedule = getScheduleById(scheduleId);
-        validateScheduleDates(scheduleRequestDTO.getStartDate(), scheduleRequestDTO.getEndDate());
-        mapScheduleRequestToEntity(scheduleRequestDTO, schedule);
+        validateScheduleDates(requestDTO.getStartDate(), requestDTO.getEndDate());
+        mapScheduleRequestToEntity(requestDTO, schedule);
         schedule.setUpdateAt(LocalDateTime.now());
         scheduleRepository.save(schedule);
     }
 
-    public void updateStatusSchedule(UpdateStatusScheduleRequestDTO updateStatusScheduleRequestDTO, Integer scheduleId) {
+    public void updateStatusSchedule(UpdateStatusScheduleRequestDTO requestDTO, Integer scheduleId) {
         Schedule schedule = getScheduleById(scheduleId);
-        schedule.setStatus(updateStatusScheduleRequestDTO.getStatus());
+        schedule.setStatus(requestDTO.getStatus());
         schedule.setUpdateAt(LocalDateTime.now());
         scheduleRepository.save(schedule);
     }
@@ -85,12 +85,12 @@ public class ScheduleService {
         return schedules;
     }
 
-    private void mapScheduleRequestToEntity(ScheduleRequestDTO scheduleRequestDTO, Schedule schedule) {
-        schedule.setStartLocation(scheduleRequestDTO.getStartLocation());
-        schedule.setEndLocation(scheduleRequestDTO.getEndLocation());
-        schedule.setStartDate(scheduleRequestDTO.getStartDate());
-        schedule.setEndDate(scheduleRequestDTO.getEndDate());
-        schedule.setAvailableCapacity(scheduleRequestDTO.getAvailableCapacity());
+    private void mapScheduleRequestToEntity(ScheduleRequestDTO requestDTO, Schedule schedule) {
+        schedule.setStartLocation(requestDTO.getStartLocation());
+        schedule.setEndLocation(requestDTO.getEndLocation());
+        schedule.setStartDate(requestDTO.getStartDate());
+        schedule.setEndDate(requestDTO.getEndDate());
+        schedule.setAvailableCapacity(requestDTO.getAvailableCapacity());
     }
 
     private void validateScheduleDates(LocalDateTime startDate, LocalDateTime endDate) {
