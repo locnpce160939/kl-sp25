@@ -24,13 +24,13 @@ public class LocationService {
                 .collect(Collectors.toList());
     }
 
-    public List<LocationDto> getDistrictsByProvince(String provinceCode) {
+    public List<LocationDto> getDistrictsByProvince(Integer provinceCode) {
         return districtRepository.findByProvinceCode(provinceCode).stream()
                 .map(district -> new LocationDto(district.getCode(), district.getFullName()))
                 .collect(Collectors.toList());
     }
 
-    public List<LocationDto> getWardsByDistrict(String districtCode) {
+    public List<LocationDto> getWardsByDistrict(Integer districtCode) {
         return wardRepository.findByDistrictCode(districtCode).stream()
                 .map(ward -> new LocationDto(ward.getCode(), ward.getFullName()))
                 .collect(Collectors.toList());

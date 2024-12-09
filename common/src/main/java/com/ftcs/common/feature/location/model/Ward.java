@@ -18,7 +18,7 @@ public class Ward {
 
     @Id
     @Column(name = "Code", nullable = false, length = 20)
-    private String code;
+    private Integer code;
 
     @Column(name = "Name", nullable = false, length = 255)
     private String name;
@@ -36,7 +36,7 @@ public class Ward {
     private String codeName;
 
     @Column(name = "DistrictCode", length = 20)
-    private String districtCode;
+    private Integer districtCode;
 
     @Column(name = "AdministrativeUnitId")
     private Integer administrativeUnitId;

@@ -22,12 +22,12 @@ public class LocationController {
     }
 
     @GetMapping("/districts/{provinceCode}")
-    public ApiResponse<?> getDistrictsByProvince(@PathVariable("provinceCode") String provinceCode) {
+    public ApiResponse<?> getDistrictsByProvince(@PathVariable("provinceCode") Integer provinceCode) {
         return new ApiResponse<>(locationService.getDistrictsByProvince(provinceCode));
     }
 
     @GetMapping("/wards/{districtCode}")
-    public ApiResponse<?> getWardsByDistrictAndProvince(@PathVariable("districtCode") String districtCode) {
+    public ApiResponse<?> getWardsByDistrictAndProvince(@PathVariable("districtCode") Integer districtCode) {
         return new ApiResponse<>(locationService.getWardsByDistrict(districtCode));
     }
 }

@@ -8,6 +8,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class LocationDto {
-    private String code;
+    private Integer code;
     private String fullName;
 }

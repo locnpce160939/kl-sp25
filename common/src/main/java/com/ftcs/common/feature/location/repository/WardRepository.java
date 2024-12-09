@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface WardRepository extends JpaRepository<Ward, String> {
-    List<Ward> findByDistrictCode(String districtCode);
+public interface WardRepository extends JpaRepository<Ward, Integer> {
+    List<Ward> findByDistrictCode(Integer districtCode);
 }

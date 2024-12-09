@@ -18,7 +18,7 @@ public class Province {
 
     @Id
     @Column(name = "Code", nullable = false, length = 20)
-    private String code;
+    private Integer code;
 
     @Column(name = "Name", nullable = false, length = 255)
     private String name;
