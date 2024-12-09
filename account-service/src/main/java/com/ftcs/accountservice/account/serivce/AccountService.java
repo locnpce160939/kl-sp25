@@ -7,7 +7,7 @@ import com.ftcs.authservice.features.account.Account;
 import com.ftcs.authservice.features.account.AccountRepository;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.common.exception.NotFoundException;
-import com.ftcs.common.feature.service.SendMailService;
+import com.ftcs.common.service.SendMailService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
