@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface DistrictRepository extends JpaRepository<District, Integer> {
     List<District> findByProvinceCode(Integer provinceCode);
+    boolean existsByCodeAndProvinceCode(Integer districtCode, Integer provinceCode);
 }
