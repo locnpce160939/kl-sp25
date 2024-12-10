@@ -16,7 +16,8 @@
 		<module>account-service</module>
 		<module>transportation-service</module>
         <module>rate-and-review-service</module>
-    </modules>
+		<module>register-driver</module>
+	</modules>
 
 	<properties>
 		<maven.compiler.source>17</maven.compiler.source>
