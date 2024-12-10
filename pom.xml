@@ -16,7 +16,6 @@
 		<module>account-service</module>
 		<module>transportation-service</module>
         <module>rate-and-review-service</module>
-		<module>register-driver</module>
 	</modules>
 
 	<properties>
