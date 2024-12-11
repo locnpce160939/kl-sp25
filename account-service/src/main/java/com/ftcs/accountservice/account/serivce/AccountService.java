@@ -30,7 +30,7 @@ public class AccountService {
         if (accountRepository.existsByEmail(requestDTO.getEmail())) {
             throw new BadRequestException("Email Exists!");
         }
-        if (!requestDTO.getRole().equals("customer") && !requestDTO.getRole().equals("driver")) {
+        if (!requestDTO.getRole().equals("CUSTOMER") && !requestDTO.getRole().equals("DRIVER")) {
             throw new BadRequestException("Invalid role!");
 
         }
@@ -46,7 +46,7 @@ public class AccountService {
             throw new BadRequestException("Invalid OTP!");
         }
         String role = requestDTO.getRole();
-        if (!role.equals("customer") && !role.equals("driver")) {
+        if (!role.equals("CUSTOMER") && !role.equals("DRIVER")) {
             throw new BadRequestException("Invalid role!");
         }
         Account account = new Account();
