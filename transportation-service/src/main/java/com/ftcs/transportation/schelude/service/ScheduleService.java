@@ -20,12 +20,23 @@ public class ScheduleService {
 
     public Schedule createSchedule(ScheduleRequestDTO requestDTO, Integer accountId) {
         validateScheduleDates(requestDTO.getStartDate(), requestDTO.getEndDate());
+        List<Schedule> schedules = scheduleRepository.findAllByAccountId(accountId);
+
+        if (!schedules.isEmpty()) {
+            Schedule latestSchedule = schedules.stream()
+                    .max((s1, s2) -> s1.getEndDate().compareTo(s2.getEndDate()))
+                    .orElseThrow(() -> new BadRequestException("Unable to find latest schedule."));
+            if (!requestDTO.getStartDate().isAfter(latestSchedule.getEndDate().plusDays(1))) {
+                throw new BadRequestException("The new schedule must start at least one day after the last schedule's end date.");
+            }
+        }
         Schedule schedule = new Schedule();
         schedule.setAccountId(accountId);
         mapScheduleRequestToEntity(requestDTO, schedule);
         schedule.setStatus("Waiting for delivery");
         return scheduleRepository.save(schedule);
     }
+
 
     public void updateSchedule(ScheduleRequestDTO requestDTO, Integer scheduleId) {
         Schedule schedule = getScheduleById(scheduleId);
