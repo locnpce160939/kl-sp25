@@ -66,14 +66,12 @@ public class AccountController {
     }
 
     @PostMapping("/forgotSend")
-    @PreAuthorize("hasPermission(null, 'CUSTOMER') or hasPermission(null, 'DRIVER')")
     public ApiResponse<?> forgotSend(@Valid @RequestBody ForgotPasswordAccountRequestDTO requestDTO, HttpServletRequest request) {
         accountService.forgotPasswordAccountSend(requestDTO, request);
         return new ApiResponse<>("Send mail success");
     }
 
     @PostMapping("/forgotConfirm")
-    @PreAuthorize("hasPermission(null, 'CUSTOMER') or hasPermission(null, 'DRIVER')")
     public ApiResponse<?> forgotConfirm(@Valid @RequestBody ForgotPasswordAccountRequestDTO requestDTO, HttpServletRequest request) {
         accountService.forgotPasswordAccountConfirm(requestDTO, request);
         return new ApiResponse<>("Change password success");

@@ -56,6 +56,8 @@ public class SecurityConfig {
             "/api/account/reset-password",
             "/api/account/reset-password/**",
             "/api/account/register/**",
+            "/api/account/forgotSend",
+            "/api/account/forgotConfirm",
     };
 
     private final LogoutHandler logoutHandler;
