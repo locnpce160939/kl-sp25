@@ -43,7 +43,7 @@ public class VehicleDriverService {
         vehicleRepository.save(vehicle);
     }
 
-    private Vehicle findVehicleByVehicleId(Integer vehicleId) {
+    public Vehicle findVehicleByVehicleId(Integer vehicleId) {
         return vehicleRepository.findVehicleByVehicleId(vehicleId)
                 .orElseThrow(() -> new BadRequestException("Vehicle not found"));
     }

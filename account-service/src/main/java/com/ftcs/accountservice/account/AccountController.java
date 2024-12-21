@@ -78,7 +78,6 @@ public class AccountController {
     }
 
     @PostMapping("/changePassword")
-    @PreAuthorize("hasPermission(null, 'CUSTOMER') or hasPermission(null, 'DRIVER')")
     public ApiResponse<?> changePassword(@Valid @RequestBody ChangePasswordRequestDTO requestDTO, @RequestAttribute("accountId") Integer accountId) {
         accountService.changePasswordAccount(requestDTO, accountId);
         return new ApiResponse<>("Change password success");

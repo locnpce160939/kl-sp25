@@ -3,7 +3,6 @@ package com.ftcs.accountservice.customer.address.service;
 import com.ftcs.accountservice.customer.address.dto.AddressRequestDTO;
 import com.ftcs.accountservice.customer.address.model.Address;
 import com.ftcs.accountservice.customer.address.repository.AddressRepository;
-import com.ftcs.accountservice.driver.identification.model.AddressDriver;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.common.feature.location.model.District;
 import com.ftcs.common.feature.location.model.Ward;

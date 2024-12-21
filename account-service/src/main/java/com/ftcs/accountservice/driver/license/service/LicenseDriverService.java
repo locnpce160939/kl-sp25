@@ -22,7 +22,7 @@ public class LicenseDriverService {
         licenseRepository.save(license);
     }
 
-    private License findLicenseByLicenseId(Integer licenseId) {
+    public License findLicenseByLicenseId(Integer licenseId) {
         return licenseRepository.findLicenseByLicenseId(licenseId)
                 .orElseThrow(() -> new BadRequestException("License not found"));
     }

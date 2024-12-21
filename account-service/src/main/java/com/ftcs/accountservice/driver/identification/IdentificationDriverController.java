@@ -32,4 +32,11 @@ public class IdentificationDriverController {
         identificationDriverService.updateDriverIdentification(requestDTO, driverIdentificationId, accountId);
         return new ApiResponse<>("Updated driver identification successfully");
     }
+
+    @GetMapping("/getById/{id}")
+    @PreAuthorize("hasPermission(null, 'DRIVER')")
+    public ApiResponse<?> getById(@PathVariable("id") Integer id) {
+        identificationDriverService.findDriverIdentificationByDriverIdentificationId(id);
+        return new ApiResponse<>("Found driver identification successfully");
+    }
 }

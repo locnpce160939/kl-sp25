@@ -48,6 +48,12 @@ public class ScheduleController {
         List<Schedule> schedules = scheduleService.getAllSchedulesByAccountId(accountId);
         return new ApiResponse<>(schedules);
     }
+    @GetMapping("/getScheduleByToken")
+    @PreAuthorize("hasPermission(null, 'DRIVER')")
+    public ApiResponse<List<Schedule>> getAllSchedulesByAccountIdOfDriver(@RequestAttribute("accountId") Integer accountId) {
+        List<Schedule> schedules = scheduleService.getAllSchedulesByAccountIdOfDriver(accountId);
+        return new ApiResponse<>(schedules);
+    }
 
     @GetMapping("/all")
     @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
