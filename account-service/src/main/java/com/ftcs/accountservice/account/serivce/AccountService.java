@@ -20,19 +20,12 @@ import java.util.Random;
 public class AccountService {
     private AccountRepository accountRepository;
     private SendMailService sendMailService;
-
     private final PasswordEncoder passwordEncoder;
 
     public void registerSendUser(RegisterRequestDTO requestDTO, HttpServletRequest request) {
-        if (accountRepository.existsByUsername(requestDTO.getUsername())) {
-            throw new BadRequestException("Username Exists!");
-        }
-        if (accountRepository.existsByEmail(requestDTO.getEmail())) {
-            throw new BadRequestException("Email Exists!");
-        }
+        isExistingAccount(requestDTO);
         if (!requestDTO.getRole().equals("CUSTOMER") && !requestDTO.getRole().equals("DRIVER")) {
             throw new BadRequestException("Invalid role!");
-
         }
         int randomNumber = generateOtpCode();
         String subject = "OTP authentication";
@@ -60,12 +53,7 @@ public class AccountService {
     }
 
     public Account createNewAccount(RegisterRequestDTO requestDTO) {
-        if (accountRepository.existsByUsername(requestDTO.getUsername())) {
-            throw new BadRequestException("Username already exists!");
-        }
-        if (accountRepository.existsByEmail(requestDTO.getEmail())) {
-            throw new BadRequestException("Email already exists!");
-        }
+        isExistingAccount(requestDTO);
         Account account = new Account();
         account.setUsername(requestDTO.getUsername());
         account.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
@@ -133,6 +121,8 @@ public class AccountService {
         Account account = accountRepository.findAccountByEmail(requestDTO.getEmail());
         if (account == null) {
             throw new NotFoundException("Account not found!");
+        }else if (!account.getRole().equals("CUSTOMER") && !account.getRole().equals("DRIVER")) {
+            throw new BadRequestException("Invalid role!");
         }
         account.setPassword(passwordEncoder.encode(requestDTO.getNewPassword()));
         accountRepository.save(account);
@@ -160,5 +150,14 @@ public class AccountService {
     private Account findAccountByAccountId(Integer accountId){
         return accountRepository.findAccountByAccountId(accountId)
                 .orElseThrow(() -> new BadRequestException("Account does not exist!"));
+    }
+
+    private void isExistingAccount(RegisterRequestDTO requestDTO) {
+        if (accountRepository.existsByUsername(requestDTO.getUsername())) {
+            throw new BadRequestException("Username Exists!");
+        }
+        if (accountRepository.existsByEmail(requestDTO.getEmail())) {
+            throw new BadRequestException("Email Exists!");
+        }
     }
 }

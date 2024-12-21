@@ -33,4 +33,11 @@ public class VehicleDriverController {
         return new ApiResponse<>("Updated vehicle successfully");
     }
 
+    @GetMapping("/getById/{vehicleId}")
+    @PreAuthorize("hasPermission(null, 'DRIVER')")
+    public ApiResponse<?> getVehicleById(@PathVariable("vehicleId") Integer vehicleId) {
+        vehicleDriverService.findVehicleByVehicleId(vehicleId);
+        return new ApiResponse<>("Vehicle successfully found");
+    }
+
 }

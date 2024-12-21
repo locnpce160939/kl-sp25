@@ -89,4 +89,16 @@ public class TripBookingsController {
         tripBookingsService.confirmCompleteDelivery(requestDTO, role, bookingId);
         return new ApiResponse<>("Trip booking confirmed delivery successfully");
     }
+
+    @GetMapping("/getByAccountId")
+    @PreAuthorize("hasPermission(null, 'CUSTOMER')")
+    public ApiResponse<List<TripBookings>> getByAccountId(@RequestAttribute("accountId") Integer accountId) {
+        return new ApiResponse<>(tripBookingsService.getTripBookingsByAccountId(accountId));
+    }
+
+    @GetMapping("/getByAccountId/{accountId}")
+    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
+    public ApiResponse<List<TripBookings>> getByAccountIdOfAdminRole(@PathVariable("accountId") Integer accountId) {
+        return new ApiResponse<>(tripBookingsService.getTripBookingsByAccountIdOfAdminRole(accountId));
+    }
 }

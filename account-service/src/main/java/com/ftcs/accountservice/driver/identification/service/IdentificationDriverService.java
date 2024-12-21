@@ -88,18 +88,15 @@ public class IdentificationDriverService {
     public void updateAddressDriver(Integer addressDriverId, AddressDriverRequestDTO addressDTO) {
         AddressDriver existingAddress = addressDriverRepository.findById(addressDriverId)
                 .orElseThrow(() -> new RuntimeException("Address not found"));
-
         existingAddress.setStreetAddress(addressDTO.getStreetAddress());
         existingAddress.setWardId(addressDTO.getWardId());
         existingAddress.setDistrictId(addressDTO.getDistrictId());
         existingAddress.setProvinceId(addressDTO.getProvinceId());
-
         addressDriverRepository.save(existingAddress);
     }
 
     public Integer addAddressDriver(AddressDriverRequestDTO addressDTO) {
         validateAddressCodes(addressDTO.getWardId(), addressDTO.getDistrictId(), addressDTO.getProvinceId());
-
         AddressDriver newAddress = AddressDriver.builder()
                 .streetAddress(addressDTO.getStreetAddress())
                 .wardId(addressDTO.getWardId())
@@ -107,12 +104,11 @@ public class IdentificationDriverService {
                 .provinceId(addressDTO.getProvinceId())
                 .addressType(addressDTO.getAddressType())
                 .build();
-
         AddressDriver savedAddress = addressDriverRepository.save(newAddress);
         return savedAddress.getAddressDriverId();
     }
 
-    private DriverIdentification findDriverIdentificationByDriverIdentificationId(Integer driverIdentificationId) {
+    public DriverIdentification findDriverIdentificationByDriverIdentificationId(Integer driverIdentificationId) {
         return driverIdentificationRepository.findDriverIdentificationByDriverIdentificationId(driverIdentificationId)
                 .orElseThrow(() -> new BadRequestException("Driver Identification not found"));
     }
@@ -148,6 +144,4 @@ public class IdentificationDriverService {
             throw new BadRequestException("Ward ID " + wardId + " does not belong to District ID " + districtId);
         }
     }
-
-
 }

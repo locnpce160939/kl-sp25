@@ -61,6 +61,14 @@ public class ScheduleService {
         return schedules;
     }
 
+    public List<Schedule> getAllSchedulesByAccountIdOfDriver(Integer accountId) {
+        List<Schedule> schedules = scheduleRepository.findAllByAccountId(accountId);
+        if (schedules == null || schedules.isEmpty()) {
+            throw new BadRequestException("No schedules found for the specified account.");
+        }
+        return schedules;
+    }
+
     public Schedule getScheduleById(Integer scheduleId) {
         return scheduleRepository.findScheduleByScheduleId(scheduleId)
                 .orElseThrow(() -> new BadRequestException("Schedule does not exist"));

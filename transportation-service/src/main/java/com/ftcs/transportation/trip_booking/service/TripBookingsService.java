@@ -21,7 +21,6 @@ public class TripBookingsService {
 
     public TripBookings createTripBookings(TripBookingsRequestDTO requestDTO, Integer accountId) {
         validateExpirationDate(requestDTO);
-
         TripBookings tripBookings = new TripBookings();
         tripBookings.setAccountId(accountId);
         mapRequestToTripBookings(requestDTO, tripBookings);
@@ -29,6 +28,7 @@ public class TripBookingsService {
     }
 
     public void updateTripBookings(TripBookingsRequestDTO requestDTO, Integer bookingId) {
+        validateExpirationDate(requestDTO);
         TripBookings tripBookings = findTripBookingsById(bookingId);
         mapRequestToTripBookings(requestDTO, tripBookings);
         tripBookingsRepository.save(tripBookings);
@@ -57,6 +57,8 @@ public class TripBookingsService {
         TripBookings tripBookings = findTripBookingsById(bookingId);
         if (tripBookings.getStatus().equals("Arranging driver")) {
             handleDriverStatusUpdate(requestDTO, accountId, tripBookings);
+        }else{
+            throw new BadRequestException("Trip bookings status is not arranged");
         }
     }
 
@@ -102,6 +104,14 @@ public class TripBookingsService {
         } else if (isCustomerConfirmingCompletion(role, tripBookings, requestDTO)) {
             completeOrder(tripBookings);
         }
+    }
+
+    public List<TripBookings> getTripBookingsByAccountId(Integer accountId) {
+        return tripBookingsRepository.findAllByAccountId(accountId);
+    }
+
+    public List<TripBookings> getTripBookingsByAccountIdOfAdminRole(Integer accountId) {
+        return tripBookingsRepository.findAllByAccountId(accountId);
     }
 
     private boolean isDriverConfirmingDelivery(String role, TripBookings tripBookings) {
