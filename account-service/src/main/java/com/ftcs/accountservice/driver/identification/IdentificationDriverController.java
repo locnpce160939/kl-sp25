@@ -33,10 +33,9 @@ public class IdentificationDriverController {
         return new ApiResponse<>("Updated driver identification successfully");
     }
 
-    @GetMapping("/getById/{id}")
+    @GetMapping("/identification/getById/{driverIdentificationId}")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
-    public ApiResponse<?> getById(@PathVariable("id") Integer id) {
-        identificationDriverService.findDriverIdentificationByDriverIdentificationId(id);
-        return new ApiResponse<>("Found driver identification successfully");
+    public ApiResponse<?> getById(@PathVariable("driverIdentificationId") Integer driverIdentificationId) {
+        return new ApiResponse<>(identificationDriverService.findDriverIdentificationByDriverIdentificationId(driverIdentificationId));
     }
 }

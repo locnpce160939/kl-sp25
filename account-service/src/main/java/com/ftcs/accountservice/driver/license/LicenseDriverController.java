@@ -33,11 +33,10 @@ public class LicenseDriverController {
         return new ApiResponse<>("Updated license successfully");
     }
 
-    @GetMapping("/getById/{licenseId}")
+    @GetMapping("/license/getById/{licenseId}")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
     public ApiResponse<?> getLicenseById(@PathVariable("licenseId") Integer licenseId) {
-        licenseDriverService.findLicenseByLicenseId(licenseId);
-        return new ApiResponse<>("License successfully");
+        return new ApiResponse<>(licenseDriverService.findLicenseByLicenseId(licenseId));
     }
 
 }
