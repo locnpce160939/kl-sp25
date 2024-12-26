@@ -38,4 +38,10 @@ public class IdentificationDriverController {
     public ApiResponse<?> getById(@PathVariable("driverIdentificationId") Integer driverIdentificationId) {
         return new ApiResponse<>(identificationDriverService.findDriverIdentificationByDriverIdentificationId(driverIdentificationId));
     }
+
+    @GetMapping("/identification/getByAccountId")
+    @PreAuthorize("hasPermission(null, 'DRIVER')")
+    public ApiResponse<?> getByAccountId(@RequestAttribute("accountId") Integer accountId) {
+        return new ApiResponse<>(identificationDriverService.findDriverIdentificationByAccountId(accountId));
+    }
 }

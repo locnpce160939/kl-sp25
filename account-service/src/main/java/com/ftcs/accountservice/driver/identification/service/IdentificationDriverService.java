@@ -1,7 +1,9 @@
 package com.ftcs.accountservice.driver.identification.service;
 
 import com.ftcs.accountservice.driver.identification.dto.AddressDriverRequestDTO;
+import com.ftcs.accountservice.driver.identification.dto.AddressDriverResponseDTO;
 import com.ftcs.accountservice.driver.identification.dto.DriverIdentificationRequestDTO;
+import com.ftcs.accountservice.driver.identification.dto.DriverIdentificationResponseDTO;
 import com.ftcs.accountservice.driver.identification.model.AddressDriver;
 import com.ftcs.accountservice.driver.identification.model.DriverIdentification;
 import com.ftcs.accountservice.driver.identification.repository.AddressDriverRepository;
@@ -29,7 +31,7 @@ public class IdentificationDriverService {
 
     public void addDriverIdentification(DriverIdentificationRequestDTO requestDTO, Integer accountId) {
         if (driverIdentificationRepository.existsByAccountId(accountId)) {
-            throw new BadRequestException("Account already has a driver identification.");
+            throw new BadRequestException("Account already has a driver identification");
         }
         Integer permanentAddressId = addAddressDriver(createAddressDriverRequestDTO(requestDTO, "Permanent Address", true));
         Integer temporaryAddressId = addAddressDriver(createAddressDriverRequestDTO(requestDTO, "Temporary Address", false));
@@ -86,6 +88,7 @@ public class IdentificationDriverService {
     }
 
     public void updateAddressDriver(Integer addressDriverId, AddressDriverRequestDTO addressDTO) {
+        validateAddressCodes(addressDTO.getWardId(), addressDTO.getDistrictId(), addressDTO.getProvinceId());
         AddressDriver existingAddress = addressDriverRepository.findById(addressDriverId)
                 .orElseThrow(() -> new RuntimeException("Address not found"));
         existingAddress.setStreetAddress(addressDTO.getStreetAddress());
@@ -113,6 +116,50 @@ public class IdentificationDriverService {
                 .orElseThrow(() -> new BadRequestException("Driver Identification not found"));
     }
 
+    public DriverIdentificationResponseDTO findDriverIdentificationByAccountId(Integer accountId) {
+        DriverIdentification identification = driverIdentificationRepository.findDriverIdentificationByAccountId(accountId)
+                .orElseThrow(() -> new BadRequestException("Driver Identification not found"));
+
+        AddressDriverResponseDTO permanentAddressDTO = null;
+        AddressDriverResponseDTO temporaryAddressDTO = null;
+
+        if (identification.getPermanentAddress() != null) {
+            AddressDriver permanentAddress = addressDriverRepository.findById(identification.getPermanentAddress())
+                    .orElseThrow(() -> new RuntimeException("Permanent Address not found"));
+            permanentAddressDTO = mapToAddressDriverResponseDTO(permanentAddress);
+        }
+
+        if (identification.getTemporaryAddress() != null) {
+            AddressDriver temporaryAddress = addressDriverRepository.findById(identification.getTemporaryAddress())
+                    .orElseThrow(() -> new RuntimeException("Temporary Address not found"));
+            temporaryAddressDTO = mapToAddressDriverResponseDTO(temporaryAddress);
+        }
+
+        return DriverIdentificationResponseDTO.builder()
+                .driverIdentificationId(identification.getDriverIdentificationId())
+                .accountId(identification.getAccountId())
+                .idNumber(identification.getIdNumber())
+                .status(identification.getStatus())
+                .issueDate(identification.getIssueDate())
+                .expiryDate(identification.getExpiryDate())
+                .issuedBy(identification.getIssuedBy())
+                .isVerified(identification.getIsVerified())
+                .permanentAddress(permanentAddressDTO)
+                .temporaryAddress(temporaryAddressDTO)
+                .build();
+    }
+
+    private AddressDriverResponseDTO mapToAddressDriverResponseDTO(AddressDriver addressDriver) {
+        return AddressDriverResponseDTO.builder()
+                .addressDriverId(addressDriver.getAddressDriverId())
+                .streetAddress(addressDriver.getStreetAddress())
+                .wardId(addressDriver.getWardId())
+                .districtId(addressDriver.getDistrictId())
+                .provinceId(addressDriver.getProvinceId())
+                .addressType(addressDriver.getAddressType())
+                .build();
+    }
+
     private void validateAccountOwnership(Integer accountId, DriverIdentification identification) {
         if (!identification.getAccountId().equals(accountId)) {
             throw new BadRequestException("This driver identification does not belong to the specified account.");
@@ -127,7 +174,6 @@ public class IdentificationDriverService {
         if (!districtRepository.existsById(districtId)) {
             throw new BadRequestException("Invalid District ID: " + districtId);
         }
-
         District district = districtRepository.findById(districtId)
                 .orElseThrow(() -> new BadRequestException("District ID " + districtId + " does not belong to any Province"));
         if (!district.getProvinceCode().equals(provinceId)) {

@@ -15,7 +15,7 @@
 		<module>auth-service</module>
 		<module>account-service</module>
 		<module>transportation-service</module>
-        <module>rate-and-review-service</module>
+        <module>rating-service</module>
 	</modules>
 
 	<properties>

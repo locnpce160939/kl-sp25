@@ -46,7 +46,7 @@
         </dependency>
         <dependency>
             <groupId>com.ftcs</groupId>
-            <artifactId>rate-and-review-service</artifactId>
+            <artifactId>rating-service</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>

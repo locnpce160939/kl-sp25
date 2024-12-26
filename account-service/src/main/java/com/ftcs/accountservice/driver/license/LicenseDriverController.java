@@ -39,4 +39,10 @@ public class LicenseDriverController {
         return new ApiResponse<>(licenseDriverService.findLicenseByLicenseId(licenseId));
     }
 
+    @GetMapping("/license/getByAccountId")
+    @PreAuthorize("hasPermission(null, 'DRIVER')")
+    public ApiResponse<?> getLicenseByAccountId(@RequestAttribute("accountId") Integer accountId) {
+        return new ApiResponse<>(licenseDriverService.findLicenseByAccountId(accountId));
+    }
+
 }

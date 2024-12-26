@@ -9,7 +9,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>rate-and-review-service</artifactId>
+    <artifactId>rating-service</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

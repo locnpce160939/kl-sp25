@@ -39,4 +39,10 @@ public class VehicleDriverController {
         return new ApiResponse<>(vehicleDriverService.findVehicleByVehicleId(vehicleId));
     }
 
+    @GetMapping("/vehicle/getByAccountId")
+    @PreAuthorize("hasPermission(null, 'DRIVER')")
+    public ApiResponse<?> getVehicleByAccountId(@RequestAttribute("accountId") Integer accountId) {
+        return new ApiResponse<>(vehicleDriverService.findVehicleByAccountId(accountId));
+    }
+
 }

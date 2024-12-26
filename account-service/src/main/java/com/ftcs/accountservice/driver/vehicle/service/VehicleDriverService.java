@@ -48,6 +48,11 @@ public class VehicleDriverService {
                 .orElseThrow(() -> new BadRequestException("Vehicle not found"));
     }
 
+    public Vehicle findVehicleByAccountId(Integer accountId) {
+        return vehicleRepository.findVehicleByAccountId(accountId)
+                .orElseThrow(() -> new BadRequestException("Vehicle not found"));
+    }
+
     private void updateVehicleDetails(Vehicle vehicle, VehicleRequestDTO requestDTO) {
         vehicle.setLicensePlate(requestDTO.getLicensePlate());
         vehicle.setVehicleType(requestDTO.getVehicleType());
