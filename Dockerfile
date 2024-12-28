@@ -8,7 +8,7 @@ COPY main/pom.xml main/pom.xml
 COPY auth-service/pom.xml auth-service/pom.xml
 COPY account-service/pom.xml account-service/pom.xml
 COPY transportation-service/pom.xml transportation-service/pom.xml
-COPY rate-and-review-service/pom.xml rate-and-review-service/pom.xml
+COPY rating-service/pom.xml rating-service/pom.xml
 COPY common/pom.xml common/pom.xml
 
 # Resolve Maven dependencies
