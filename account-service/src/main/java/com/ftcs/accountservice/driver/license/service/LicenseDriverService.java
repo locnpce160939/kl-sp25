@@ -22,6 +22,13 @@ public class LicenseDriverService {
         licenseRepository.save(license);
     }
 
+    public void updateLicenseByAccountId(Integer accountId, LicenseRequestDTO requestDTO) {
+        License license = findLicenseByAccountId(accountId);
+        validateAccountOwnership(accountId, license);
+        updateLicenseDetails(license, requestDTO);
+        licenseRepository.save(license);
+    }
+
     public License findLicenseByLicenseId(Integer licenseId) {
         return licenseRepository.findLicenseByLicenseId(licenseId)
                 .orElseThrow(() -> new BadRequestException("License not found"));

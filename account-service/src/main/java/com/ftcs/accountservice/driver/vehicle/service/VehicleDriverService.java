@@ -43,6 +43,13 @@ public class VehicleDriverService {
         vehicleRepository.save(vehicle);
     }
 
+    public void updateVehicleByAccountId(Integer accountId, VehicleRequestDTO requestDTO) {
+        Vehicle vehicle = findVehicleByAccountId(accountId);
+        validateAccountOwnership(accountId, vehicle);
+        updateVehicleDetails(vehicle, requestDTO);
+        vehicleRepository.save(vehicle);
+    }
+
     public Vehicle findVehicleByVehicleId(Integer vehicleId) {
         return vehicleRepository.findVehicleByVehicleId(vehicleId)
                 .orElseThrow(() -> new BadRequestException("Vehicle not found"));

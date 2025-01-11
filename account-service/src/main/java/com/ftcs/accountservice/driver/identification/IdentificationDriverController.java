@@ -33,6 +33,14 @@ public class IdentificationDriverController {
         return new ApiResponse<>("Updated driver identification successfully");
     }
 
+    @PutMapping("/updateDriverIdentification")
+    @PreAuthorize("hasPermission(null, 'DRIVER')")
+    public ApiResponse<?> updateDriverIdentificationByAccountId(@Valid @RequestBody DriverIdentificationRequestDTO requestDTO,
+                                                     @RequestAttribute("accountId") Integer accountId) {
+        identificationDriverService.updateDriverIdentificationByAccountId(requestDTO, accountId);
+        return new ApiResponse<>("Updated driver identification successfully");
+    }
+
     @GetMapping("/identification/getById/{driverIdentificationId}")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
     public ApiResponse<?> getById(@PathVariable("driverIdentificationId") Integer driverIdentificationId) {

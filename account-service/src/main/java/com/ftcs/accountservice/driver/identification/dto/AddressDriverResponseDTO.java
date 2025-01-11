@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 public class AddressDriverResponseDTO {
     private Integer addressDriverId;
     private String streetAddress;
-    private Integer wardId;
-    private Integer districtId;
-    private Integer provinceId;
+    private String wardName;
+    private String districtName;
+    private String provinceName;
     private String addressType;
 }

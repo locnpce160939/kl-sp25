@@ -11,6 +11,9 @@ import com.ftcs.common.exception.BadRequestException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 @AllArgsConstructor
 public class VerificationDriverService {
@@ -45,19 +48,30 @@ public class VerificationDriverService {
         }
     }
 
-    public void validateRequiredInformation(Integer accountId) {
+    public List<String> validateRequiredInformation(Integer accountId) {
         boolean hasLicense = licenseRepository.existsByAccountId(accountId);
         boolean hasVehicle = vehicleRepository.existsByAccountId(accountId);
         boolean hasDriverIdentification = driverIdentificationRepository.existsByAccountId(accountId);
-        if (!hasLicense && !hasVehicle && !hasDriverIdentification) {
-            throw new BadRequestException("You must provide all information: License, Vehicle, and Driver Identification.");
+
+        List<String> errorMessages = new ArrayList<>();
+
+        if (!hasLicense) {
+            errorMessages.add("You must provide a License.");
         }
-        if (hasLicense) {
-            throw new BadRequestException("You already have a license.");
+        if (!hasVehicle) {
+            errorMessages.add("You must provide a Vehicle.");
         }
-        if (hasVehicle) {
-            throw new BadRequestException("You already have a vehicle.");
+        if (!hasDriverIdentification) {
+            errorMessages.add("You must provide a Driver Identification.");
         }
-        throw new BadRequestException("You already have a driver identification.");
+
+        if (hasLicense && hasVehicle && hasDriverIdentification) {
+            errorMessages.add("You already have a license.");
+            errorMessages.add("You already have a vehicle.");
+            errorMessages.add("You already have a driver identification.");
+        }
+
+        return errorMessages;
     }
+
 }

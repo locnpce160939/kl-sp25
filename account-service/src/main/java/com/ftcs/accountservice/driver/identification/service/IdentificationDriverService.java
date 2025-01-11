@@ -77,6 +77,25 @@ public class IdentificationDriverService {
         driverIdentificationRepository.save(identification);
     }
 
+    public void updateDriverIdentificationByAccountId(DriverIdentificationRequestDTO requestDTO, Integer accountId) {
+
+        DriverIdentification identification = findDriverIdentificationByAccountIdOptional(accountId);
+        validateAccountOwnership(accountId, identification);
+
+        Integer permanentAddressId = identification.getPermanentAddress();
+        Integer temporaryAddressId = identification.getTemporaryAddress();
+
+        if (permanentAddressId != null) {
+            updateAddressDriver(permanentAddressId, createAddressDriverRequestDTO(requestDTO, "Permanent Address", true));
+        }
+        if (temporaryAddressId != null) {
+            updateAddressDriver(temporaryAddressId, createAddressDriverRequestDTO(requestDTO, "Temporary Address", false));
+        }
+
+        updateDriverIdentificationDetails(identification, requestDTO, permanentAddressId, temporaryAddressId);
+        driverIdentificationRepository.save(identification);
+    }
+
     private AddressDriverRequestDTO createAddressDriverRequestDTO(DriverIdentificationRequestDTO requestDTO, String addressType, boolean isPermanent) {
         return new AddressDriverRequestDTO(
                 isPermanent ? requestDTO.getPermanentAddressWard() : requestDTO.getTemporaryAddressWard(),
@@ -116,6 +135,11 @@ public class IdentificationDriverService {
                 .orElseThrow(() -> new BadRequestException("Driver Identification not found"));
     }
 
+    public DriverIdentification findDriverIdentificationByAccountIdOptional(Integer accountId) {
+        return driverIdentificationRepository.findDriverIdentificationByAccountId(accountId)
+                .orElseThrow(() -> new BadRequestException("Driver Identification not found"));
+    }
+
     public DriverIdentificationResponseDTO findDriverIdentificationByAccountId(Integer accountId) {
         DriverIdentification identification = driverIdentificationRepository.findDriverIdentificationByAccountId(accountId)
                 .orElseThrow(() -> new BadRequestException("Driver Identification not found"));
@@ -126,13 +150,13 @@ public class IdentificationDriverService {
         if (identification.getPermanentAddress() != null) {
             AddressDriver permanentAddress = addressDriverRepository.findById(identification.getPermanentAddress())
                     .orElseThrow(() -> new RuntimeException("Permanent Address not found"));
-            permanentAddressDTO = mapToAddressDriverResponseDTO(permanentAddress);
+            permanentAddressDTO = mapToAddressDriverResponseDTOWithName(permanentAddress);
         }
 
         if (identification.getTemporaryAddress() != null) {
             AddressDriver temporaryAddress = addressDriverRepository.findById(identification.getTemporaryAddress())
                     .orElseThrow(() -> new RuntimeException("Temporary Address not found"));
-            temporaryAddressDTO = mapToAddressDriverResponseDTO(temporaryAddress);
+            temporaryAddressDTO = mapToAddressDriverResponseDTOWithName(temporaryAddress);
         }
 
         return DriverIdentificationResponseDTO.builder()
@@ -149,16 +173,29 @@ public class IdentificationDriverService {
                 .build();
     }
 
-    private AddressDriverResponseDTO mapToAddressDriverResponseDTO(AddressDriver addressDriver) {
+    private AddressDriverResponseDTO mapToAddressDriverResponseDTOWithName(AddressDriver addressDriver) {
+        String wardName = wardRepository.findById(addressDriver.getWardId())
+                .map(Ward::getName)
+                .orElseThrow(() -> new RuntimeException("Ward not found for ID: " + addressDriver.getWardId()));
+
+        String districtName = districtRepository.findById(addressDriver.getDistrictId())
+                .map(District::getName)
+                .orElseThrow(() -> new RuntimeException("District not found for ID: " + addressDriver.getDistrictId()));
+
+        String provinceName = provinceRepository.findById(addressDriver.getProvinceId())
+                .map(province -> province.getName())
+                .orElseThrow(() -> new RuntimeException("Province not found for ID: " + addressDriver.getProvinceId()));
+
         return AddressDriverResponseDTO.builder()
                 .addressDriverId(addressDriver.getAddressDriverId())
                 .streetAddress(addressDriver.getStreetAddress())
-                .wardId(addressDriver.getWardId())
-                .districtId(addressDriver.getDistrictId())
-                .provinceId(addressDriver.getProvinceId())
+                .wardName(wardName)
+                .districtName(districtName)
+                .provinceName(provinceName)
                 .addressType(addressDriver.getAddressType())
                 .build();
     }
+
 
     private void validateAccountOwnership(Integer accountId, DriverIdentification identification) {
         if (!identification.getAccountId().equals(accountId)) {

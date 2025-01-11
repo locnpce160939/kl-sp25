@@ -33,6 +33,14 @@ public class VehicleDriverController {
         return new ApiResponse<>("Updated vehicle successfully");
     }
 
+    @PutMapping("/updateVehicle")
+    @PreAuthorize("hasPermission(null, 'DRIVER')")
+    public ApiResponse<?> updateVehicleByAccountId(@Valid @RequestBody VehicleRequestDTO requestDTO,
+                                        @RequestAttribute("accountId") Integer accountId) {
+        vehicleDriverService.updateVehicleByAccountId(accountId, requestDTO);
+        return new ApiResponse<>("Updated vehicle successfully");
+    }
+
     @GetMapping("/vehicle/getById/{vehicleId}")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
     public ApiResponse<?> getVehicleById(@PathVariable("vehicleId") Integer vehicleId) {
