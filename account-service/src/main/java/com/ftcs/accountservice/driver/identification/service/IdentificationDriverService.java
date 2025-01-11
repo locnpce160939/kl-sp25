@@ -1,19 +1,18 @@
 package com.ftcs.accountservice.driver.identification.service;
 
-import com.ftcs.accountservice.driver.identification.dto.AddressDriverRequestDTO;
-import com.ftcs.accountservice.driver.identification.dto.AddressDriverResponseDTO;
-import com.ftcs.accountservice.driver.identification.dto.DriverIdentificationRequestDTO;
-import com.ftcs.accountservice.driver.identification.dto.DriverIdentificationResponseDTO;
+import com.ftcs.accountservice.driver.identification.dto.*;
 import com.ftcs.accountservice.driver.identification.model.AddressDriver;
 import com.ftcs.accountservice.driver.identification.model.DriverIdentification;
 import com.ftcs.accountservice.driver.identification.repository.AddressDriverRepository;
 import com.ftcs.accountservice.driver.identification.repository.DriverIdentificationRepository;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.common.feature.location.model.District;
+import com.ftcs.common.feature.location.model.Province;
 import com.ftcs.common.feature.location.model.Ward;
 import com.ftcs.common.feature.location.repository.DistrictRepository;
 import com.ftcs.common.feature.location.repository.ProvinceRepository;
 import com.ftcs.common.feature.location.repository.WardRepository;
+import com.ftcs.common.feature.location.service.LocationService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +27,9 @@ public class IdentificationDriverService {
     private final ProvinceRepository provinceRepository;
     private final DistrictRepository districtRepository;
     private final WardRepository wardRepository;
+
+    private final LocationService locationService;
+
 
     public void addDriverIdentification(DriverIdentificationRequestDTO requestDTO, Integer accountId) {
         if (driverIdentificationRepository.existsByAccountId(accountId)) {
@@ -174,27 +176,32 @@ public class IdentificationDriverService {
     }
 
     private AddressDriverResponseDTO mapToAddressDriverResponseDTOWithName(AddressDriver addressDriver) {
-        String wardName = wardRepository.findById(addressDriver.getWardId())
-                .map(Ward::getName)
-                .orElseThrow(() -> new RuntimeException("Ward not found for ID: " + addressDriver.getWardId()));
+        Province province = provinceRepository.findById(addressDriver.getProvinceId())
+                .orElseThrow(() -> new RuntimeException("Province not found for ID: " + addressDriver.getProvinceId()));
 
-        String districtName = districtRepository.findById(addressDriver.getDistrictId())
-                .map(District::getName)
+        AddressDriverLocationDTO provinceLocation = new AddressDriverLocationDTO(province.getCode(), province.getName(), locationService.getProvinces());
+
+        District district = districtRepository.findById(addressDriver.getDistrictId())
                 .orElseThrow(() -> new RuntimeException("District not found for ID: " + addressDriver.getDistrictId()));
 
-        String provinceName = provinceRepository.findById(addressDriver.getProvinceId())
-                .map(province -> province.getName())
-                .orElseThrow(() -> new RuntimeException("Province not found for ID: " + addressDriver.getProvinceId()));
+        AddressDriverLocationDTO districtLocation = new AddressDriverLocationDTO(district.getCode(), district.getName(), locationService.getDistrictsByProvince(province.getCode()));
+
+        Ward ward = wardRepository.findById(addressDriver.getWardId())
+                .orElseThrow(() -> new RuntimeException("Ward not found for ID: " + addressDriver.getWardId()));
+
+        AddressDriverLocationDTO wardLocation = new AddressDriverLocationDTO(ward.getCode(), ward.getName(), locationService.getWardsByDistrict(district.getCode()));
 
         return AddressDriverResponseDTO.builder()
                 .addressDriverId(addressDriver.getAddressDriverId())
                 .streetAddress(addressDriver.getStreetAddress())
-                .wardName(wardName)
-                .districtName(districtName)
-                .provinceName(provinceName)
+                .ward(wardLocation)
+                .district(districtLocation)
+                .province(provinceLocation)
                 .addressType(addressDriver.getAddressType())
                 .build();
     }
+
+
 
 
     private void validateAccountOwnership(Integer accountId, DriverIdentification identification) {
