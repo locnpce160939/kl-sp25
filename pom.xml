@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.ftcs</groupId>
+	<artifactId>ftcs-be</artifactId>
+	<packaging>pom</packaging>
+	<version>1.0-SNAPSHOT</version>
+
+	<modules>
+		<module>main</module>
+		<module>common</module>
+		<module>auth-service</module>
+		<module>account-service</module>
+		<module>transportation-service</module>
+        <module>rating-service</module>
+	</modules>
+
+	<properties>
+		<maven.compiler.source>17</maven.compiler.source>
+		<maven.compiler.target>17</maven.compiler.target>
+		<spring.boot.maven.plugin.version>3.2.4</spring.boot.maven.plugin.version>
+		<spring.boot.dependencies.version>3.2.4</spring.boot.dependencies.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<image>ftcs/${project.artifactId}:${project.version}</image>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-dependencies</artifactId>
+				<version>${spring.boot.dependencies.version}</version>
+				<scope>import</scope>
+				<type>pom</type>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-aop</artifactId>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-devtools</artifactId>
+				<scope>runtime</scope><!-- -->
+				<optional>true</optional>
+				<version>3.3.4</version>
+			</dependency>
+			<dependency>
+				<groupId>com.ftcs</groupId>
+				<artifactId>main</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.ftcs</groupId>
+				<artifactId>core</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.ftcs</groupId>
+				<artifactId>auth-service</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.ftcs</groupId>
+				<artifactId>account-service</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.ftcs</groupId>
+				<artifactId>transportation-service</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+</project>
