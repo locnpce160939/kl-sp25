@@ -57,6 +57,7 @@ public class IdentificationDriverService {
         identification.setExpiryDate(requestDTO.getExpiryDate());
         identification.setIssuedBy(requestDTO.getIssuedBy());
         identification.setUpdateAt(LocalDateTime.now());
+        identification.setIsVerified(false);
     }
 
     public void updateDriverIdentification(DriverIdentificationRequestDTO requestDTO, Integer driverIdentificationId, Integer accountId) {

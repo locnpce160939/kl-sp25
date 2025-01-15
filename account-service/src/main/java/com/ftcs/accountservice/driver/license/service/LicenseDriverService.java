@@ -46,6 +46,7 @@ public class LicenseDriverService {
         license.setExpiryDate(requestDTO.getExpiryDate());
         license.setIssuingAuthority(requestDTO.getIssuingAuthority());
         license.setUpdateAt(LocalDateTime.now());
+        license.setIsVerified(false);
     }
 
     public void createNewLicense(LicenseRequestDTO requestDTO, Integer accountId) {

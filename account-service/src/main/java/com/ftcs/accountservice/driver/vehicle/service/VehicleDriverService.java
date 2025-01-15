@@ -71,6 +71,7 @@ public class VehicleDriverService {
         vehicle.setInsuranceStatus(requestDTO.getInsuranceStatus());
         vehicle.setRegistrationExpiryDate(requestDTO.getRegistrationExpiryDate());
         vehicle.setUpdateAt(LocalDateTime.now());
+        vehicle.setIsVerified(false);
     }
 
     public void validateAccountOwnership(Integer accountId, Vehicle vehicle) {
