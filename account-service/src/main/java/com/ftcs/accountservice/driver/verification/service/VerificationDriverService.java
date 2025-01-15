@@ -23,6 +23,7 @@ public class VerificationDriverService {
     private final VehicleRepository vehicleRepository;
 
     public void updateVerificationStatus(Integer accountId, VerifiedDocumentRequestDTO requestDTO) {
+        // Update License Verification
         License license = licenseRepository.findLicenseByAccountId(accountId)
                 .orElseThrow(() -> new BadRequestException("License not found for the specified account."));
         if (requestDTO.getLicenseVerified() != null) {
@@ -31,14 +32,20 @@ public class VerificationDriverService {
             licenseRepository.save(license);
         }
 
-        Vehicle vehicle = vehicleRepository.findVehicleByAccountId(accountId)
-                .orElseThrow(() -> new BadRequestException("Vehicle not found for the specified account."));
+        // Update Vehicle Verifications
+        List<Vehicle> vehicles = vehicleRepository.findVehiclesByAccountId(accountId);
+        if (vehicles.isEmpty()) {
+            throw new BadRequestException("No vehicles found for the specified account.");
+        }
         if (requestDTO.getVehicleVerified() != null) {
-            vehicle.setIsVerified(requestDTO.getVehicleVerified());
-            vehicle.setStatus(requestDTO.getStatus());
-            vehicleRepository.save(vehicle);
+            for (Vehicle vehicle : vehicles) {
+                vehicle.setIsVerified(requestDTO.getVehicleVerified());
+                vehicle.setStatus(requestDTO.getStatus());
+            }
+            vehicleRepository.saveAll(vehicles);
         }
 
+        // Update Driver Identification Verification
         DriverIdentification identification = driverIdentificationRepository.findDriverIdentificationByAccountId(accountId)
                 .orElseThrow(() -> new BadRequestException("Driver Identification not found for the specified account."));
         if (requestDTO.getDriverIdentificationVerified() != null) {
@@ -50,7 +57,7 @@ public class VerificationDriverService {
 
     public List<String> validateRequiredInformation(Integer accountId) {
         boolean hasLicense = licenseRepository.existsByAccountId(accountId);
-        boolean hasVehicle = vehicleRepository.existsByAccountId(accountId);
+        boolean hasVehicles = vehicleRepository.existsByAccountId(accountId);
         boolean hasDriverIdentification = driverIdentificationRepository.existsByAccountId(accountId);
 
         List<String> errorMessages = new ArrayList<>();
@@ -58,20 +65,19 @@ public class VerificationDriverService {
         if (!hasLicense) {
             errorMessages.add("You must provide a License.");
         }
-        if (!hasVehicle) {
-            errorMessages.add("You must provide a Vehicle.");
+        if (!hasVehicles) {
+            errorMessages.add("You must provide at least one Vehicle.");
         }
         if (!hasDriverIdentification) {
             errorMessages.add("You must provide a Driver Identification.");
         }
 
-        if (hasLicense && hasVehicle && hasDriverIdentification) {
+        if (hasLicense && hasVehicles && hasDriverIdentification) {
             errorMessages.add("You already have a license.");
-            errorMessages.add("You already have a vehicle.");
+            errorMessages.add("You already have vehicles.");
             errorMessages.add("You already have a driver identification.");
         }
 
         return errorMessages;
     }
-
 }
