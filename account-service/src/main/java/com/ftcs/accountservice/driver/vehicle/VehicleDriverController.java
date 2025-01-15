@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(AccountURL.DRIVER_REGISTER)
@@ -33,12 +35,12 @@ public class VehicleDriverController {
         return new ApiResponse<>("Updated vehicle successfully");
     }
 
-    @PutMapping("/updateVehicle")
+    @PutMapping("/updateVehicles")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
-    public ApiResponse<?> updateVehicleByAccountId(@Valid @RequestBody VehicleRequestDTO requestDTO,
-                                        @RequestAttribute("accountId") Integer accountId) {
-        vehicleDriverService.updateVehicleByAccountId(accountId, requestDTO);
-        return new ApiResponse<>("Updated vehicle successfully");
+    public ApiResponse<?> updateVehiclesByAccountId(@Valid @RequestBody List<VehicleRequestDTO> requestDTOs,
+                                                    @RequestAttribute("accountId") Integer accountId) {
+        vehicleDriverService.updateVehiclesByAccountId(accountId, requestDTOs);
+        return new ApiResponse<>("Updated vehicles successfully");
     }
 
     @GetMapping("/vehicle/getById/{vehicleId}")
@@ -47,10 +49,9 @@ public class VehicleDriverController {
         return new ApiResponse<>(vehicleDriverService.findVehicleByVehicleId(vehicleId));
     }
 
-    @GetMapping("/vehicle/getByAccountId")
+    @GetMapping("/vehicles/getByAccountId")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
-    public ApiResponse<?> getVehicleByAccountId(@RequestAttribute("accountId") Integer accountId) {
-        return new ApiResponse<>(vehicleDriverService.findVehicleByAccountId(accountId));
+    public ApiResponse<?> getVehiclesByAccountId(@RequestAttribute("accountId") Integer accountId) {
+        return new ApiResponse<>(vehicleDriverService.findVehiclesByAccountId(accountId));
     }
-
 }

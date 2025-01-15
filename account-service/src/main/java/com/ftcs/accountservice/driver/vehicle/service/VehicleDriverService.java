@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -16,9 +17,6 @@ public class VehicleDriverService {
     private final VehicleRepository vehicleRepository;
 
     public void createNewVehicle(VehicleRequestDTO requestDTO, Integer accountId) {
-        if (vehicleRepository.existsByAccountId(accountId)) {
-            throw new BadRequestException("Account already has a vehicle.");
-        }
         Vehicle newVehicle = Vehicle.builder()
                 .accountId(accountId)
                 .licensePlate(requestDTO.getLicensePlate())
@@ -43,11 +41,12 @@ public class VehicleDriverService {
         vehicleRepository.save(vehicle);
     }
 
-    public void updateVehicleByAccountId(Integer accountId, VehicleRequestDTO requestDTO) {
-        Vehicle vehicle = findVehicleByAccountId(accountId);
-        validateAccountOwnership(accountId, vehicle);
-        updateVehicleDetails(vehicle, requestDTO);
-        vehicleRepository.save(vehicle);
+    public List<Vehicle> findVehiclesByAccountId(Integer accountId) {
+        List<Vehicle> vehicles = vehicleRepository.findVehiclesByAccountId(accountId);
+        if (vehicles.isEmpty()) {
+            throw new BadRequestException("No vehicles found for this account.");
+        }
+        return vehicles;
     }
 
     public Vehicle findVehicleByVehicleId(Integer vehicleId) {
@@ -55,9 +54,14 @@ public class VehicleDriverService {
                 .orElseThrow(() -> new BadRequestException("Vehicle not found"));
     }
 
-    public Vehicle findVehicleByAccountId(Integer accountId) {
-        return vehicleRepository.findVehicleByAccountId(accountId)
-                .orElseThrow(() -> new BadRequestException("Vehicle not found"));
+    public void updateVehiclesByAccountId(Integer accountId, List<VehicleRequestDTO> requestDTOs) {
+        List<Vehicle> vehicles = findVehiclesByAccountId(accountId);
+        for (int i = 0; i < vehicles.size(); i++) {
+            Vehicle vehicle = vehicles.get(i);
+            VehicleRequestDTO requestDTO = requestDTOs.get(i);
+            updateVehicleDetails(vehicle, requestDTO);
+        }
+        vehicleRepository.saveAll(vehicles);
     }
 
     private void updateVehicleDetails(Vehicle vehicle, VehicleRequestDTO requestDTO) {
@@ -79,5 +83,4 @@ public class VehicleDriverService {
             throw new BadRequestException("This vehicle does not belong to the specified account.");
         }
     }
-
 }
