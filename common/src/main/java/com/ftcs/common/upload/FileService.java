@@ -16,14 +16,18 @@ import java.util.function.Consumer;
 @Log4j2
 public class FileService {
     private final FileUploadLocal fileUploadLocal;
+    private final FileUploadInternalMinio internalMinio;
+
 
     public FileService(
-            FileUploadLocal fileUploadLocal) {
+            FileUploadLocal fileUploadLocal, FileUploadInternalMinio internalMinio) {
         this.fileUploadLocal = fileUploadLocal;
+        this.internalMinio = internalMinio;
+        internalMinio.initInternalMinIOConfig();
     }
 
     @Async
-    public void processFileAsync(
+    public CompletableFuture<Void> processFileAsync(
             MultipartFile file,
             String fileName,
             FolderEnum folderEnum,
@@ -32,19 +36,28 @@ public class FileService {
     ) {
         String finalFileName = generateUniqueFileName(fileName);
 
-        final var localAsyncTask = CompletableFuture.runAsync(() ->
-                fileUploadLocal.upload(finalFileName, folderEnum.getLocalPath(), file)
-        );
-        localAsyncTask.thenRun(() -> {
-            callback.accept(finalFileName);
+//        final var localAsyncTask = CompletableFuture.runAsync(() ->
+//                fileUploadLocal.upload(finalFileName, folderEnum.getLocalPath(), file)
+//        );
+        final var internalAsyncTask = CompletableFuture.runAsync(() ->
+                internalMinio.upload(finalFileName, folderEnum.getFolderName(), file));
+
+        return CompletableFuture.allOf(internalAsyncTask).thenRun(() -> {
+            callback.accept(internalMinio.getUrlFile());
+            log.info(internalMinio.getUrlFile());
             System.gc();
         });
     }
 
 
     @Async
-    public void processDeleteFile(String fileName, FolderEnum folderEnum) {
-        fileUploadLocal.delete(fileName, folderEnum.getLocalPath());
+    public void processDeleteFile(String fileName, FolderEnum bucketEnum) {
+        fileUploadLocal.delete(fileName, bucketEnum.getLocalPath());
+        internalMinio.delete(fileName, bucketEnum.getFolderName());
+    }
+
+    public byte[] downloadFile(String fileName, FolderEnum bucketEnum) {
+        return internalMinio.download(fileName, bucketEnum.getFolderName());
     }
 
     public String generateUniqueFileName(String originalFileName) {

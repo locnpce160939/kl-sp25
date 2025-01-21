@@ -37,7 +37,7 @@ public class FileController {
                 uploadedFileName -> log.info("File uploaded successfully: {}", uploadedFileName)
         );
 
-        return ResponseEntity.ok("File upload started for: " + originalFileName);
+        return ResponseEntity.ok("Upload success");
     }
 
     /**
