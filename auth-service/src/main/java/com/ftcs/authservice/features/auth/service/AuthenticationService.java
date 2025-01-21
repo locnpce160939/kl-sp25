@@ -39,6 +39,9 @@ public class AuthenticationService {
             String accessToken = jwtService.generateToken(AccountDto.mapToAccountDto(account));
             return AuthenticationResponse.builder()
                     .accessToken(accessToken)
+                    .userId(account.getAccountId())
+                    .username(account.getUsername())
+                    .role(account.getRole())
                     .build();
         }
     }

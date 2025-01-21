@@ -1,0 +1,20 @@
+package com.ftcs.accountservice.driver.management.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@AllArgsConstructor
+public class DriverIdentityDTO {
+    private String driverIDNumber;
+    private String permanentAddress;
+    private String temporaryAddress;
+    private LocalDateTime driverIDIssueDate;
+    private LocalDateTime driverIDExpiryDate;
+    private String driverIDIssuedBy;
+    private Boolean driverIDVerified;
+}

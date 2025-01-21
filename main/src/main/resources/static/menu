@@ -1,0 +1,25 @@
+{
+    "dashboard": {
+        "id": "group-dashboard",
+        "title": "dashboard",
+        "type": "group",
+        "icon": "dashboard",
+        "children": [
+            {
+                "id": "dashboard",
+                "title": "dashboard",
+                "type": "collapse",
+                "icon": "dashboard",
+                "children": [
+                    {
+                        "id": "default",
+                        "title": "default",
+                        "type": "item",
+                        "url": "/dashboard/default",
+                        "breadcrumbs": false
+                    }
+                ]
+            }
+        ]
+    }
+}
