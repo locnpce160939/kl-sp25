@@ -27,6 +27,18 @@ public class DriverIdentification {
     @Column(name = "IDNumber", length = 50, nullable = false)
     private String idNumber;
 
+    @Column(name = "FullName", length = 50, nullable = false)
+    private String fullName;
+
+    @Column(name = "Gender", length = 50, nullable = false)
+    private String gender;
+
+    @Column(name = "Birthday", nullable = false)
+    private LocalDateTime birthday;
+
+    @Column(name = "Country", length = 50, nullable = false)
+    private String country;
+
     @Column(name = "Status", length = 50)
     private String status;
 

@@ -53,6 +53,10 @@ public class IdentificationDriverService {
 
     private void updateDriverIdentificationDetails(DriverIdentification identification, DriverIdentificationRequestDTO requestDTO, Integer permanentAddressId, Integer temporaryAddressId) {
         identification.setIdNumber(requestDTO.getIdNumber());
+        identification.setFullName(requestDTO.getFullName());
+        identification.setGender(requestDTO.getGender());
+        identification.setBirthday(requestDTO.getBirthday());
+        identification.setCountry(requestDTO.getCountry());
         identification.setPermanentAddress(permanentAddressId);
         identification.setTemporaryAddress(temporaryAddressId);
         identification.setIssueDate(requestDTO.getIssueDate());

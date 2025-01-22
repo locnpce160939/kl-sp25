@@ -29,6 +29,10 @@ public class DriverMapper {
                         driver.getAccountStatus(),
                         new DriverIdentityDTO(
                                 driver.getDriverIDNumber(),
+                                driver.getDriverFullName(),
+                                driver.getDriverGender(),
+                                driver.getDriverBirthday(),
+                                driver.getDriverCountry(),
                                 driver.getPermanentAddress(),
                                 driver.getTemporaryAddress(),
                                 driver.getDriverIDIssueDate(),

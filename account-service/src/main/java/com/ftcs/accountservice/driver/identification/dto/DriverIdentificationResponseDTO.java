@@ -14,6 +14,10 @@ import java.time.LocalDateTime;
 public class DriverIdentificationResponseDTO {
     private Integer driverIdentificationId;
     private Integer accountId;
+    private String fullName;
+    private String gender;
+    private LocalDateTime birthday;
+    private String country;
     private String idNumber;
     private String status;
     private LocalDateTime issueDate;
