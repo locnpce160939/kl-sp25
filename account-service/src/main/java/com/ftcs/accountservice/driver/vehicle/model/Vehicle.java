@@ -60,6 +60,12 @@ public class Vehicle {
     @Column(name = "IsVerified")
     private Boolean isVerified;
 
+    @Column(name = "FrontView")
+    private String frontView;
+
+    @Column(name = "BackView")
+    private String backView;
+
     @CreationTimestamp
     @Column(name = "CreateAt", updatable = false)
     private LocalDateTime createAt;
