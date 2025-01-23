@@ -22,7 +22,6 @@ public class DriverIdentificationRequestDTO {
     @NotBlank(message = "Gender must not be null or empty")
     private String gender;
 
-    @NotBlank(message = "Birthday must not be null or empty")
     private LocalDateTime birthday;
 
     @NotBlank(message = "Country must not be null or empty")
