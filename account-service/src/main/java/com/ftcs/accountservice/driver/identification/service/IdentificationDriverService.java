@@ -168,6 +168,10 @@ public class IdentificationDriverService {
 
         return DriverIdentificationResponseDTO.builder()
                 .driverIdentificationId(identification.getDriverIdentificationId())
+                .fullName(identification.getFullName())
+                .gender(identification.getGender())
+                .birthday(identification.getBirthday())
+                .country(identification.getCountry())
                 .accountId(identification.getAccountId())
                 .idNumber(identification.getIdNumber())
                 .status(identification.getStatus())
