@@ -4,10 +4,12 @@ import com.ftcs.accountservice.AccountURL;
 import com.ftcs.accountservice.driver.vehicle.dto.VehicleRequestDTO;
 import com.ftcs.accountservice.driver.vehicle.service.VehicleDriverService;
 import com.ftcs.common.dto.ApiResponse;
+import com.ftcs.common.upload.FolderEnum;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -20,18 +22,24 @@ public class VehicleDriverController {
 
     @PostMapping("/createNewVehicle")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
-    public ApiResponse<?> createNewVehicle(@Valid @RequestBody VehicleRequestDTO requestDTO,
-                                           @RequestAttribute("accountId") Integer accountId) {
-        vehicleDriverService.createNewVehicle(requestDTO, accountId);
+    public ApiResponse<?> createNewVehicle(@RequestParam("requestDTO") String requestDTOJson,
+                                           @RequestParam("frontFile") MultipartFile frontFile,
+                                           @RequestParam("backFile") MultipartFile backFile,
+                                           @RequestAttribute("accountId") Integer accountId,
+                                           @RequestParam("folder") FolderEnum folderEnum) {
+        vehicleDriverService.createNewVehicle(requestDTOJson, accountId, frontFile, backFile, folderEnum);
         return new ApiResponse<>("Created vehicle successfully");
     }
 
     @PutMapping("/updateVehicle/{vehicleId}")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
-    public ApiResponse<?> updateVehicle(@Valid @RequestBody VehicleRequestDTO requestDTO,
+    public ApiResponse<?> updateVehicle(@RequestParam("requestDTO") String requestDTOJson,
+                                        @RequestParam(value = "frontFile", required = false) MultipartFile frontFile,
+                                        @RequestParam(value = "backFile", required = false) MultipartFile backFile,
+                                        @RequestParam(value = "folder", required = false) FolderEnum folderEnum,
                                         @RequestAttribute("accountId") Integer accountId,
                                         @PathVariable("vehicleId") Integer vehicleId) {
-        vehicleDriverService.updateVehicle(accountId, requestDTO, vehicleId);
+        vehicleDriverService.updateVehicle(accountId, requestDTOJson, vehicleId, frontFile, backFile, folderEnum);
         return new ApiResponse<>("Updated vehicle successfully");
     }
 

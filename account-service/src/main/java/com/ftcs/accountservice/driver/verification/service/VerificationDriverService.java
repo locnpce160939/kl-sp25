@@ -33,8 +33,10 @@ public class VerificationDriverService {
     private void updateLicenseVerification(Integer accountId, VerifiedDocumentRequestDTO requestDTO) {
         License license = licenseRepository.findLicenseByAccountId(accountId)
                 .orElseThrow(() -> new BadRequestException("License not found for the specified account."));
-        Optional.ofNullable(requestDTO.getLicenseVerified()).ifPresent(verified -> {
-            license.setStatus(requestDTO.getLicenseVerified());
+        //Optional.ofNullable(requestDTO.getLicenseVerified()).ifPresent(verified -> {
+        //    license.setStatus(requestDTO.getLicenseVerified());
+        if (requestDTO.getLicenseVerified() != null) {
+            license.setStatus(requestDTO.getStatus());
             licenseRepository.save(license);
         });
     }
@@ -44,10 +46,14 @@ public class VerificationDriverService {
         if (vehicles.isEmpty()) {
             throw new BadRequestException("No vehicles found for the specified account.");
         }
-        Optional.ofNullable(requestDTO.getVehicleVerified()).ifPresent(verified -> {
-            vehicles.forEach(vehicle -> {
-                vehicle.setStatus(requestDTO.getVehicleVerified());
-            });
+       // Optional.ofNullable(requestDTO.getVehicleVerified()).ifPresent(verified -> {
+       //     vehicles.forEach(vehicle -> {
+       //         vehicle.setStatus(requestDTO.getVehicleVerified());
+       //    });
+        if (requestDTO.getVehicleVerified() != null) {
+            for (Vehicle vehicle : vehicles) {
+                vehicle.setStatus(requestDTO.getStatus());
+            }
             vehicleRepository.saveAll(vehicles);
         });
     }

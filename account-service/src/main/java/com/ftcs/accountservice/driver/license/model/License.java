@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Table(name = "License", schema = "dbo")
 public class License {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "LicenseId", nullable = false)
@@ -46,6 +45,12 @@ public class License {
 
     @Column(name = "Notes", length = 255)
     private String notes;
+
+    @Column(name = "FrontView")
+    private String frontView;
+
+    @Column(name = "BackView")
+    private String backView;
 
     @CreationTimestamp
     @Column(name = "CreateAt", updatable = false)

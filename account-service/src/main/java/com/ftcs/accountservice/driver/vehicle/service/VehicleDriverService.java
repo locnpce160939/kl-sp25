@@ -1,23 +1,72 @@
 package com.ftcs.accountservice.driver.vehicle.service;
 
 import com.ftcs.accountservice.driver.shared.StatusDocumentType;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ftcs.accountservice.driver.vehicle.dto.VehicleRequestDTO;
 import com.ftcs.accountservice.driver.vehicle.model.Vehicle;
 import com.ftcs.accountservice.driver.vehicle.repository.VehicleRepository;
 import com.ftcs.common.exception.BadRequestException;
+import com.ftcs.common.upload.FileService;
+import com.ftcs.common.upload.FolderEnum;
 import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @AllArgsConstructor
+@Log4j2
 public class VehicleDriverService {
 
     private final VehicleRepository vehicleRepository;
+    private final FileService fileService;
 
-    public void createNewVehicle(VehicleRequestDTO requestDTO, Integer accountId) {
+    public void createNewVehicle(String requestDTOJson, Integer accountId, MultipartFile frontFile,
+                                 MultipartFile backFile, FolderEnum folderEnum) {
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.findAndRegisterModules();
+        VehicleRequestDTO requestDTO;
+        try {
+            requestDTO = objectMapper.readValue(requestDTOJson, VehicleRequestDTO.class);
+        } catch (JsonProcessingException e) {
+            throw new BadRequestException("Invalid JSON in requestDTO");
+        }
+
+        String frontOriginalFileName = frontFile.getOriginalFilename();
+        if (frontOriginalFileName == null) {
+            throw new BadRequestException("Invalid front file name");
+        }
+
+        String backOriginalFileName = backFile.getOriginalFilename();
+        if (backOriginalFileName == null) {
+            throw new BadRequestException("Invalid back file name");
+        }
+
+        CompletableFuture<Void> frontUploadTask = fileService.processFileAsync(
+                frontFile,
+                frontOriginalFileName,
+                folderEnum,
+                frontUrl -> log.info("Front file uploaded successfully: {}", frontUrl)
+        );
+
+        CompletableFuture<Void> backUploadTask = fileService.processFileAsync(
+                backFile,
+                backOriginalFileName,
+                folderEnum,
+                backUrl -> log.info("Back file uploaded successfully: {}", backUrl)
+        );
+
+        CompletableFuture.allOf(frontUploadTask, backUploadTask).join();
+
+        String frontViewUrl = fileService.getInternalMinio().getUrlFile();
+        String backViewUrl = fileService.getInternalMinio().getUrlFile();
+
         Vehicle newVehicle = Vehicle.builder()
                 .accountId(accountId)
                 .licensePlate(requestDTO.getLicensePlate())
@@ -30,15 +79,76 @@ public class VehicleDriverService {
                 .status(StatusDocumentType.NEW)
                 .insuranceStatus(requestDTO.getInsuranceStatus())
                 .registrationExpiryDate(requestDTO.getRegistrationExpiryDate())
+                .frontView(frontViewUrl)
+                .backView(backViewUrl)
                 .build();
         vehicleRepository.save(newVehicle);
+        log.info("Vehicle created successfully for accountId: {}, frontView: {}, backView: {}",
+                accountId, frontViewUrl, backViewUrl);
     }
 
-    public void updateVehicle(Integer accountId, VehicleRequestDTO requestDTO, Integer vehicleId) {
+    public void updateVehicle(Integer accountId, String requestDTOJson, Integer vehicleId,
+                              MultipartFile frontFile, MultipartFile backFile, FolderEnum folderEnum) {
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.findAndRegisterModules();
+        VehicleRequestDTO requestDTO;
+        try {
+            requestDTO = objectMapper.readValue(requestDTOJson, VehicleRequestDTO.class);
+        } catch (JsonProcessingException e) {
+            throw new BadRequestException("Invalid JSON in requestDTO");
+        }
+
         Vehicle vehicle = findVehicleByVehicleId(vehicleId);
         validateAccountOwnership(accountId, vehicle);
+        String[] frontViewUrl = new String[1];
+        String[] backViewUrl = new String[1];
+
+        if (frontFile != null) {
+            String frontOriginalFileName = frontFile.getOriginalFilename();
+            if (frontOriginalFileName == null) {
+                throw new BadRequestException("Invalid front file name");
+            }
+
+            CompletableFuture<Void> frontUploadTask = fileService.processFileAsync(
+                    frontFile,
+                    frontOriginalFileName,
+                    folderEnum,
+                    frontUrl -> {
+                        log.info("Front file uploaded successfully: {}", frontUrl);
+                        frontViewUrl[0] = frontUrl;
+                    }
+            );
+
+            frontUploadTask.join();
+        }
+
+        if (backFile != null) {
+            String backOriginalFileName = backFile.getOriginalFilename();
+            if (backOriginalFileName == null) {
+                throw new BadRequestException("Invalid back file name");
+            }
+
+            CompletableFuture<Void> backUploadTask = fileService.processFileAsync(
+                    backFile,
+                    backOriginalFileName,
+                    folderEnum,
+                    backUrl -> {
+                        log.info("Back file uploaded successfully: {}", backUrl);
+                        backViewUrl[0] = backUrl;
+                    }
+            );
+
+            backUploadTask.join();
+        }
+
         updateVehicleDetails(vehicle, requestDTO);
+        vehicle.setFrontView(frontViewUrl[0]);
+        vehicle.setBackView(backViewUrl[0]);
+
         vehicleRepository.save(vehicle);
+        log.info("Vehicle updated successfully for accountId: {}, frontView: {}, backView: {}",
+                accountId, frontViewUrl[0], backViewUrl[0]);
     }
 
     public List<Vehicle> findVehiclesByAccountId(Integer accountId) {
