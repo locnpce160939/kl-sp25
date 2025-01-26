@@ -36,9 +36,9 @@ public class VerificationDriverService {
         //Optional.ofNullable(requestDTO.getLicenseVerified()).ifPresent(verified -> {
         //    license.setStatus(requestDTO.getLicenseVerified());
         if (requestDTO.getLicenseVerified() != null) {
-            license.setStatus(requestDTO.getStatus());
+            license.setStatus(requestDTO.getLicenseVerified());
             licenseRepository.save(license);
-        });
+        }
     }
 
     private void updateVehicleVerification(Integer accountId, VerifiedDocumentRequestDTO requestDTO) {
@@ -52,10 +52,10 @@ public class VerificationDriverService {
        //    });
         if (requestDTO.getVehicleVerified() != null) {
             for (Vehicle vehicle : vehicles) {
-                vehicle.setStatus(requestDTO.getStatus());
+                vehicle.setStatus(requestDTO.getLicenseVerified());
             }
             vehicleRepository.saveAll(vehicles);
-        });
+        }
     }
 
     private void updateDriverIdentificationVerification(Integer accountId, VerifiedDocumentRequestDTO requestDTO) {

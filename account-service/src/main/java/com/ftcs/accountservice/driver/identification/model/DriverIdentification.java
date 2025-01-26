@@ -59,6 +59,12 @@ public class DriverIdentification {
     @Column(name = "IssuedBy", length = 100)
     private String issuedBy;
 
+    @Column(name = "FrontView")
+    private String frontView;
+
+    @Column(name = "BackView")
+    private String backView;
+
     @CreationTimestamp
     @Column(name = "CreateAt", updatable = false)
     private LocalDateTime createAt;

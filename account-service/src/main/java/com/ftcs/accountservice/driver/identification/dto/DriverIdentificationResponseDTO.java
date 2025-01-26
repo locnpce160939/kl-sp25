@@ -24,6 +24,8 @@ public class DriverIdentificationResponseDTO {
     private LocalDateTime issueDate;
     private LocalDateTime expiryDate;
     private String issuedBy;
+    private String frontView;
+    private String backView;
     private AddressDriverResponseDTO permanentAddress;
     private AddressDriverResponseDTO temporaryAddress;
 }

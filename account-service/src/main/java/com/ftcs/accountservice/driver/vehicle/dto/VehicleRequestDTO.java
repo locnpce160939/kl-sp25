@@ -13,6 +13,8 @@ import java.time.Year;
 @AllArgsConstructor
 public class VehicleRequestDTO {
 
+    private Integer vehicleId;
+
     @NotBlank(message = "License plate must not be blank")
     @Size(max = 20, message = "License plate must not exceed 20 characters")
     private String licensePlate;

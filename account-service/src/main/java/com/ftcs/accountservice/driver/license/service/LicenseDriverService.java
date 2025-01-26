@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 @Service
 @AllArgsConstructor
@@ -33,74 +34,78 @@ public class LicenseDriverService {
         licenseRepository.save(license);
     }
 
-    public void updateLicenseByAccountId(Integer accountId, String requestDTOJson,
-                                         MultipartFile frontFile, MultipartFile backFile, FolderEnum folderEnum) {
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.findAndRegisterModules();
-        LicenseRequestDTO requestDTO;
-        try {
-            requestDTO = objectMapper.readValue(requestDTOJson, LicenseRequestDTO.class);
-        } catch (JsonProcessingException e) {
-            throw new BadRequestException("Invalid JSON in requestDTO");
-        }
-
+    public void updateLicenseByAccountId(LicenseRequestDTO requestDTO, Integer accountId,
+                                         MultipartFile frontFile, MultipartFile backFile) {
         License license = findLicenseByAccountId(accountId);
         validateAccountOwnership(accountId, license);
 
-        String[] frontViewUrl = new String[1];
-        String[] backViewUrl = new String[1];
-
         if (frontFile != null) {
-            String frontOriginalFileName = frontFile.getOriginalFilename();
-            if (frontOriginalFileName == null) {
-                throw new BadRequestException("Invalid front file name");
-            }
-
-            CompletableFuture<Void> frontUploadTask = fileService.processFileAsync(
-                    frontFile,
-                    frontOriginalFileName,
-                    folderEnum,
-                    frontUrl -> {
-                        log.info("Front file uploaded successfully: {}", frontUrl);
-                        frontViewUrl[0] = frontUrl;
-                    }
-            );
-
-            frontUploadTask.join();
+            handleFileDelete(license.getFrontView());
+            handleFileUpload(frontFile, license::setFrontView);
         }
 
         if (backFile != null) {
-            String backOriginalFileName = backFile.getOriginalFilename();
-            if (backOriginalFileName == null) {
-                throw new BadRequestException("Invalid back file name");
-            }
-
-            CompletableFuture<Void> backUploadTask = fileService.processFileAsync(
-                    backFile,
-                    backOriginalFileName,
-                    folderEnum,
-                    backUrl -> {
-                        log.info("Back file uploaded successfully: {}", backUrl);
-                        backViewUrl[0] = backUrl;
-                    }
-            );
-
-            backUploadTask.join();
+            handleFileDelete(license.getBackView());
+            handleFileUpload(backFile, license::setBackView);
         }
 
         updateLicenseDetails(license, requestDTO);
-        license.setFrontView(frontViewUrl[0]);
-        license.setBackView(backViewUrl[0]);
-
         licenseRepository.save(license);
 
         log.info("License updated successfully for accountId: {}, frontView: {}, backView: {}",
-                accountId, frontViewUrl[0], backViewUrl[0]);
+                accountId, license.getFrontView(), license.getBackView());
     }
 
+    public void createNewLicense(LicenseRequestDTO requestDTO, Integer accountId, MultipartFile frontFile,
+                                 MultipartFile backFile) {
 
+        if (licenseRepository.existsByAccountId(accountId)) {
+            throw new BadRequestException("Account already has a license.");
+        }
 
+        License newLicense = License.builder()
+                .accountId(accountId)
+                .licenseNumber(requestDTO.getLicenseNumber())
+                .licenseType(requestDTO.getLicenseType())
+                .issuedDate(requestDTO.getIssuedDate())
+                .expiryDate(requestDTO.getExpiryDate())
+                .issuingAuthority(requestDTO.getIssuingAuthority())
+                .status(StatusDocumentType.NEW)
+                .build();
+
+        if (frontFile != null) {
+            handleFileUpload(frontFile, newLicense::setFrontView);
+        }
+
+        if (backFile != null) {
+            handleFileUpload(backFile, newLicense::setBackView);
+        }
+
+        licenseRepository.save(newLicense);
+
+        log.info("License created successfully for accountId: {}, frontView: {}, backView: {}",
+                accountId, newLicense.getFrontView(), newLicense.getBackView());
+    }
+
+    private void handleFileUpload(MultipartFile file, Consumer<String> callback) {
+        String originalFileName = file.getOriginalFilename();
+        if (originalFileName == null) {
+            throw new BadRequestException("Invalid file name");
+        }
+
+        CompletableFuture<Void> uploadTask = fileService.processFileAsync(
+                file,
+                originalFileName,
+                FolderEnum.LICENSE_DRIVER,
+                callback
+        );
+
+        uploadTask.join();
+    }
+
+    private void handleFileDelete(String fileName) {
+        fileService.processDeleteFile(fileName, FolderEnum.LICENSE_DRIVER);
+    }
 
     public License findLicenseByLicenseId(Integer licenseId) {
         return licenseRepository.findLicenseByLicenseId(licenseId)
@@ -120,68 +125,6 @@ public class LicenseDriverService {
         license.setIssuingAuthority(requestDTO.getIssuingAuthority());
         license.setUpdateAt(LocalDateTime.now());
         license.setStatus(StatusDocumentType.NEW);
-    }
-
-    public void createNewLicense(String requestDTOJson, Integer accountId, MultipartFile frontFile,
-                                 MultipartFile backFile, FolderEnum folderEnum) {
-
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.findAndRegisterModules();
-        LicenseRequestDTO requestDTO;
-        try {
-            requestDTO = objectMapper.readValue(requestDTOJson, LicenseRequestDTO.class);
-        } catch (JsonProcessingException e) {
-            throw new BadRequestException("Invalid JSON in requestDTO");
-        }
-
-        String frontOriginalFileName = frontFile.getOriginalFilename();
-        if (frontOriginalFileName == null) {
-            throw new BadRequestException("Invalid front file name");
-        }
-
-        String backOriginalFileName = backFile.getOriginalFilename();
-        if (backOriginalFileName == null) {
-            throw new BadRequestException("Invalid back file name");
-        }
-
-        CompletableFuture<Void> frontUploadTask = fileService.processFileAsync(
-                frontFile,
-                frontOriginalFileName,
-                folderEnum,
-                frontUrl -> log.info("Front file uploaded successfully: {}", frontUrl)
-        );
-
-        CompletableFuture<Void> backUploadTask = fileService.processFileAsync(
-                backFile,
-                backOriginalFileName,
-                folderEnum,
-                backUrl -> log.info("Back file uploaded successfully: {}", backUrl)
-        );
-
-        CompletableFuture.allOf(frontUploadTask, backUploadTask).join();
-
-        String frontViewUrl = fileService.getInternalMinio().getUrlFile();
-        String backViewUrl = fileService.getInternalMinio().getUrlFile();
-
-        if (licenseRepository.existsByAccountId(accountId)) {
-            throw new BadRequestException("Account already has a license.");
-        }
-
-        License newLicense = License.builder()
-                .accountId(accountId)
-                .licenseNumber(requestDTO.getLicenseNumber())
-                .licenseType(requestDTO.getLicenseType())
-                .issuedDate(requestDTO.getIssuedDate())
-                .expiryDate(requestDTO.getExpiryDate())
-                .issuingAuthority(requestDTO.getIssuingAuthority())
-                .status(StatusDocumentType.NEW)
-                .frontView(frontViewUrl)
-                .backView(backViewUrl)
-                .build();
-        licenseRepository.save(newLicense);
-        log.info("License created successfully for accountId: {}, frontView: {}, backView: {}",
-                accountId, frontViewUrl, backViewUrl);
     }
 
     public void validateAccountOwnership(Integer accountId, License license) {

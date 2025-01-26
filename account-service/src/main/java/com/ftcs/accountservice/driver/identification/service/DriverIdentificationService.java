@@ -6,10 +6,15 @@ import com.ftcs.accountservice.driver.identification.repository.DriverIdentifica
 import com.ftcs.accountservice.driver.shared.AddressType;
 import com.ftcs.accountservice.driver.shared.StatusDocumentType;
 import com.ftcs.common.exception.BadRequestException;
+import com.ftcs.common.upload.FileService;
+import com.ftcs.common.upload.FolderEnum;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 @Service
 @AllArgsConstructor
@@ -17,8 +22,10 @@ public class DriverIdentificationService {
 
     private final DriverIdentificationRepository driverIdentificationRepository;
     private final AddressIdentificationService addressIdentificationService;
+    private final FileService fileService;
 
-    public void addDriverIdentification(DriverIdentificationRequestDTO requestDTO, Integer accountId) {
+    public void addDriverIdentification(DriverIdentificationRequestDTO requestDTO, Integer accountId, MultipartFile frontFile,
+                                        MultipartFile backFile) {
         if (driverIdentificationRepository.existsByAccountId(accountId)) {
             throw new BadRequestException("Account already has a driver identification");
         }
@@ -26,11 +33,21 @@ public class DriverIdentificationService {
         Integer temporaryAddressId = addressIdentificationService.addAddressDriver(createAddressDriverRequestDTO(requestDTO, AddressType.TEMPORARY, false));
 
         DriverIdentification identification = createNewDriverIdentification(accountId);
+
+        if (frontFile != null) {
+            handleFileUpload(frontFile, identification::setFrontView);
+        }
+
+        if (backFile != null) {
+            handleFileUpload(backFile, identification::setBackView);
+        }
+
         updateDriverIdentificationDetails(identification, requestDTO, permanentAddressId, temporaryAddressId);
         driverIdentificationRepository.save(identification);
     }
 
-    public void updateDriverIdentification(DriverIdentificationRequestDTO requestDTO, Integer accountId) {
+    public void updateDriverIdentification(DriverIdentificationRequestDTO requestDTO, Integer accountId, MultipartFile frontFile,
+                                           MultipartFile backFile) {
         DriverIdentification identification = findDriverIdentificationByAccountIdOptional(accountId);
         validateAccountOwnership(accountId, identification);
 
@@ -42,6 +59,16 @@ public class DriverIdentificationService {
         }
         if (temporaryAddressId != null) {
             addressIdentificationService.updateAddressDriver(temporaryAddressId, createAddressDriverRequestDTO(requestDTO, AddressType.TEMPORARY, false));
+        }
+
+        if (frontFile != null) {
+            handleFileUpload(frontFile, identification::setFrontView);
+            handleFileDelete(identification.getFrontView());
+        }
+
+        if (backFile != null) {
+            handleFileUpload(backFile, identification::setBackView);
+            handleFileDelete(identification.getBackView());
         }
 
         updateDriverIdentificationDetails(identification, requestDTO, permanentAddressId, temporaryAddressId);
@@ -127,7 +154,29 @@ public class DriverIdentificationService {
                 .issuedBy(identification.getIssuedBy())
                 .permanentAddress(permanentAddressDTO)
                 .temporaryAddress(temporaryAddressDTO)
+                .frontView(identification.getFrontView())
+                .backView(identification.getBackView())
                 .build();
+    }
+
+    private void handleFileUpload(MultipartFile file, Consumer<String> callback) {
+        String originalFileName = file.getOriginalFilename();
+        if (originalFileName == null) {
+            throw new BadRequestException("Invalid file name");
+        }
+
+        CompletableFuture<Void> uploadTask = fileService.processFileAsync(
+                file,
+                originalFileName,
+                FolderEnum.IDENTIFICATION_DRIVER,
+                callback
+        );
+
+        uploadTask.join();
+    }
+
+    private void handleFileDelete(String fileName) {
+        fileService.processDeleteFile(fileName, FolderEnum.IDENTIFICATION_DRIVER);
     }
 
     private void validateAccountOwnership(Integer accountId, DriverIdentification identification) {

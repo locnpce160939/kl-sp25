@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 @Service
 @AllArgsConstructor
@@ -26,46 +27,8 @@ public class VehicleDriverService {
     private final VehicleRepository vehicleRepository;
     private final FileService fileService;
 
-    public void createNewVehicle(String requestDTOJson, Integer accountId, MultipartFile frontFile,
-                                 MultipartFile backFile, FolderEnum folderEnum) {
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.findAndRegisterModules();
-        VehicleRequestDTO requestDTO;
-        try {
-            requestDTO = objectMapper.readValue(requestDTOJson, VehicleRequestDTO.class);
-        } catch (JsonProcessingException e) {
-            throw new BadRequestException("Invalid JSON in requestDTO");
-        }
-
-        String frontOriginalFileName = frontFile.getOriginalFilename();
-        if (frontOriginalFileName == null) {
-            throw new BadRequestException("Invalid front file name");
-        }
-
-        String backOriginalFileName = backFile.getOriginalFilename();
-        if (backOriginalFileName == null) {
-            throw new BadRequestException("Invalid back file name");
-        }
-
-        CompletableFuture<Void> frontUploadTask = fileService.processFileAsync(
-                frontFile,
-                frontOriginalFileName,
-                folderEnum,
-                frontUrl -> log.info("Front file uploaded successfully: {}", frontUrl)
-        );
-
-        CompletableFuture<Void> backUploadTask = fileService.processFileAsync(
-                backFile,
-                backOriginalFileName,
-                folderEnum,
-                backUrl -> log.info("Back file uploaded successfully: {}", backUrl)
-        );
-
-        CompletableFuture.allOf(frontUploadTask, backUploadTask).join();
-
-        String frontViewUrl = fileService.getInternalMinio().getUrlFile();
-        String backViewUrl = fileService.getInternalMinio().getUrlFile();
+    public void createNewVehicle(VehicleRequestDTO requestDTO, Integer accountId, MultipartFile frontFile,
+                                 MultipartFile backFile) {
 
         Vehicle newVehicle = Vehicle.builder()
                 .accountId(accountId)
@@ -79,76 +42,61 @@ public class VehicleDriverService {
                 .status(StatusDocumentType.NEW)
                 .insuranceStatus(requestDTO.getInsuranceStatus())
                 .registrationExpiryDate(requestDTO.getRegistrationExpiryDate())
-                .frontView(frontViewUrl)
-                .backView(backViewUrl)
                 .build();
-        vehicleRepository.save(newVehicle);
-        log.info("Vehicle created successfully for accountId: {}, frontView: {}, backView: {}",
-                accountId, frontViewUrl, backViewUrl);
-    }
-
-    public void updateVehicle(Integer accountId, String requestDTOJson, Integer vehicleId,
-                              MultipartFile frontFile, MultipartFile backFile, FolderEnum folderEnum) {
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.findAndRegisterModules();
-        VehicleRequestDTO requestDTO;
-        try {
-            requestDTO = objectMapper.readValue(requestDTOJson, VehicleRequestDTO.class);
-        } catch (JsonProcessingException e) {
-            throw new BadRequestException("Invalid JSON in requestDTO");
-        }
-
-        Vehicle vehicle = findVehicleByVehicleId(vehicleId);
-        validateAccountOwnership(accountId, vehicle);
-        String[] frontViewUrl = new String[1];
-        String[] backViewUrl = new String[1];
 
         if (frontFile != null) {
-            String frontOriginalFileName = frontFile.getOriginalFilename();
-            if (frontOriginalFileName == null) {
-                throw new BadRequestException("Invalid front file name");
-            }
-
-            CompletableFuture<Void> frontUploadTask = fileService.processFileAsync(
-                    frontFile,
-                    frontOriginalFileName,
-                    folderEnum,
-                    frontUrl -> {
-                        log.info("Front file uploaded successfully: {}", frontUrl);
-                        frontViewUrl[0] = frontUrl;
-                    }
-            );
-
-            frontUploadTask.join();
+            handleFileUpload(frontFile, newVehicle::setFrontView);
         }
 
         if (backFile != null) {
-            String backOriginalFileName = backFile.getOriginalFilename();
-            if (backOriginalFileName == null) {
-                throw new BadRequestException("Invalid back file name");
-            }
+            handleFileUpload(backFile, newVehicle::setBackView);
+        }
 
-            CompletableFuture<Void> backUploadTask = fileService.processFileAsync(
-                    backFile,
-                    backOriginalFileName,
-                    folderEnum,
-                    backUrl -> {
-                        log.info("Back file uploaded successfully: {}", backUrl);
-                        backViewUrl[0] = backUrl;
-                    }
-            );
+        vehicleRepository.save(newVehicle);
+        log.info("Vehicle created successfully for accountId: {}, frontView: {}, backView: {}",
+                accountId, newVehicle.getFrontView(), newVehicle.getBackView());
+    }
 
-            backUploadTask.join();
+    public void updateVehicle(VehicleRequestDTO requestDTO, Integer accountId,
+                              MultipartFile frontFile, MultipartFile backFile) {
+
+        Vehicle vehicle = findVehicleByVehicleId(requestDTO.getVehicleId());
+        validateAccountOwnership(accountId, vehicle);
+
+        if (frontFile != null) {
+            handleFileUpload(frontFile, vehicle::setFrontView);
+            handleFileDelete(vehicle.getFrontView());
+        }
+
+        if (backFile != null) {
+            handleFileUpload(backFile, vehicle::setBackView);
+            handleFileDelete(vehicle.getBackView());
         }
 
         updateVehicleDetails(vehicle, requestDTO);
-        vehicle.setFrontView(frontViewUrl[0]);
-        vehicle.setBackView(backViewUrl[0]);
-
         vehicleRepository.save(vehicle);
         log.info("Vehicle updated successfully for accountId: {}, frontView: {}, backView: {}",
-                accountId, frontViewUrl[0], backViewUrl[0]);
+                accountId, vehicle.getFrontView(), vehicle.getBackView());
+    }
+
+    private void handleFileUpload(MultipartFile file, Consumer<String> callback) {
+        String originalFileName = file.getOriginalFilename();
+        if (originalFileName == null) {
+            throw new BadRequestException("Invalid file name");
+        }
+
+        CompletableFuture<Void> uploadTask = fileService.processFileAsync(
+                file,
+                originalFileName,
+                FolderEnum.VEHICLE_DRIVER,
+                callback
+        );
+
+        uploadTask.join();
+    }
+
+    private void handleFileDelete(String fileName) {
+        fileService.processDeleteFile(fileName, FolderEnum.VEHICLE_DRIVER);
     }
 
     public List<Vehicle> findVehiclesByAccountId(Integer accountId) {
@@ -162,16 +110,6 @@ public class VehicleDriverService {
     public Vehicle findVehicleByVehicleId(Integer vehicleId) {
         return vehicleRepository.findVehicleByVehicleId(vehicleId)
                 .orElseThrow(() -> new BadRequestException("Vehicle not found"));
-    }
-
-    public void updateVehiclesByAccountId(Integer accountId, List<VehicleRequestDTO> requestDTOs) {
-        List<Vehicle> vehicles = findVehiclesByAccountId(accountId);
-        for (int i = 0; i < vehicles.size(); i++) {
-            Vehicle vehicle = vehicles.get(i);
-            VehicleRequestDTO requestDTO = requestDTOs.get(i);
-            updateVehicleDetails(vehicle, requestDTO);
-        }
-        vehicleRepository.saveAll(vehicles);
     }
 
     private void updateVehicleDetails(Vehicle vehicle, VehicleRequestDTO requestDTO) {

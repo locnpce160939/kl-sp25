@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -16,23 +17,27 @@ public class IdentificationDriverController {
 
     private final DriverIdentificationService driverIdentificationService;
 
-    @PostMapping("/createDriverIdentification")
+    @PostMapping("/identification")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
-    public ApiResponse<?> createDriverIdentification(@Valid @RequestBody DriverIdentificationRequestDTO requestDTO,
+    public ApiResponse<?> createDriverIdentification(@Valid @RequestPart("requestDTO") DriverIdentificationRequestDTO requestDTO,
+                                                     @RequestPart("frontFile") MultipartFile frontFile,
+                                                     @RequestPart("backFile") MultipartFile backFile,
                                                      @RequestAttribute("accountId") Integer accountId) {
-        driverIdentificationService.addDriverIdentification(requestDTO, accountId);
+        driverIdentificationService.addDriverIdentification(requestDTO, accountId, frontFile, backFile);
         return new ApiResponse<>("Created driver identification successfully");
     }
 
-    @PutMapping("/updateDriverIdentification")
+    @PutMapping("/identification")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
-    public ApiResponse<?> updateDriverIdentificationByAccountId(@Valid @RequestBody DriverIdentificationRequestDTO requestDTO,
-                                                     @RequestAttribute("accountId") Integer accountId) {
-        driverIdentificationService.updateDriverIdentification(requestDTO, accountId);
+    public ApiResponse<?> updateDriverIdentificationByAccountId(@Valid @RequestPart("requestDTO") DriverIdentificationRequestDTO requestDTO,
+                                                                @RequestPart(value = "frontFile", required = false) MultipartFile frontFile,
+                                                                @RequestPart(value = "backFile", required = false) MultipartFile backFile,
+                                                                @RequestAttribute("accountId") Integer accountId) {
+        driverIdentificationService.updateDriverIdentification(requestDTO, accountId, frontFile, backFile);
         return new ApiResponse<>("Updated driver identification successfully");
     }
 
-    @GetMapping("/identification/getById/{driverIdentificationId}")
+    @GetMapping("/identification/{driverIdentificationId}")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
     public ApiResponse<?> getById(@PathVariable("driverIdentificationId") Integer driverIdentificationId) {
         return new ApiResponse<>(driverIdentificationService.findDriverIdentificationByDriverIdentificationId(driverIdentificationId));

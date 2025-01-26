@@ -20,44 +20,33 @@ public class VehicleDriverController {
 
     private final VehicleDriverService vehicleDriverService;
 
-    @PostMapping("/createNewVehicle")
+    @PostMapping("/vehicle")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
-    public ApiResponse<?> createNewVehicle(@RequestParam("requestDTO") String requestDTOJson,
-                                           @RequestParam("frontFile") MultipartFile frontFile,
-                                           @RequestParam("backFile") MultipartFile backFile,
-                                           @RequestAttribute("accountId") Integer accountId,
-                                           @RequestParam("folder") FolderEnum folderEnum) {
-        vehicleDriverService.createNewVehicle(requestDTOJson, accountId, frontFile, backFile, folderEnum);
+    public ApiResponse<?> createNewVehicle(@RequestPart("requestDTO") VehicleRequestDTO requestDTO,
+                                           @RequestPart("frontFile") MultipartFile frontFile,
+                                           @RequestPart("backFile") MultipartFile backFile,
+                                           @RequestAttribute("accountId") Integer accountId) {
+        vehicleDriverService.createNewVehicle(requestDTO, accountId, frontFile, backFile);
         return new ApiResponse<>("Created vehicle successfully");
     }
 
-    @PutMapping("/updateVehicle/{vehicleId}")
+    @PutMapping("/vehicle")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
-    public ApiResponse<?> updateVehicle(@RequestParam("requestDTO") String requestDTOJson,
-                                        @RequestParam(value = "frontFile", required = false) MultipartFile frontFile,
-                                        @RequestParam(value = "backFile", required = false) MultipartFile backFile,
-                                        @RequestParam(value = "folder", required = false) FolderEnum folderEnum,
-                                        @RequestAttribute("accountId") Integer accountId,
-                                        @PathVariable("vehicleId") Integer vehicleId) {
-        vehicleDriverService.updateVehicle(accountId, requestDTOJson, vehicleId, frontFile, backFile, folderEnum);
+    public ApiResponse<?> updateVehicle(@RequestPart("requestDTO") VehicleRequestDTO requestDTO,
+                                        @RequestPart(value = "frontFile", required = false) MultipartFile frontFile,
+                                        @RequestPart(value = "backFile", required = false) MultipartFile backFile,
+                                        @RequestAttribute("accountId") Integer accountId) {
+        vehicleDriverService.updateVehicle(requestDTO, accountId, frontFile, backFile);
         return new ApiResponse<>("Updated vehicle successfully");
     }
 
-    @PutMapping("/updateVehicles")
-    @PreAuthorize("hasPermission(null, 'DRIVER')")
-    public ApiResponse<?> updateVehiclesByAccountId(@Valid @RequestBody List<VehicleRequestDTO> requestDTOs,
-                                                    @RequestAttribute("accountId") Integer accountId) {
-        vehicleDriverService.updateVehiclesByAccountId(accountId, requestDTOs);
-        return new ApiResponse<>("Updated vehicles successfully");
-    }
-
-    @GetMapping("/vehicle/getById/{vehicleId}")
+    @GetMapping("/vehicle/{vehicleId}")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
     public ApiResponse<?> getVehicleById(@PathVariable("vehicleId") Integer vehicleId) {
         return new ApiResponse<>(vehicleDriverService.findVehicleByVehicleId(vehicleId));
     }
 
-    @GetMapping("/vehicles/getByAccountId")
+    @GetMapping("/vehicle")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
     public ApiResponse<?> getVehiclesByAccountId(@RequestAttribute("accountId") Integer accountId) {
         return new ApiResponse<>(vehicleDriverService.findVehiclesByAccountId(accountId));

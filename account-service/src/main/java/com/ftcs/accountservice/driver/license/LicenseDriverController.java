@@ -21,18 +21,17 @@ public class LicenseDriverController {
 
     private final LicenseDriverService licenseDriverService;
 
-    @PostMapping("/createNewLicense")
-    @PreAuthorize("hasPermission(null, 'DRIVER')")
-    public ApiResponse<?> createNewLicense(@Valid @RequestPart("requestDTO") String requestDTOJson,
-                                           @RequestAttribute("accountId") Integer accountId,
-                                           @RequestParam("frontFile") MultipartFile frontFile,
-                                           @RequestParam("backFile") MultipartFile backFile,
-                                           @RequestParam("folder") FolderEnum folderEnum) {
-        licenseDriverService.createNewLicense(requestDTOJson, accountId, frontFile, backFile, folderEnum);
+    @PostMapping("/license")
+    public ApiResponse<?> createNewLicense(
+            @Valid @RequestPart("requestDTO") LicenseRequestDTO licenseRequestDTO,
+            @RequestAttribute("accountId") Integer accountId,
+            @RequestPart("frontFile") MultipartFile frontFile,
+            @RequestPart("backFile") MultipartFile backFile) {
+        licenseDriverService.createNewLicense(licenseRequestDTO, accountId, frontFile, backFile);
         return new ApiResponse<>("Created license successfully");
     }
 
-    @PutMapping("/updateLicense/{licenseId}")
+    @PutMapping("/license/{licenseId}")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
     public ApiResponse<?> updateLicense(@Valid @RequestBody LicenseRequestDTO requestDTO,
                                         @PathVariable("licenseId") Integer licenseId,
@@ -41,27 +40,24 @@ public class LicenseDriverController {
         return new ApiResponse<>("Updated license successfully");
     }
 
-    @PutMapping("/updateLicense")
+    @PutMapping("/license")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
-    public ApiResponse<?> updateLicenseByAccountId(@RequestPart("requestDTO") String requestDTOJson,
+    public ApiResponse<?> updateLicenseByAccountId(@RequestPart("requestDTO") LicenseRequestDTO licenseRequestDTO,
                                                    @RequestAttribute("accountId") Integer accountId,
-                                                   @RequestParam(value = "frontFile", required = false) MultipartFile frontFile,
-                                                   @RequestParam(value = "backFile", required = false) MultipartFile backFile,
-                                                   @RequestParam(value = "folder", required = false) FolderEnum folderEnum) {
+                                                   @RequestPart(value = "frontFile", required = false) MultipartFile frontFile,
+                                                   @RequestPart(value = "backFile", required = false) MultipartFile backFile) {
 
-        licenseDriverService.updateLicenseByAccountId(accountId, requestDTOJson, frontFile, backFile, folderEnum);
+        licenseDriverService.updateLicenseByAccountId(licenseRequestDTO, accountId , frontFile, backFile);
         return new ApiResponse<>("Updated license successfully");
     }
 
-
-
-    @GetMapping("/license/getById/{licenseId}")
+    @GetMapping("/license/{licenseId}")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
     public ApiResponse<?> getLicenseById(@PathVariable("licenseId") Integer licenseId) {
         return new ApiResponse<>(licenseDriverService.findLicenseByLicenseId(licenseId));
     }
 
-    @GetMapping("/license/getByAccountId")
+    @GetMapping("/license")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
     public ApiResponse<?> getLicenseByAccountId(@RequestAttribute("accountId") Integer accountId) {
         return new ApiResponse<>(licenseDriverService.findLicenseByAccountId(accountId));
