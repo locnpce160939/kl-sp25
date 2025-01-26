@@ -27,7 +27,6 @@ public class VerificationDriverService {
         License license = licenseRepository.findLicenseByAccountId(accountId)
                 .orElseThrow(() -> new BadRequestException("License not found for the specified account."));
         if (requestDTO.getLicenseVerified() != null) {
-            license.setIsVerified(requestDTO.getLicenseVerified());
             license.setStatus(requestDTO.getStatus());
             licenseRepository.save(license);
         }
@@ -39,7 +38,6 @@ public class VerificationDriverService {
         }
         if (requestDTO.getVehicleVerified() != null) {
             for (Vehicle vehicle : vehicles) {
-                vehicle.setIsVerified(requestDTO.getVehicleVerified());
                 vehicle.setStatus(requestDTO.getStatus());
             }
             vehicleRepository.saveAll(vehicles);

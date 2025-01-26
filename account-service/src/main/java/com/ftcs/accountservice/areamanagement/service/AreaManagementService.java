@@ -1,14 +1,12 @@
 package com.ftcs.accountservice.areamanagement.service;
 
-import com.ftcs.accountservice.areamanagement.dto.AccountResponseDTO;
 import com.ftcs.accountservice.areamanagement.dto.AreaManagementRequestDTO;
 import com.ftcs.accountservice.areamanagement.model.AreaManagement;
 import com.ftcs.accountservice.areamanagement.repository.AreaManagementRepository;
-import com.ftcs.accountservice.driver.identification.model.AddressDriver;
-import com.ftcs.accountservice.driver.identification.model.DriverIdentification;
 import com.ftcs.accountservice.driver.identification.repository.AddressDriverRepository;
 import com.ftcs.accountservice.driver.identification.repository.DriverIdentificationRepository;
-import com.ftcs.authservice.features.account.Account;
+import com.ftcs.accountservice.driver.management.dto.ListDriverDTO;
+import com.ftcs.accountservice.driver.management.repository.DriverRepository;
 import com.ftcs.authservice.features.account.AccountRepository;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.common.feature.location.repository.ProvinceRepository;
@@ -21,6 +19,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.ftcs.accountservice.driver.management.mapper.DriverMapper.mapToListDriverDTO;
+
 @Service
 @AllArgsConstructor
 public class AreaManagementService {
@@ -29,6 +29,7 @@ public class AreaManagementService {
     private final AddressDriverRepository addressDriverRepository;
     private final DriverIdentificationRepository driverIdentificationRepository;
     private final AccountRepository accountRepository;
+    private final DriverRepository driverRepository;
 
     public void addNewArea(Integer accountId, AreaManagementRequestDTO requestDTO) {
         List<Integer> provinceIds = requestDTO.getProvinceIds();
@@ -117,32 +118,11 @@ public class AreaManagementService {
         areaManagementRepository.delete(existingArea);
     }
 
-    public List<AccountResponseDTO> getDriverIdentificationsByAccountId(Integer accountId) {
+    public List<ListDriverDTO> getAllDriverDetails(Integer accountId) {
         List<Integer> provinceIds = getProvincesByAccountId(accountId);
-        List<AddressDriver> addressDrivers = addressDriverRepository.findByProvinceIdIn(provinceIds);
-        List<Integer> addressDriverIds = addressDrivers.stream()
-                .map(AddressDriver::getAddressDriverId)
-                .collect(Collectors.toList());
-        List<DriverIdentification> driverIdentifications = getDriverIdentificationsByAddressDriverIds(addressDriverIds);
-        List<Integer> accountIds = driverIdentifications.stream()
-                .map(DriverIdentification::getAccountId)
-                .collect(Collectors.toList());
-        List<Account> accounts = accountRepository.findByAccountIdIn(accountIds);
-        return accounts.stream()
-                .map(account -> AccountResponseDTO.builder()
-                        .accountId(account.getAccountId())
-                        .username(account.getUsername())
-                        .email(account.getEmail())
-                        .phone(account.getPhone())
-                        .role(account.getRole().toString())
-                        .accountStatus(account.getStatus())
-                        .lastLogin(account.getLastLogin())
-                        .profilePicture(account.getProfilePicture())
-                        .build())
-                .collect(Collectors.toList());
-    }
-
-    public List<DriverIdentification> getDriverIdentificationsByAddressDriverIds(List<Integer> addressDriverIds) {
-        return driverIdentificationRepository.findByPermanentAddressInOrTemporaryAddressIn(addressDriverIds, addressDriverIds);
+        String provinceString = provinceIds.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
+        return mapToListDriverDTO(driverRepository.getAllDriversByProvinces(provinceString));
     }
 }

@@ -70,4 +70,8 @@ public class FileService {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
         return UUID.randomUUID() + "_" + timestamp + extension;
     }
+
+    public FileUploadInternalMinio getInternalMinio() {
+        return internalMinio;
+    }
 }
