@@ -1,5 +1,6 @@
 package com.ftcs.accountservice.driver.vehicle.service;
 
+import com.ftcs.accountservice.driver.shared.StatusDocumentType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ftcs.accountservice.driver.vehicle.dto.VehicleRequestDTO;
@@ -75,7 +76,7 @@ public class VehicleDriverService {
                 .year(requestDTO.getYear())
                 .capacity(requestDTO.getCapacity())
                 .dimensions(requestDTO.getDimensions())
-                .status("Pending")
+                .status(StatusDocumentType.NEW)
                 .insuranceStatus(requestDTO.getInsuranceStatus())
                 .registrationExpiryDate(requestDTO.getRegistrationExpiryDate())
                 .frontView(frontViewUrl)
@@ -115,7 +116,7 @@ public class VehicleDriverService {
                     folderEnum,
                     frontUrl -> {
                         log.info("Front file uploaded successfully: {}", frontUrl);
-                        frontViewUrl[0] = frontUrl;  // Assign value to array
+                        frontViewUrl[0] = frontUrl;
                     }
             );
 
@@ -134,7 +135,7 @@ public class VehicleDriverService {
                     folderEnum,
                     backUrl -> {
                         log.info("Back file uploaded successfully: {}", backUrl);
-                        backViewUrl[0] = backUrl;  // Assign value to array
+                        backViewUrl[0] = backUrl;
                     }
             );
 
@@ -184,6 +185,7 @@ public class VehicleDriverService {
         vehicle.setInsuranceStatus(requestDTO.getInsuranceStatus());
         vehicle.setRegistrationExpiryDate(requestDTO.getRegistrationExpiryDate());
         vehicle.setUpdateAt(LocalDateTime.now());
+        vehicle.setStatus(StatusDocumentType.NEW);
     }
 
     public void validateAccountOwnership(Integer accountId, Vehicle vehicle) {

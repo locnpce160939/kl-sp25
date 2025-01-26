@@ -19,7 +19,6 @@ public class VerificationDriverController {
     @GetMapping("/checkRequiredInformation")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
     public ApiResponse<?> checkRequiredInformation(@Valid @RequestAttribute("accountId") Integer accountId) {
-        ;
         return new ApiResponse<>(verificationDriverService.validateRequiredInformation(accountId));
     }
 

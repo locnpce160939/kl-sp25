@@ -13,6 +13,10 @@ public interface ListDriverProjection {
     String getAccountStatus();
 
     String getDriverIDNumber();
+    String getDriverFullName();
+    String getDriverGender();
+    LocalDateTime getDriverBirthday();
+    String getDriverCountry();
     String getPermanentAddress();
     String getTemporaryAddress();
     LocalDateTime getDriverIDIssueDate();

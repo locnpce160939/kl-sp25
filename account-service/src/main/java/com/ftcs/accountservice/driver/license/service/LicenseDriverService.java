@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ftcs.accountservice.driver.license.dto.LicenseRequestDTO;
 import com.ftcs.accountservice.driver.license.model.License;
 import com.ftcs.accountservice.driver.license.repository.LicenseRepository;
+import com.ftcs.accountservice.driver.shared.StatusDocumentType;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.common.upload.FileService;
 import com.ftcs.common.upload.FolderEnum;
@@ -62,7 +63,7 @@ public class LicenseDriverService {
                     folderEnum,
                     frontUrl -> {
                         log.info("Front file uploaded successfully: {}", frontUrl);
-                        frontViewUrl[0] = frontUrl;  // Gán giá trị vào vị trí mảng
+                        frontViewUrl[0] = frontUrl;
                     }
             );
 
@@ -81,7 +82,7 @@ public class LicenseDriverService {
                     folderEnum,
                     backUrl -> {
                         log.info("Back file uploaded successfully: {}", backUrl);
-                        backViewUrl[0] = backUrl;  // Gán giá trị vào vị trí mảng
+                        backViewUrl[0] = backUrl;
                     }
             );
 
@@ -118,6 +119,7 @@ public class LicenseDriverService {
         license.setExpiryDate(requestDTO.getExpiryDate());
         license.setIssuingAuthority(requestDTO.getIssuingAuthority());
         license.setUpdateAt(LocalDateTime.now());
+        license.setStatus(StatusDocumentType.NEW);
     }
 
     public void createNewLicense(String requestDTOJson, Integer accountId, MultipartFile frontFile,
@@ -173,7 +175,7 @@ public class LicenseDriverService {
                 .issuedDate(requestDTO.getIssuedDate())
                 .expiryDate(requestDTO.getExpiryDate())
                 .issuingAuthority(requestDTO.getIssuingAuthority())
-                .status("Pending")
+                .status(StatusDocumentType.NEW)
                 .frontView(frontViewUrl)
                 .backView(backViewUrl)
                 .build();

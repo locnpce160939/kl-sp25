@@ -1,5 +1,6 @@
 package com.ftcs.accountservice.driver.identification.dto;
 
+import com.ftcs.accountservice.driver.shared.AddressType;
 import com.ftcs.common.dto.IdAndName;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,5 +17,5 @@ public class AddressDriverResponseDTO {
     private AddressDriverLocationDTO ward;
     private AddressDriverLocationDTO district;
     private AddressDriverLocationDTO province;
-    private String addressType;
+    private AddressType addressType;
 }
