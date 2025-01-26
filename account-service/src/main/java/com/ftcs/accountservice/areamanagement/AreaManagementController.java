@@ -6,6 +6,7 @@ import com.ftcs.accountservice.areamanagement.dto.AreaManagementRequestDTO;
 import com.ftcs.accountservice.areamanagement.service.AreaManagementService;
 import com.ftcs.accountservice.driver.identification.model.AddressDriver;
 import com.ftcs.accountservice.driver.identification.model.DriverIdentification;
+import com.ftcs.accountservice.driver.management.dto.ListDriverDTO;
 import com.ftcs.authservice.features.account.Account;
 import com.ftcs.common.dto.ApiResponse;
 import jakarta.validation.Valid;
@@ -49,9 +50,9 @@ public class AreaManagementController {
 
     @GetMapping("/driver")
     @PreAuthorize("hasPermission(null, 'AREA_MANAGEMENT')")
-    public ApiResponse<List<AccountResponseDTO>> getDriversByAccountId(@RequestAttribute("accountId") Integer accountId) {
-        List<AccountResponseDTO> driverAccounts = areaManagementService.getDriverIdentificationsByAccountId(accountId);
-        return new ApiResponse<>(driverAccounts);
+    public ApiResponse<List<ListDriverDTO>> getDriversByAccountId(@RequestAttribute("accountId") Integer accountId) {
+        List<ListDriverDTO> driverDetails = areaManagementService.getAllDriverDetails(accountId);
+        return new ApiResponse<>(driverDetails);
     }
 
     @GetMapping("/getProvincesByAccountId")

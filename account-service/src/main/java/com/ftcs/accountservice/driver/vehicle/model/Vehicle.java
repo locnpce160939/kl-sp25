@@ -57,9 +57,6 @@ public class Vehicle {
     @Column(name = "Notes", length = 255)
     private String notes;
 
-    @Column(name = "IsVerified")
-    private Boolean isVerified;
-
     @Column(name = "FrontView")
     private String frontView;
 

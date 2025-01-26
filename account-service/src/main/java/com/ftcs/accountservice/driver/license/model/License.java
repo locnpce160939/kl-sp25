@@ -41,9 +41,6 @@ public class License {
     @Column(name = "Status", length = 20)
     private String status;
 
-    @Column(name = "IsVerified")
-    private Boolean isVerified;
-
     @Column(name = "Notes", length = 255)
     private String notes;
 
