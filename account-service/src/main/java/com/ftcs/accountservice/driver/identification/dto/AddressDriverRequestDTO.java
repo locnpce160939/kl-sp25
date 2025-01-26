@@ -1,5 +1,6 @@
 package com.ftcs.accountservice.driver.identification.dto;
 
+import com.ftcs.accountservice.driver.shared.AddressType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -22,5 +23,5 @@ public class AddressDriverRequestDTO {
     @NotBlank(message = "Street Address must not be null or empty")
     private String streetAddress;
 
-    private String addressType;
+    private AddressType addressType;
 }

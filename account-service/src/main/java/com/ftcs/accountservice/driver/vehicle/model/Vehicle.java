@@ -1,5 +1,6 @@
 package com.ftcs.accountservice.driver.vehicle.model;
 
+import com.ftcs.accountservice.driver.shared.StatusDocumentType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -45,8 +46,9 @@ public class Vehicle {
     @Column(name = "Dimensions", length = 100)
     private String dimensions;
 
-    @Column(name = "Status", length = 20)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "Status", length = 50)
+    private StatusDocumentType status;
 
     @Column(name = "InsuranceStatus", length = 50)
     private String insuranceStatus;
@@ -56,9 +58,6 @@ public class Vehicle {
 
     @Column(name = "Notes", length = 255)
     private String notes;
-
-    @Column(name = "IsVerified")
-    private Boolean isVerified;
 
     @CreationTimestamp
     @Column(name = "CreateAt", updatable = false)

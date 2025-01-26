@@ -3,6 +3,7 @@ package com.ftcs.accountservice.driver.license.service;
 import com.ftcs.accountservice.driver.license.dto.LicenseRequestDTO;
 import com.ftcs.accountservice.driver.license.model.License;
 import com.ftcs.accountservice.driver.license.repository.LicenseRepository;
+import com.ftcs.accountservice.driver.shared.StatusDocumentType;
 import com.ftcs.common.exception.BadRequestException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -46,7 +47,7 @@ public class LicenseDriverService {
         license.setExpiryDate(requestDTO.getExpiryDate());
         license.setIssuingAuthority(requestDTO.getIssuingAuthority());
         license.setUpdateAt(LocalDateTime.now());
-        license.setIsVerified(false);
+        license.setStatus(StatusDocumentType.NEW);
     }
 
     public void createNewLicense(LicenseRequestDTO requestDTO, Integer accountId) {
@@ -60,8 +61,7 @@ public class LicenseDriverService {
                 .issuedDate(requestDTO.getIssuedDate())
                 .expiryDate(requestDTO.getExpiryDate())
                 .issuingAuthority(requestDTO.getIssuingAuthority())
-                .status("Pending")
-                .isVerified(false)
+                .status(StatusDocumentType.NEW)
                 .build();
         licenseRepository.save(newLicense);
     }

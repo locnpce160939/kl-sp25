@@ -1,5 +1,6 @@
 package com.ftcs.accountservice.driver.vehicle.service;
 
+import com.ftcs.accountservice.driver.shared.StatusDocumentType;
 import com.ftcs.accountservice.driver.vehicle.dto.VehicleRequestDTO;
 import com.ftcs.accountservice.driver.vehicle.model.Vehicle;
 import com.ftcs.accountservice.driver.vehicle.repository.VehicleRepository;
@@ -26,8 +27,7 @@ public class VehicleDriverService {
                 .year(requestDTO.getYear())
                 .capacity(requestDTO.getCapacity())
                 .dimensions(requestDTO.getDimensions())
-                .status("Pending")
-                .isVerified(false)
+                .status(StatusDocumentType.NEW)
                 .insuranceStatus(requestDTO.getInsuranceStatus())
                 .registrationExpiryDate(requestDTO.getRegistrationExpiryDate())
                 .build();
@@ -75,7 +75,7 @@ public class VehicleDriverService {
         vehicle.setInsuranceStatus(requestDTO.getInsuranceStatus());
         vehicle.setRegistrationExpiryDate(requestDTO.getRegistrationExpiryDate());
         vehicle.setUpdateAt(LocalDateTime.now());
-        vehicle.setIsVerified(false);
+        vehicle.setStatus(StatusDocumentType.NEW);
     }
 
     public void validateAccountOwnership(Integer accountId, Vehicle vehicle) {

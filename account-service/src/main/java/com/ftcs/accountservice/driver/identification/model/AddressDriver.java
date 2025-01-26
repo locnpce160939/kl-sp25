@@ -1,5 +1,6 @@
 package com.ftcs.accountservice.driver.identification.model;
 
+import com.ftcs.accountservice.driver.shared.AddressType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -36,8 +37,9 @@ public class AddressDriver {
     @Column(name = "ProvinceId", nullable = false)
     private Integer provinceId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "AddressType", length = 50)
-    private String addressType;
+    private AddressType addressType;
 
     @CreationTimestamp
     @Column(name = "CreateAt", updatable = false)

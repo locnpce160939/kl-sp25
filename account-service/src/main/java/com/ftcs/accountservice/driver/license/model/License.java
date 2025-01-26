@@ -1,5 +1,6 @@
 package com.ftcs.accountservice.driver.license.model;
 
+import com.ftcs.accountservice.driver.shared.StatusDocumentType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -39,11 +40,9 @@ public class License {
     @Column(name = "IssuingAuthority", length = 100)
     private String issuingAuthority;
 
-    @Column(name = "Status", length = 20)
-    private String status;
-
-    @Column(name = "IsVerified")
-    private Boolean isVerified;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "Status", length = 50)
+    private StatusDocumentType status;
 
     @Column(name = "Notes", length = 255)
     private String notes;
