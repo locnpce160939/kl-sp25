@@ -16,6 +16,7 @@
 		<module>account-service</module>
 		<module>transportation-service</module>
         <module>rating-service</module>
+        <module>finance-service</module>
 	</modules>
 
 	<properties>
@@ -70,6 +71,11 @@
 			<dependency>
 				<groupId>com.ftcs</groupId>
 				<artifactId>transportation-service</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.ftcs</groupId>
+				<artifactId>finance-service</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 		</dependencies>

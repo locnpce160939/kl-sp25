@@ -24,7 +24,7 @@ public class AreaManagementController {
     private final AreaManagementService areaManagementService;
 
     @PostMapping("/addNewArea")
-    @PreAuthorize("hasPermission(null, 'AREA_MANAGEMENT')") // Chỉnh quyền theo nhu cầu
+    @PreAuthorize("hasPermission(null, 'AREA_MANAGEMENT')")
     public ApiResponse<?> addNewArea(@Valid @RequestBody AreaManagementRequestDTO requestDTO,
                                      @RequestAttribute("accountId") Integer accountId) {
         areaManagementService.addNewArea(accountId, requestDTO);
