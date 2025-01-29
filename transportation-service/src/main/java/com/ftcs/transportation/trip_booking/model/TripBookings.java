@@ -39,6 +39,12 @@ public class TripBookings {
     @Column(name = "DropoffLocation", length = 255, nullable = false)
     private String dropoffLocation;
 
+    @Column(name = "StartLocationAddress", length = 255)
+    private String startLocationAddress;
+
+    @Column(name = "EndLocationAddress", length = 255)
+    private String endLocationAddress;
+
     @Column(name = "Capacity", nullable = false)
     private Integer capacity;
 
