@@ -1,5 +1,6 @@
 package com.ftcs.authservice.features.account;
 
+import com.ftcs.authservice.features.account.contacts.RoleType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,6 +15,6 @@ public interface AccountRepository extends JpaRepository<Account, Integer> {
     boolean existsByEmail(String email);
     Optional<Account> findAccountByAccountId(Integer accountId);
     Account findAccountByEmail(String email);
-
+    List<Account> findAllByRole(RoleType role);
     //List<Account> findByAccountIdIn(List<Integer> accountIds);
 }

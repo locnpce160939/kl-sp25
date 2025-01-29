@@ -83,4 +83,12 @@ public class AccountController {
         return new ApiResponse<>("Change password success");
     }
 
+    @PostMapping("/findByRole")
+    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
+    public ApiResponse<?> findByRole(@Valid @RequestBody FilterRequestDTO requestDTO) {
+        return new ApiResponse<>(accountService.findAllByRole(requestDTO.getRole()));
+    }
+
+
+
 }

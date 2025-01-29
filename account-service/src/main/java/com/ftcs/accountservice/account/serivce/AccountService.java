@@ -5,6 +5,7 @@ import com.ftcs.accountservice.account.dto.register.RegisterConfirmRequestDTO;
 import com.ftcs.accountservice.account.dto.register.RegisterRequestDTO;
 import com.ftcs.authservice.features.account.Account;
 import com.ftcs.authservice.features.account.AccountRepository;
+import com.ftcs.authservice.features.account.contacts.RoleType;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.common.exception.NotFoundException;
 import com.ftcs.common.service.SendMailService;
@@ -18,13 +19,13 @@ import java.util.Random;
 @Service
 @AllArgsConstructor
 public class AccountService {
-    private AccountRepository accountRepository;
-    private SendMailService sendMailService;
+    private final AccountRepository accountRepository;
+    private final SendMailService sendMailService;
     private final PasswordEncoder passwordEncoder;
 
     public void registerSendUser(RegisterRequestDTO requestDTO, HttpServletRequest request) {
         isExistingAccount(requestDTO);
-        if (!requestDTO.getRole().equals("CUSTOMER") && !requestDTO.getRole().equals("DRIVER")) {
+        if (!isValidRole(requestDTO.getRole())) {
             throw new BadRequestException("Invalid role!");
         }
         int randomNumber = generateOtpCode();
@@ -38,13 +39,18 @@ public class AccountService {
         if (!requestDTO.getOtp().equals(sessionOtp)) {
             throw new BadRequestException("Invalid OTP!");
         }
-        String role = requestDTO.getRole();
-        if (!role.equals("CUSTOMER") && !role.equals("DRIVER")) {
+
+        RoleType role;
+        try {
+            role = RoleType.valueOf(requestDTO.getRole());
+        } catch (IllegalArgumentException e) {
             throw new BadRequestException("Invalid role!");
         }
+
         Account account = new Account();
         account.setUsername(requestDTO.getUsername());
         account.setEmail(requestDTO.getEmail());
+        account.setFullName(requestDTO.getFullName());
         account.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
         account.setPhone(requestDTO.getPhone());
         account.setStatus("Active");
@@ -54,11 +60,19 @@ public class AccountService {
 
     public Account createNewAccount(RegisterRequestDTO requestDTO) {
         isExistingAccount(requestDTO);
+        RoleType role;
+        try {
+            role = RoleType.valueOf(requestDTO.getRole());
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Invalid role!");
+        }
+
         Account account = new Account();
         account.setUsername(requestDTO.getUsername());
         account.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
         account.setPhone(requestDTO.getPhone());
-        account.setRole(requestDTO.getRole());
+        account.setFullName(requestDTO.getFullName());
+        account.setRole(role);
         account.setEmail(requestDTO.getEmail());
         account.setStatus("Active");
         return accountRepository.save(account);
@@ -82,6 +96,7 @@ public class AccountService {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new BadRequestException("Account does not exist!"));
         account.setPhone(requestDTO.getPhone());
+        account.setFullName(requestDTO.getFullName());
         accountRepository.save(account);
         return account;
     }
@@ -121,7 +136,7 @@ public class AccountService {
         Account account = accountRepository.findAccountByEmail(requestDTO.getEmail());
         if (account == null) {
             throw new NotFoundException("Account not found!");
-        }else if (!account.getRole().equals("CUSTOMER") && !account.getRole().equals("DRIVER")) {
+        } else if (account.getRole() == null) {
             throw new BadRequestException("Invalid role!");
         }
         account.setPassword(passwordEncoder.encode(requestDTO.getNewPassword()));
@@ -143,11 +158,28 @@ public class AccountService {
         accountRepository.save(account);
     }
 
+    public List<Account> findAllByRole(String role) {
+        RoleType roleType;
+        try {
+            roleType = RoleType.valueOf(role.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Invalid role: " + role);
+        }
+
+        List<Account> accounts = accountRepository.findAllByRole(roleType);
+        if (accounts.isEmpty()) {
+            throw new NotFoundException("No accounts found for the role: " + roleType);
+        }
+
+        accounts.forEach(account -> account.setPassword(""));
+        return accounts;
+    }
+
     private int generateOtpCode() {
         return new Random().nextInt(900000) + 100000;
     }
 
-    private Account findAccountByAccountId(Integer accountId){
+    private Account findAccountByAccountId(Integer accountId) {
         return accountRepository.findAccountByAccountId(accountId)
                 .orElseThrow(() -> new BadRequestException("Account does not exist!"));
     }
@@ -158,6 +190,15 @@ public class AccountService {
         }
         if (accountRepository.existsByEmail(requestDTO.getEmail())) {
             throw new BadRequestException("Email Exists!");
+        }
+    }
+
+    private boolean isValidRole(String role) {
+        try {
+            RoleType.valueOf(role);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
         }
     }
 }

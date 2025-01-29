@@ -1,5 +1,6 @@
 package com.ftcs.authservice.features.account;
 
+import com.ftcs.authservice.features.account.contacts.RoleType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -34,8 +35,12 @@ public class Account {
     @Column(name = "Phone", length = 20)
     private String phone;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "Role", length = 50)
-    private String role;
+    private RoleType role;
+
+    @Column(name = "FullName", length = 200)
+    private String fullName;
 
     @Column(name = "ProfilePicture", length = 255)
     private String profilePicture;

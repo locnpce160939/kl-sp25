@@ -2,6 +2,7 @@ package com.ftcs.authservice.features.auth.service;
 
 import com.ftcs.authservice.features.account.Account;
 import com.ftcs.authservice.features.account.AccountRepository;
+import com.ftcs.authservice.features.account.contacts.RoleType;
 import com.ftcs.authservice.features.account.dto.AccountDto;
 import com.ftcs.authservice.features.auth.dto.AuthenticationRequest;
 import com.ftcs.authservice.features.auth.dto.AuthenticationResponse;
@@ -34,6 +35,7 @@ public class AuthenticationService {
         if (account.getStatus().equals("isDisabled")){
             throw new UnauthorizedException("Account is disabled");
         }else{
+            RoleType role;
             account.setLastLogin(LocalDateTime.now());
             accountRepository.save(account);
             String accessToken = jwtService.generateToken(AccountDto.mapToAccountDto(account));

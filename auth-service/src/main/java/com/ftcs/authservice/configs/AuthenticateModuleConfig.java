@@ -29,7 +29,7 @@ public class AuthenticateModuleConfig implements UserDetailsService {  // Implem
         return User.builder()
                 .username(account.getUsername())
                 .password(account.getPassword())
-                .roles(account.getRole())
+                .roles(account.getRole().name())
                 .build();
     }
 

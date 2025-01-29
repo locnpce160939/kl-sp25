@@ -17,6 +17,9 @@ public class RegisterRequestDTO {
     @NotBlank(message = "Password must not be null or empty")
     private String password;
 
+    @NotBlank(message = "FullName must not be null or empty")
+    private String fullName;
+
     @NotBlank(message = "Email must not be null or empty")
     @Email(message = "Email is not valid")
     private String email;

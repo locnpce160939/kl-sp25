@@ -22,6 +22,9 @@ public class RegisterConfirmRequestDTO {
     @Email(message = "Email is not valid")
     private String email;
 
+    @NotBlank(message = "FullName must not be null or empty")
+    private String fullName;
+
     @NotBlank(message = "Phone must not be null or empty")
     @Pattern(regexp = "^\\+?[0-9]{7,15}$", message = "Phone number is not valid")
     private String phone;

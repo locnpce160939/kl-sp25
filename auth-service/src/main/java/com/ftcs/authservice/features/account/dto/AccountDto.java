@@ -2,6 +2,7 @@ package com.ftcs.authservice.features.account.dto;
 
 
 import com.ftcs.authservice.features.account.Account;
+import com.ftcs.authservice.features.account.contacts.RoleType;
 import lombok.*;
 
 @AllArgsConstructor
@@ -13,7 +14,7 @@ import lombok.*;
 public class AccountDto {
     private Integer id;
     private String username;
-    private String role;
+    private RoleType role;
     private String profilePicture;
 
     public static AccountDto mapToAccountDto(Account account) {

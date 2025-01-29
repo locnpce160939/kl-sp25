@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UpdateProfileRequestDTO {
-    private String phone;
-    private String fullName;
+public class FilterRequestDTO {
+    private String role;
 }
