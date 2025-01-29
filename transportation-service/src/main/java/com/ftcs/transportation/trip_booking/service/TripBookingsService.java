@@ -190,6 +190,8 @@ public class TripBookingsService {
         tripBookings.setDropoffLocation(requestDTO.getDropoffLocation());
         tripBookings.setCapacity(requestDTO.getCapacity());
         tripBookings.setExpirationDate(requestDTO.getExpirationDate());
+        tripBookings.setStartLocationAddress(requestDTO.getStartLocationAddress());
+        tripBookings.setEndLocationAddress(requestDTO.getEndLocationAddress());
         tripBookings.setStatus("Arranging driver");
     }
 }

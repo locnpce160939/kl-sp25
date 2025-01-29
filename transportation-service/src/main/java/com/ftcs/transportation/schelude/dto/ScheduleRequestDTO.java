@@ -19,6 +19,12 @@ public class ScheduleRequestDTO {
     @NotBlank(message = "End location cannot be blank")
     private String endLocation;
 
+    @NotBlank(message = "Start location cannot be blank")
+    private String startLocationAddress;
+
+    @NotBlank(message = "End location cannot be blank")
+    private String endLocationAddress;
+
     @NotNull(message = "Start date cannot be null")
     @Future(message = "Start date must be in the future")
     private LocalDateTime startDate;

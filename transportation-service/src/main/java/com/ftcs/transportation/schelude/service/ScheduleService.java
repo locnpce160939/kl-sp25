@@ -110,6 +110,9 @@ public class ScheduleService {
         schedule.setStartDate(requestDTO.getStartDate());
         schedule.setEndDate(requestDTO.getEndDate());
         schedule.setAvailableCapacity(requestDTO.getAvailableCapacity());
+        schedule.setStartLocationAddress(requestDTO.getStartLocationAddress());
+        schedule.setEndLocationAddress(requestDTO.getEndLocationAddress());
+
     }
 
     private void validateScheduleDates(LocalDateTime startDate, LocalDateTime endDate) {
