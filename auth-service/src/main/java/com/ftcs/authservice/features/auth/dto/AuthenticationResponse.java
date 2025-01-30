@@ -9,6 +9,7 @@ public record AuthenticationResponse(
         @JsonProperty("access_token")
         String accessToken,
         String username,
+        String fullName,
         Integer userId,
         RoleType role
 ) {
