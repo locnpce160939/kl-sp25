@@ -3,6 +3,7 @@ package com.ftcs.accountservice.driver.license;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ftcs.accountservice.AccountURL;
+import com.ftcs.accountservice.driver.identification.dto.DriverIdentificationRequestDTO;
 import com.ftcs.accountservice.driver.license.dto.LicenseRequestDTO;
 import com.ftcs.accountservice.driver.license.service.LicenseDriverService;
 import com.ftcs.common.dto.ApiResponse;
@@ -18,16 +19,16 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 @RequestMapping(AccountURL.DRIVER_REGISTER)
 public class LicenseDriverController {
-
+    private final ObjectMapper objectMapper;
     private final LicenseDriverService licenseDriverService;
 
     @PostMapping("/license")
     public ApiResponse<?> createNewLicense(
-            @Valid @RequestPart("requestDTO") LicenseRequestDTO licenseRequestDTO,
+            @Valid @RequestPart("requestDTO") String licenseRequestDTO,
             @RequestAttribute("accountId") Integer accountId,
             @RequestPart("frontFile") MultipartFile frontFile,
-            @RequestPart("backFile") MultipartFile backFile) {
-        licenseDriverService.createNewLicense(licenseRequestDTO, accountId, frontFile, backFile);
+            @RequestPart("backFile") MultipartFile backFile) throws JsonProcessingException {
+        licenseDriverService.createNewLicense(objectMapper.readValue(licenseRequestDTO, LicenseRequestDTO.class), accountId, frontFile, backFile);
         return new ApiResponse<>("Created license successfully");
     }
 
@@ -42,12 +43,12 @@ public class LicenseDriverController {
 
     @PutMapping("/license")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
-    public ApiResponse<?> updateLicenseByAccountId(@RequestPart("requestDTO") LicenseRequestDTO licenseRequestDTO,
+    public ApiResponse<?> updateLicenseByAccountId(@RequestPart("requestDTO") String licenseRequestDTO,
                                                    @RequestAttribute("accountId") Integer accountId,
                                                    @RequestPart(value = "frontFile", required = false) MultipartFile frontFile,
-                                                   @RequestPart(value = "backFile", required = false) MultipartFile backFile) {
+                                                   @RequestPart(value = "backFile", required = false) MultipartFile backFile) throws JsonProcessingException {
 
-        licenseDriverService.updateLicenseByAccountId(licenseRequestDTO, accountId , frontFile, backFile);
+        licenseDriverService.updateLicenseByAccountId(objectMapper.readValue(licenseRequestDTO, LicenseRequestDTO.class), accountId , frontFile, backFile);
         return new ApiResponse<>("Updated license successfully");
     }
 
