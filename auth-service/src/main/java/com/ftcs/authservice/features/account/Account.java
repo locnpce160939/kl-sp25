@@ -42,9 +42,6 @@ public class Account {
     @Column(name = "Role", length = 50)
     private RoleType role;
 
-    @Column(name = "FullName", length = 200)
-    private String fullName;
-
     @Column(name = "ProfilePicture", length = 255)
     private String profilePicture;
 
