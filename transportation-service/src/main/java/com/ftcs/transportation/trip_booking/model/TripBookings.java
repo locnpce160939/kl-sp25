@@ -24,9 +24,6 @@ public class TripBookings {
     @Column(name = "AccountId", nullable = false)
     private Integer accountId;
 
-    @Column(name = "ScheduleId", nullable = false)
-    private Integer scheduleId;
-
     @Column(name = "BookingType", length = 50, nullable = false)
     private String bookingType;
 
@@ -54,8 +51,8 @@ public class TripBookings {
     @Column(name = "ExpirationDate")
     private LocalDateTime expirationDate;
 
-    @Column(name = "TotalPrice", nullable = false)
-    private Double totalPrice;
+    @Column(name = "TotalDistance", nullable = false)
+    private Integer totalDistance;
 
     @Column(name = "Notes", length = 255)
     private String notes;

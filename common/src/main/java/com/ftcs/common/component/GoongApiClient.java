@@ -1,5 +1,6 @@
 package com.ftcs.common.component;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
@@ -11,13 +12,15 @@ import java.util.Map;
 @Component
 public class GoongApiClient {
 
-    private static final String BASE_URL = "https://rsapi.goong.io";
-    private static final String API_KEY = "t0vRyftUba3uIEnx5JlMJta2ff3B03BEUVg0xHWw";
-
     private final RestTemplate restTemplate;
+    private final String baseUrl;
+    private final String apiKey;
 
-    public GoongApiClient() {
+    public GoongApiClient(@Value("${goong.api.base-url}") String baseUrl,
+                          @Value("${goong.api.key}") String apiKey) {
         this.restTemplate = new RestTemplate();
+        this.baseUrl = baseUrl;
+        this.apiKey = apiKey;
     }
 
     /**
@@ -28,19 +31,14 @@ public class GoongApiClient {
      * @return The JSON response from the API as a String.
      */
     public String get(String endpoint, Map<String, String> params) {
-        StringBuilder urlBuilder = new StringBuilder(BASE_URL).append(endpoint);
-        urlBuilder.append("?api_key=").append(API_KEY);
+        StringBuilder urlBuilder = new StringBuilder(baseUrl).append(endpoint);
+        urlBuilder.append("?api_key=").append(apiKey);
 
-        // Append query parameters to the URL
         if (params != null && !params.isEmpty()) {
             params.forEach((key, value) -> urlBuilder.append("&").append(key).append("=").append(value));
         }
 
-        HttpHeaders headers = new HttpHeaders();
-        HttpEntity<String> entity = new HttpEntity<>(null, headers);
-
         ResponseEntity<String> response = restTemplate.getForEntity(urlBuilder.toString(), String.class);
-        System.out.println(response.getBody());
         return response.getBody();
     }
 }
