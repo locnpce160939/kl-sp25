@@ -24,9 +24,6 @@ public class TripBookings {
     @Column(name = "AccountId", nullable = false)
     private Integer accountId;
 
-    @Column(name = "ScheduleId", nullable = false)
-    private Integer scheduleId;
-
     @Column(name = "BookingType", length = 50, nullable = false)
     private String bookingType;
 
@@ -39,6 +36,12 @@ public class TripBookings {
     @Column(name = "DropoffLocation", length = 255, nullable = false)
     private String dropoffLocation;
 
+    @Column(name = "StartLocationAddress", length = 255)
+    private String startLocationAddress;
+
+    @Column(name = "EndLocationAddress", length = 255)
+    private String endLocationAddress;
+
     @Column(name = "Capacity", nullable = false)
     private Integer capacity;
 
@@ -48,8 +51,8 @@ public class TripBookings {
     @Column(name = "ExpirationDate")
     private LocalDateTime expirationDate;
 
-    @Column(name = "TotalPrice", nullable = false)
-    private Double totalPrice;
+    @Column(name = "TotalDistance", nullable = false)
+    private Integer totalDistance;
 
     @Column(name = "Notes", length = 255)
     private String notes;

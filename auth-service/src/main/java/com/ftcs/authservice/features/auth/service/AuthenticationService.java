@@ -41,6 +41,7 @@ public class AuthenticationService {
                     .accessToken(accessToken)
                     .userId(account.getAccountId())
                     .username(account.getUsername())
+                    .fullName(account.getFullName())
                     .role(account.getRole())
                     .build();
         }

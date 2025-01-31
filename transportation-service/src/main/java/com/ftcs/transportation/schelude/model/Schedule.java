@@ -30,6 +30,12 @@ public class Schedule {
     @Column(name = "EndLocation", length = 255, nullable = false)
     private String endLocation;
 
+    @Column(name = "StartLocationAddress", length = 255)
+    private String startLocationAddress;
+
+    @Column(name = "EndLocationAddress", length = 255)
+    private String endLocationAddress;
+
     @Column(name = "StartDate", nullable = false)
     private LocalDateTime startDate;
 

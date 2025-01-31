@@ -8,6 +8,7 @@ import com.ftcs.transportation.trip_booking.dto.TripBookingsRequestDTO;
 import com.ftcs.transportation.trip_booking.dto.UpdateStatusTripBookingsRequestDTO;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
 import com.ftcs.transportation.trip_booking.repository.TripBookingsRepository;
+import com.ftcs.transportation.trip_matching.service.TripMatchingService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class TripBookingsService {
+    private final TripMatchingService tripMatchingService;
 
     private final TripBookingsRepository tripBookingsRepository;
     private final ScheduleRepository scheduleRepository;
@@ -24,7 +26,9 @@ public class TripBookingsService {
         TripBookings tripBookings = new TripBookings();
         tripBookings.setAccountId(accountId);
         mapRequestToTripBookings(requestDTO, tripBookings);
-        return tripBookingsRepository.save(tripBookings);
+        tripBookings = tripBookingsRepository.save(tripBookings);
+        tripMatchingService.matchTripsForAll();
+        return tripBookings;
     }
 
     public void updateTripBookings(TripBookingsRequestDTO requestDTO, Integer bookingId) {
@@ -102,7 +106,7 @@ public class TripBookingsService {
         if (isDriverConfirmingDelivery(role, tripBookings)) {
             updateBookingStatus(tripBookings, "Delivered");
         } else if (isCustomerConfirmingCompletion(role, tripBookings, requestDTO)) {
-            completeOrder(tripBookings);
+            //completeOrder(tripBookings);
         }
     }
 
@@ -127,13 +131,6 @@ public class TripBookingsService {
     private void updateBookingStatus(TripBookings tripBookings, String status) {
         tripBookings.setStatus(status);
         tripBookingsRepository.save(tripBookings);
-    }
-
-    private void completeOrder(TripBookings tripBookings) {
-        updateBookingStatus(tripBookings, "Order completed");
-        Schedule schedule = findScheduleByScheduleId(tripBookings.getScheduleId());
-        schedule.setStatus("This schedule is complete!");
-        scheduleRepository.save(schedule);
     }
 
 
@@ -173,7 +170,7 @@ public class TripBookingsService {
         }
         if ("Confirmed".equals(requestDTO.getOption())) {
             tripBookings.setStatus("Driver is on the way");
-            tripBookings.setScheduleId(schedule.getScheduleId());
+            //tripBookings.setScheduleId(schedule.getScheduleId());
             schedule.setStatus("Getting to the point");
             scheduleRepository.save(schedule);
         } else {

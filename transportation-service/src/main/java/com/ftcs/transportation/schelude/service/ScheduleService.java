@@ -6,16 +6,18 @@ import com.ftcs.transportation.schelude.dto.ScheduleRequestDTO;
 import com.ftcs.transportation.schelude.dto.UpdateStatusScheduleRequestDTO;
 import com.ftcs.transportation.schelude.model.Schedule;
 import com.ftcs.transportation.schelude.repository.ScheduleRepository;
+import com.ftcs.transportation.trip_matching.service.TripMatchingService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
 @AllArgsConstructor
 public class ScheduleService {
-
+    private final TripMatchingService tripMatchingService;
     private final ScheduleRepository scheduleRepository;
 
     public Schedule createSchedule(ScheduleRequestDTO requestDTO, Integer accountId) {
@@ -24,7 +26,7 @@ public class ScheduleService {
 
         if (!schedules.isEmpty()) {
             Schedule latestSchedule = schedules.stream()
-                    .max((s1, s2) -> s1.getEndDate().compareTo(s2.getEndDate()))
+                    .max(Comparator.comparing(Schedule::getEndDate))
                     .orElseThrow(() -> new BadRequestException("Unable to find latest schedule."));
             if (!requestDTO.getStartDate().isAfter(latestSchedule.getEndDate().plusDays(1))) {
                 throw new BadRequestException("The new schedule must start at least one day after the last schedule's end date.");
@@ -34,8 +36,11 @@ public class ScheduleService {
         schedule.setAccountId(accountId);
         mapScheduleRequestToEntity(requestDTO, schedule);
         schedule.setStatus("Waiting for delivery");
-        return scheduleRepository.save(schedule);
+        schedule = scheduleRepository.save(schedule);
+        tripMatchingService.matchTripsForAll();
+        return schedule;
     }
+
 
 
     public void updateSchedule(ScheduleRequestDTO requestDTO, Integer scheduleId) {
