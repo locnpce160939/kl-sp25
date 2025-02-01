@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ftcs.accountservice.AccountURL;
 import com.ftcs.accountservice.driver.license.dto.LicenseRequestDTO;
+import com.ftcs.accountservice.driver.vehicle.dto.UpdateStatusVehicleRequestDTO;
 import com.ftcs.accountservice.driver.vehicle.dto.VehicleRequestDTO;
 import com.ftcs.accountservice.driver.vehicle.service.VehicleDriverService;
 import com.ftcs.common.dto.ApiResponse;
@@ -53,5 +54,13 @@ public class VehicleDriverController {
     @PreAuthorize("hasPermission(null, 'DRIVER')")
     public ApiResponse<?> getVehiclesByAccountId(@RequestAttribute("accountId") Integer accountId) {
         return new ApiResponse<>(vehicleDriverService.findVehiclesByAccountId(accountId));
+    }
+
+    @PutMapping("/vehicle/status/{vehicleId}")
+    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
+    public ApiResponse<?> updateStatus(@Valid @RequestBody UpdateStatusVehicleRequestDTO requestDTO,
+                                       @PathVariable("vehicleId") Integer vehicleId) {
+        vehicleDriverService.updateStatus(vehicleId, requestDTO);
+        return new ApiResponse<>("Updated vehicle successfully");
     }
 }

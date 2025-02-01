@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ftcs.accountservice.AccountURL;
 import com.ftcs.accountservice.driver.identification.dto.DriverIdentificationRequestDTO;
+import com.ftcs.accountservice.driver.identification.dto.UpdateStatusDriverIdentificationRequestDTO;
 import com.ftcs.accountservice.driver.identification.service.DriverIdentificationService;
 import com.ftcs.common.dto.ApiResponse;
 import jakarta.validation.Valid;
@@ -49,5 +50,13 @@ public class IdentificationDriverController {
     @PreAuthorize("hasPermission(null, 'DRIVER')")
     public ApiResponse<?> getByAccountId(@RequestAttribute("accountId") Integer accountId) {
         return new ApiResponse<>(driverIdentificationService.findDriverIdentification(accountId));
+    }
+
+    @PutMapping("/identification/status/{driverIdentificationId}")
+    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
+    public ApiResponse<?> updateStatus(@Valid @RequestBody UpdateStatusDriverIdentificationRequestDTO requestDTO,
+                                       @PathVariable("driverIdentificationId") Integer driverIdentificationId ) {
+        driverIdentificationService.updateStatus(driverIdentificationId, requestDTO);
+        return new ApiResponse<>("Updated driver identification successfully");
     }
 }

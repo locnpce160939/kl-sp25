@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ftcs.accountservice.AccountURL;
 import com.ftcs.accountservice.driver.identification.dto.DriverIdentificationRequestDTO;
 import com.ftcs.accountservice.driver.license.dto.LicenseRequestDTO;
+import com.ftcs.accountservice.driver.license.dto.UpdateStatusLicenseRequestDTO;
 import com.ftcs.accountservice.driver.license.service.LicenseDriverService;
 import com.ftcs.common.dto.ApiResponse;
 import com.ftcs.common.exception.BadRequestException;
@@ -62,6 +63,14 @@ public class LicenseDriverController {
     @PreAuthorize("hasPermission(null, 'DRIVER')")
     public ApiResponse<?> getLicenseByAccountId(@RequestAttribute("accountId") Integer accountId) {
         return new ApiResponse<>(licenseDriverService.findLicenseByAccountId(accountId));
+    }
+
+    @PutMapping("/license/status/{licenseId}")
+    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
+    public ApiResponse<?> updateStatus(@Valid @RequestBody UpdateStatusLicenseRequestDTO requestDTO,
+                                       @PathVariable("licenseId") Integer licenseId){
+        licenseDriverService.updateStatus(licenseId, requestDTO);
+        return new ApiResponse<>("Updated license successfully");
     }
 
 }

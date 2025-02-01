@@ -3,6 +3,7 @@ package com.ftcs.accountservice.driver.vehicle.service;
 import com.ftcs.accountservice.driver.shared.StatusDocumentType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ftcs.accountservice.driver.vehicle.dto.UpdateStatusVehicleRequestDTO;
 import com.ftcs.accountservice.driver.vehicle.dto.VehicleRequestDTO;
 import com.ftcs.accountservice.driver.vehicle.model.Vehicle;
 import com.ftcs.accountservice.driver.vehicle.repository.VehicleRepository;
@@ -77,6 +78,12 @@ public class VehicleDriverService {
         vehicleRepository.save(vehicle);
         log.info("Vehicle updated successfully for accountId: {}, frontView: {}, backView: {}",
                 accountId, vehicle.getFrontView(), vehicle.getBackView());
+    }
+
+    public void updateStatus(Integer vehicleId, UpdateStatusVehicleRequestDTO requestDTO){
+        Vehicle vehicle = findVehicleByVehicleId(vehicleId);
+        vehicle.setStatus(requestDTO.getStatus());
+        vehicleRepository.save(vehicle);
     }
 
     private void handleFileUpload(MultipartFile file, Consumer<String> callback) {

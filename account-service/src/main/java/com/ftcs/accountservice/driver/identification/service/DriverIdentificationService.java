@@ -159,6 +159,18 @@ public class DriverIdentificationService {
                 .build();
     }
 
+    public void updateStatus(Integer driverIdentificationId, UpdateStatusDriverIdentificationRequestDTO requestDTO) {
+//        boolean isValidStatus = Arrays.stream(StatusDocumentType.values())
+//                .anyMatch(status -> status == requestDTO.getStatus());
+//
+//        if (!isValidStatus) {
+//            throw new BadRequestException("Invalid status: " + requestDTO.getStatus());
+//        }
+        DriverIdentification driverIdentification = findDriverIdentificationByDriverIdentificationId(driverIdentificationId);
+        driverIdentification.setStatus(requestDTO.getStatus());
+        driverIdentificationRepository.save(driverIdentification);
+    }
+
     private void handleFileUpload(MultipartFile file, Consumer<String> callback) {
         String originalFileName = file.getOriginalFilename();
         if (originalFileName == null) {

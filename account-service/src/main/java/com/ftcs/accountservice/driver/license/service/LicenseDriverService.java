@@ -3,6 +3,7 @@ package com.ftcs.accountservice.driver.license.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ftcs.accountservice.driver.license.dto.LicenseRequestDTO;
+import com.ftcs.accountservice.driver.license.dto.UpdateStatusLicenseRequestDTO;
 import com.ftcs.accountservice.driver.license.model.License;
 import com.ftcs.accountservice.driver.license.repository.LicenseRepository;
 import com.ftcs.accountservice.driver.shared.StatusDocumentType;
@@ -115,6 +116,18 @@ public class LicenseDriverService {
     public License findLicenseByAccountId(Integer accountId) {
         return licenseRepository.findLicenseByAccountId(accountId)
                 .orElseThrow(() -> new BadRequestException("License not found"));
+    }
+
+    public void updateStatus(Integer licenseId, UpdateStatusLicenseRequestDTO requestDTO) {
+//        boolean isValidStatus = Arrays.stream(StatusDocumentType.values())
+//                .anyMatch(status -> status == requestDTO.getStatus());
+//
+//        if (!isValidStatus) {
+//            throw new BadRequestException("Invalid status: " + requestDTO.getStatus());
+//        }
+        License license = findLicenseByLicenseId(licenseId);
+        license.setStatus(requestDTO.getStatus());
+        licenseRepository.save(license);
     }
 
     private void updateLicenseDetails(License license, LicenseRequestDTO requestDTO) {
