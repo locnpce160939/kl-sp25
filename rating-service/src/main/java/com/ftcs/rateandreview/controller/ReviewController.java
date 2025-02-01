@@ -22,7 +22,7 @@ public class ReviewController {
     @PostMapping("/create/{bookingId}")
     @PreAuthorize("hasPermission(null, 'CUSTOMER') or hasPermission(null, 'DRIVER')")
     public ApiResponse<?> createReview(@Valid @RequestBody ReviewRequestDTO requestDTO,
-                                       @PathVariable("bookingId") Integer bookingId,
+                                       @PathVariable("bookingId") Long bookingId,
                                        @RequestAttribute("role" ) String role,
                                        @RequestAttribute("accountId") Integer accountId) {
         reviewService.createRateAndReview(accountId, requestDTO, bookingId, role);

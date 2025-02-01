@@ -6,10 +6,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-public interface TripMatchingCacheRepository extends JpaRepository<TripMatchingCache, Integer> {
+public interface TripMatchingCacheRepository extends JpaRepository<TripMatchingCache, Long> {
     @Transactional
-    void deleteByScheduleIdAndBookingId(Integer scheduleId, Integer bookingId);
+    void deleteByScheduleIdAndBookingId(Long scheduleId, Long bookingId);
 
-    List<TripMatchingCache> findByScheduleIdOrderBySameDirectionDescCommonPointsDesc(Integer scheduleId);
+    List<TripMatchingCache> findByScheduleIdOrderBySameDirectionDescCommonPointsDesc(Long scheduleId);
 
 }

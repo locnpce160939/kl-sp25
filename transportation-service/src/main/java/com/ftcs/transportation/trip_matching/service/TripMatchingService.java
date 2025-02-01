@@ -12,6 +12,8 @@ import com.ftcs.transportation.trip_matching.repository.TripMatchingCacheReposit
 import com.ftcs.transportation.trip_matching.service.strategy.MatchingContext;
 import com.ftcs.transportation.trip_matching.service.strategy.MatchingStrategy;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -21,14 +23,22 @@ import java.util.concurrent.CompletableFuture;
 @Service
 @AllArgsConstructor
 public class TripMatchingService {
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
     private final TripMatchingCacheRepository tripMatchingRepository;
     private final DirectionsDataRepository tripDirectionsDataRepository;
 
     private final MatchingStrategy<MatchResult> matchPointsStrategy;
     private final MatchingStrategy<Boolean> directionStrategy;
 
-    public List<TripMatchingCache> getMatchedTrips(Integer scheduleId) {
+    public List<TripMatchingCache> getMatchedTrips(Long scheduleId) {
         return tripMatchingRepository.findByScheduleIdOrderBySameDirectionDescCommonPointsDesc(scheduleId);
+    }
+
+    public void sendTripBookingUpdates(TripMatchingCache matchedTrips) {
+        messagingTemplate.convertAndSend("/topic/tripBookings/"+matchedTrips.getBookingId(), matchedTrips);
+        messagingTemplate.convertAndSend("/topic/schedule/"+matchedTrips.getScheduleId(), matchedTrips);
     }
 
     @Async
@@ -53,6 +63,8 @@ public class TripMatchingService {
 
                 TripMatchingCache tripMatching = createTripMatching(scheduleBookingDTO.getSchedule(), scheduleBookingDTO.getTripBooking(), matchPointsResult, sameDirection);
                 matchedTrips.add(tripMatching);
+
+                sendTripBookingUpdates(tripMatching);
         }
 
         return matchedTrips;

@@ -40,6 +40,7 @@ public class SecurityConfig {
     private static final String[] WHITE_LIST_URL = {
             AuthAccountURL.AUTH +
                     "/**",
+            "/ws/**",
             "/v2/api-docs/**",
             "/v3/api-docs/**",
             "/actuator/**",
@@ -101,7 +102,10 @@ public class SecurityConfig {
         http
                 .cors(corsConfigurationSource())
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests((req) -> req.requestMatchers(WHITE_LIST_URL)
+                .authorizeHttpRequests((req) -> req
+                        .requestMatchers(WHITE_LIST_URL)
+                        .permitAll()
+                        .requestMatchers("/ws/**")
                         .permitAll()
                         .anyRequest()
                         .authenticated())
@@ -111,8 +115,10 @@ public class SecurityConfig {
                         .addLogoutHandler(logoutHandler)
                         .logoutSuccessHandler(
                                 ((request, response, authentication) -> SecurityContextHolder.clearContext())));
+
         return http.build();
     }
+
 
     @Bean
     @Primary

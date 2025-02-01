@@ -1,5 +1,7 @@
-package com.ftcs.transportation.trip_matching.model;
+package com.ftcs.transportation.trip_agreement.model;
 
+import com.ftcs.transportation.trip_agreement.constant.AgreementStatusType;
+import com.ftcs.transportation.trip_matching.constant.PaymentStatusType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -19,16 +21,10 @@ public class TripAgreement {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "Id", nullable = false)
-    private Integer id;
+    private Long id;
 
     @Column(name = "TripMatchingId", nullable = false)
-    private Integer tripMatchingId;
-
-    @Column(name = "ScheduleId", nullable = false)
-    private Integer scheduleId;
-
-    @Column(name = "BookingId", nullable = false)
-    private Integer bookingId;
+    private Long tripMatchingId;
 
     @Column(name = "DriverId", nullable = false)
     private Integer driverId;
@@ -39,23 +35,19 @@ public class TripAgreement {
     @Column(name = "TotalPrice", nullable = false)
     private Double totalPrice;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "PaymentStatus", length = 50, nullable = false)
-    private String paymentStatus;  // "Pending", "Paid", "Failed"
+    private PaymentStatusType paymentStatus;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "AgreementStatus", length = 50, nullable = false)
-    private String agreementStatus; // "Pending", "Confirmed", "Cancelled"
-
-    @Column(name = "TripStartTime")
-    private LocalDateTime tripStartTime;
-
-    @Column(name = "TripEndTime")
-    private LocalDateTime tripEndTime;
+    private AgreementStatusType agreementStatus;
 
     @Column(name = "Distance", nullable = false)
     private Integer distance;
 
     @Column(name = "EstimatedDuration", nullable = false)
-    private Integer estimatedDuration; // minutes
+    private Integer estimatedDuration;
 
     @CreationTimestamp
     @Column(name = "CreateAt", updatable = false)

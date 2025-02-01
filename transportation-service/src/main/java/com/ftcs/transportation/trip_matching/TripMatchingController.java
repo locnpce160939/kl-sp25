@@ -2,11 +2,16 @@ package com.ftcs.transportation.trip_matching;
 
 import com.ftcs.common.dto.ApiResponse;
 import com.ftcs.transportation.TransportationURL;
+import com.ftcs.transportation.trip_booking.dto.TripBookingsRequestDTO;
+import com.ftcs.transportation.trip_matching.model.TripMatchingCache;
 import com.ftcs.transportation.trip_matching.service.TripAcceptanceService;
 import com.ftcs.transportation.trip_matching.service.TripMatchingService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping(TransportationURL.TRIP_MATCHING)
@@ -16,8 +21,13 @@ public class TripMatchingController {
     private final TripMatchingService tripMatchingService;
     private final TripAcceptanceService tripAcceptanceService;
 
+    @GetMapping("/wsTest")
+    public void sendTripBookingUpdates(@RequestBody TripMatchingCache requestDTO) {
+        tripMatchingService.sendTripBookingUpdates(requestDTO);
+    }
+
     @GetMapping("/{scheduleId}")
-    public ApiResponse<?> getMatchedTrips(@PathVariable("scheduleId") Integer scheduleId) {
+    public ApiResponse<?> getMatchedTrips(@PathVariable("scheduleId") Long scheduleId) {
         return ApiResponse.success(tripMatchingService.getMatchedTrips(scheduleId));
     }
 
@@ -27,10 +37,10 @@ public class TripMatchingController {
     }
 
     @GetMapping("/accept/{cacheId}")
-    public ApiResponse<?> acceptTrip(@PathVariable("cacheId") Integer cacheId,
+    public ApiResponse<?> acceptTrip(@PathVariable("cacheId") Long cacheId,
                                      @RequestAttribute("accountId") Integer accountId) {
         tripAcceptanceService.acceptTripBooking(cacheId, accountId);
-        return ApiResponse.success("oke");
+        return ApiResponse.success("Successfully accepted trip");
     }
 
 }

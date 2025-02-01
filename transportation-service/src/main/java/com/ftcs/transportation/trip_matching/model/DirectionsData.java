@@ -19,7 +19,7 @@ public class DirectionsData {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "Id", nullable = false)
-    private Integer id;
+    private Long id;
 
     @Column(name = "Distance")
     private Integer distance;

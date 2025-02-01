@@ -31,21 +31,21 @@ public class TripBookingsService {
         return tripBookings;
     }
 
-    public void updateTripBookings(TripBookingsRequestDTO requestDTO, Integer bookingId) {
+    public void updateTripBookings(TripBookingsRequestDTO requestDTO, Long bookingId) {
         validateExpirationDate(requestDTO);
         TripBookings tripBookings = findTripBookingsById(bookingId);
         mapRequestToTripBookings(requestDTO, tripBookings);
         tripBookingsRepository.save(tripBookings);
     }
 
-    public void cancelTripBookings(Integer bookingId) {
+    public void cancelTripBookings(Long bookingId) {
         TripBookings tripBookings = findTripBookingsById(bookingId);
         validateCancellationStatus(tripBookings);
         tripBookings.setStatus("Cancelled");
         tripBookingsRepository.save(tripBookings);
     }
 
-    public TripBookings getTripBookings(Integer bookingId) {
+    public TripBookings getTripBookings(Long bookingId) {
         return findTripBookingsById(bookingId);
     }
 
@@ -57,7 +57,7 @@ public class TripBookingsService {
         return bookings;
     }
 
-    public void updateStatusForDriver(UpdateStatusTripBookingsRequestDTO requestDTO, Integer accountId, Integer bookingId) {
+    public void updateStatusForDriver(UpdateStatusTripBookingsRequestDTO requestDTO, Integer accountId, Long bookingId) {
         TripBookings tripBookings = findTripBookingsById(bookingId);
         if (tripBookings.getStatus().equals("Arranging driver")) {
             handleDriverStatusUpdate(requestDTO, accountId, tripBookings);
@@ -66,7 +66,7 @@ public class TripBookingsService {
         }
     }
 
-    public void continueFindingDriver(UpdateStatusTripBookingsRequestDTO requestDTO, Integer bookingId) {
+    public void continueFindingDriver(UpdateStatusTripBookingsRequestDTO requestDTO, Long bookingId) {
         TripBookings tripBookings = findTripBookingsById(bookingId);
         if ("Cancelled".equals(tripBookings.getStatus()) &&
                 "Confirmed".equals(requestDTO.getOption())) {
@@ -101,7 +101,7 @@ public class TripBookingsService {
         return tripBookings;
     }
 
-    public void confirmCompleteDelivery(UpdateStatusTripBookingsRequestDTO requestDTO, String role, Integer bookingId) {
+    public void confirmCompleteDelivery(UpdateStatusTripBookingsRequestDTO requestDTO, String role, Long bookingId) {
         TripBookings tripBookings = findTripBookingsById(bookingId);
         if (isDriverConfirmingDelivery(role, tripBookings)) {
             updateBookingStatus(tripBookings, "Delivered");
@@ -140,7 +140,7 @@ public class TripBookingsService {
         }
     }
 
-    private TripBookings findTripBookingsById(Integer bookingId) {
+    private TripBookings findTripBookingsById(Long bookingId) {
         return tripBookingsRepository.findTripBookingsByBookingId(bookingId)
                 .orElseThrow(() -> new BadRequestException("Trip booking not found!"));
     }

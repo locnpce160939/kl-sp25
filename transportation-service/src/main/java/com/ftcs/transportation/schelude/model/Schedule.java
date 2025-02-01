@@ -19,7 +19,7 @@ public class Schedule {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ScheduleId", nullable = false)
-    private Integer scheduleId;
+    private Long scheduleId;
 
     @Column(name = "AccountId", nullable = false)
     private Integer accountId;
