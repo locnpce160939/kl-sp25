@@ -1,5 +1,6 @@
 package com.ftcs.accountservice.account.dto.register;
 
+import com.ftcs.authservice.features.account.contacts.RoleType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -30,7 +31,7 @@ public class RegisterConfirmRequestDTO {
     private String phone;
 
     @NotBlank(message = "Role must not be null or empty")
-    private String role;
+    private RoleType role;
 
     @NotBlank(message = "OTP must not be null or empty")
     private String otp;

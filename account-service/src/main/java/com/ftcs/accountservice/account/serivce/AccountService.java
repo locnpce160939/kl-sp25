@@ -25,9 +25,6 @@ public class AccountService {
 
     public void registerSendUser(RegisterRequestDTO requestDTO, HttpServletRequest request) {
         isExistingAccount(requestDTO);
-        if (!isValidRole(requestDTO.getRole())) {
-            throw new BadRequestException("Invalid role!");
-        }
         int randomNumber = generateOtpCode();
         String subject = "OTP authentication";
         sendMailService.sendOtp(requestDTO.getEmail(), subject, randomNumber);
@@ -40,13 +37,6 @@ public class AccountService {
             throw new BadRequestException("Invalid OTP!");
         }
 
-        RoleType role;
-        try {
-            role = RoleType.valueOf(requestDTO.getRole());
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("Invalid role!");
-        }
-
         Account account = new Account();
         account.setUsername(requestDTO.getUsername());
         account.setEmail(requestDTO.getEmail());
@@ -54,25 +44,19 @@ public class AccountService {
         account.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
         account.setPhone(requestDTO.getPhone());
         account.setStatus("Active");
-        account.setRole(role);
+        account.setRole(requestDTO.getRole());
         return accountRepository.save(account);
     }
 
     public Account createNewAccount(RegisterRequestDTO requestDTO) {
         isExistingAccount(requestDTO);
-        RoleType role;
-        try {
-            role = RoleType.valueOf(requestDTO.getRole());
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("Invalid role!");
-        }
 
         Account account = new Account();
         account.setUsername(requestDTO.getUsername());
         account.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
         account.setPhone(requestDTO.getPhone());
         account.setFullName(requestDTO.getFullName());
-        account.setRole(role);
+        account.setRole(requestDTO.getRole());
         account.setEmail(requestDTO.getEmail());
         account.setStatus("Active");
         return accountRepository.save(account);
@@ -190,15 +174,6 @@ public class AccountService {
         }
         if (accountRepository.existsByEmail(requestDTO.getEmail())) {
             throw new BadRequestException("Email Exists!");
-        }
-    }
-
-    private boolean isValidRole(String role) {
-        try {
-            RoleType.valueOf(role);
-            return true;
-        } catch (IllegalArgumentException e) {
-            return false;
         }
     }
 }
