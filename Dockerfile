@@ -10,6 +10,7 @@ COPY account-service/pom.xml account-service/pom.xml
 COPY transportation-service/pom.xml transportation-service/pom.xml
 COPY rating-service/pom.xml rating-service/pom.xml
 COPY finance-service/pom.xml finance-service/pom.xml
+COPY realtime-service/pom.xml realtime-service/pom.xml
 COPY common/pom.xml common/pom.xml
 
 # Resolve Maven dependencies

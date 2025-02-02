@@ -1,5 +1,6 @@
 package com.ftcs.transportation.schelude.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ftcs.common.dto.ApiResponse;
 import com.ftcs.transportation.TransportationURL;
 import com.ftcs.transportation.schelude.dto.FindScheduleByTimePeriodRequestDTO;

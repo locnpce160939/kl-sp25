@@ -1,5 +1,6 @@
 package com.ftcs.transportation.trip_booking.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.transportation.schelude.model.Schedule;
 import com.ftcs.transportation.schelude.repository.ScheduleRepository;

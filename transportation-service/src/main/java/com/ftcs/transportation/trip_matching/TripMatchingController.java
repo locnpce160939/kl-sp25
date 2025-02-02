@@ -1,5 +1,6 @@
 package com.ftcs.transportation.trip_matching;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ftcs.common.dto.ApiResponse;
 import com.ftcs.transportation.TransportationURL;
 import com.ftcs.transportation.trip_booking.dto.TripBookingsRequestDTO;

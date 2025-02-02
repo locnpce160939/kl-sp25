@@ -1,5 +1,10 @@
 package com.ftcs.transportation.trip_matching.service;
 
+import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.SocketIOServer;
+import com.ftcs.realtimeservice.socket.contants.Message;
+import com.ftcs.realtimeservice.socket.contants.MessageType;
+import com.ftcs.realtimeservice.socket.service.SocketService;
 import com.ftcs.transportation.schelude.model.Schedule;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
 import com.ftcs.transportation.trip_matching.dto.MatchResult;
@@ -16,15 +21,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+
+import static com.ftcs.common.utils.JsonUtils.toJson;
 
 @Service
 @AllArgsConstructor
 public class TripMatchingService {
     @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+    private final SocketIOServer server;
+
 
     private final TripMatchingCacheRepository tripMatchingRepository;
     private final DirectionsDataRepository tripDirectionsDataRepository;
@@ -32,13 +42,21 @@ public class TripMatchingService {
     private final MatchingStrategy<MatchResult> matchPointsStrategy;
     private final MatchingStrategy<Boolean> directionStrategy;
 
-    public List<TripMatchingCache> getMatchedTrips(Long scheduleId) {
-        return tripMatchingRepository.findByScheduleIdOrderBySameDirectionDescCommonPointsDesc(scheduleId);
-    }
+    private final SocketService socketService;
 
     public void sendTripBookingUpdates(TripMatchingCache matchedTrips) {
-        messagingTemplate.convertAndSend("/topic/tripBookings/"+matchedTrips.getBookingId(), matchedTrips);
-        messagingTemplate.convertAndSend("/topic/schedule/"+matchedTrips.getScheduleId(), matchedTrips);
+        Message message = Message.builder()
+                .messageType(MessageType.NOTIFICATION)
+                .room("7")
+                .content(toJson(matchedTrips))
+                .username("admin")
+                .build();
+
+        socketService.sendSocketMessage(message);
+    }
+
+    public List<TripMatchingCache> getMatchedTrips(Long scheduleId) {
+        return tripMatchingRepository.findByScheduleIdOrderBySameDirectionDescCommonPointsDesc(scheduleId);
     }
 
     @Async

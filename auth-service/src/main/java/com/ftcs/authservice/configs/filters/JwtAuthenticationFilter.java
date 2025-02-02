@@ -80,7 +80,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return request.getServletPath().contains(AuthAccountURL.AUTH);
     }
 
-    private boolean isTokenInvalid(String authHeader) {
+    public boolean isTokenInvalid(String authHeader) {
         return authHeader == null || !authHeader.startsWith("Bearer ");
     }
 

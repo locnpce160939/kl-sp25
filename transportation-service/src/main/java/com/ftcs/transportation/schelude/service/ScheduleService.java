@@ -1,5 +1,6 @@
 package com.ftcs.transportation.schelude.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.transportation.schelude.dto.FindScheduleByTimePeriodRequestDTO;
 import com.ftcs.transportation.schelude.dto.ScheduleRequestDTO;

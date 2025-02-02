@@ -56,9 +56,8 @@
             <artifactId>hibernate-validator</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-messaging</artifactId>
-            <version>5.3.24</version>
+            <groupId>com.ftcs</groupId>
+            <artifactId>realtime-service</artifactId>
         </dependency>
     </dependencies>
 </project>
