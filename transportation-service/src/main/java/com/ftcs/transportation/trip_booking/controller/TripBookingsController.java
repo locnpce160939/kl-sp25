@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ftcs.common.dto.ApiResponse;
 import com.ftcs.transportation.TransportationURL;
 import com.ftcs.transportation.trip_booking.dto.FindTripBookingByTimePeriodRequestDTO;
+import com.ftcs.transportation.trip_booking.dto.TripBookingsDetailDTO;
 import com.ftcs.transportation.trip_booking.dto.TripBookingsRequestDTO;
 import com.ftcs.transportation.trip_booking.dto.UpdateStatusTripBookingsRequestDTO;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
@@ -53,9 +54,9 @@ public class TripBookingsController {
     }
 
     @GetMapping("/{bookingId}")
-    public ApiResponse<TripBookings> getTripBookings(@PathVariable("bookingId") Long bookingId) {
-        TripBookings tripBookings = tripBookingsService.getTripBookings(bookingId);
-        return new ApiResponse<>(tripBookings);
+    public ApiResponse<TripBookingsDetailDTO> getTripBookings(@PathVariable("bookingId") Long bookingId) {
+        TripBookingsDetailDTO detailDTO = tripBookingsService.getTripBookings(bookingId);
+        return new ApiResponse<>(detailDTO);
     }
 
     @PostMapping("/filter")

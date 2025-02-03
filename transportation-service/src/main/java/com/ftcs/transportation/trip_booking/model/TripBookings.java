@@ -24,6 +24,9 @@ public class TripBookings {
     @Column(name = "AccountId", nullable = false)
     private Integer accountId;
 
+    @Column(name = "TripAgreementId", nullable = false)
+    private Long tripAgreementId;
+
     @Column(name = "BookingType", length = 50, nullable = false)
     private String bookingType;
 

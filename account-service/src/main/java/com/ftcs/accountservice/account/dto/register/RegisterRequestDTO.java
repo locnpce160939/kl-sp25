@@ -29,6 +29,5 @@ public class RegisterRequestDTO {
     @Pattern(regexp = "^\\+?[0-9]{7,15}$", message = "Phone number is not valid")
     private String phone;
 
-    @NotBlank(message = "Role must not be null or empty")
     private RoleType role;
 }

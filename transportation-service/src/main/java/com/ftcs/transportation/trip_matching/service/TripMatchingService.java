@@ -50,7 +50,7 @@ public class TripMatchingService {
     public void sendTripBookingUpdates(TripMatchingCache matchedTrips) {
         Message message = Message.builder()
                 .messageType(MessageType.NOTIFICATION)
-                .room("7")
+                .room("1")
                 .content(toJson(matchedTrips))
                 .username("admin")
                 .build();

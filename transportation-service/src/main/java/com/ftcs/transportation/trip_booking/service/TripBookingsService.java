@@ -1,10 +1,15 @@
 package com.ftcs.transportation.trip_booking.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.ftcs.authservice.features.account.Account;
+import com.ftcs.authservice.features.account.AccountRepository;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.transportation.schelude.model.Schedule;
 import com.ftcs.transportation.schelude.repository.ScheduleRepository;
+import com.ftcs.transportation.trip_agreement.model.TripAgreement;
+import com.ftcs.transportation.trip_agreement.repository.TripAgreementRepository;
 import com.ftcs.transportation.trip_booking.dto.FindTripBookingByTimePeriodRequestDTO;
+import com.ftcs.transportation.trip_booking.dto.TripBookingsDetailDTO;
 import com.ftcs.transportation.trip_booking.dto.TripBookingsRequestDTO;
 import com.ftcs.transportation.trip_booking.dto.UpdateStatusTripBookingsRequestDTO;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
@@ -14,6 +19,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
+import static com.ftcs.transportation.trip_booking.mapper.TripBookingsMapper.toDTO;
+
 @Service
 @AllArgsConstructor
 public class TripBookingsService {
@@ -21,6 +28,8 @@ public class TripBookingsService {
 
     private final TripBookingsRepository tripBookingsRepository;
     private final ScheduleRepository scheduleRepository;
+    private final TripAgreementRepository tripAgreementRepository;
+    private final AccountRepository accountRepository;
 
     public TripBookings createTripBookings(TripBookingsRequestDTO requestDTO, Integer accountId) {
         validateExpirationDate(requestDTO);
@@ -46,8 +55,12 @@ public class TripBookingsService {
         tripBookingsRepository.save(tripBookings);
     }
 
-    public TripBookings getTripBookings(Long bookingId) {
-        return findTripBookingsById(bookingId);
+    public TripBookingsDetailDTO getTripBookings(Long bookingId) {
+        TripBookings tripBookings = findTripBookingsById(bookingId);
+        TripBookingsDetailDTO detailDTO = toDTO(tripBookings);
+        detailDTO.setTripAgreement(getTripAgreement(tripBookings.getTripAgreementId()));
+        detailDTO.setDriver(getDriver(detailDTO.getTripAgreement().getDriverId()));
+        return detailDTO;
     }
 
     public List<TripBookings> getAllTripBookings() {
@@ -146,6 +159,11 @@ public class TripBookingsService {
                 .orElseThrow(() -> new BadRequestException("Trip booking not found!"));
     }
 
+    private Account getDriver(Integer accountId) {
+        return accountRepository.findById(accountId)
+                .orElseThrow(() -> new BadRequestException("Driver not found!"));
+    }
+
     private TripBookings findTripBookingsByAccountId(Integer accountId) {
         return tripBookingsRepository.findTripBookingsByAccountId(accountId)
                 .orElseThrow(() -> new BadRequestException("You haven't booked any trips yet!"));
@@ -162,6 +180,10 @@ public class TripBookingsService {
         }
     }
 
+    private TripAgreement getTripAgreement(Long tripAgreementId) {
+        return tripAgreementRepository.findById(tripAgreementId)
+                .orElseThrow(() -> new BadRequestException("Trip agreement not found!"));
+    }
     private void handleDriverStatusUpdate(UpdateStatusTripBookingsRequestDTO requestDTO,
                                           Integer accountId, TripBookings tripBookings) {
         Schedule schedule = scheduleRepository.findScheduleByAccountId(accountId)
