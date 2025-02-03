@@ -17,10 +17,10 @@ public class SocketService {
 
     public void sendSocketMessage(Message message) {
         for (SocketIOClient client : server.getRoomOperations(message.getRoom()).getClients()) {
-            Boolean isAuthenticated = client.get("authenticate");
-            if (isAuthenticated != null && isAuthenticated) {
+            //Boolean isAuthenticated = client.get("authenticate");
+            //if (isAuthenticated != null && isAuthenticated) {
                 client.sendEvent(String.valueOf(message.getMessageType()), message);
-            }
+            //}
         }
     }
 }

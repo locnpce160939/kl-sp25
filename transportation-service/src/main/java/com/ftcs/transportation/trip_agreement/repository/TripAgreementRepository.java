@@ -8,5 +8,6 @@ import java.util.List;
 public interface TripAgreementRepository extends JpaRepository<TripAgreement, Long> {
     List<TripAgreement> findAllByCustomerId(Integer customerId);
     List<TripAgreement> findAllByDriverId(Integer driverId);
+    List<TripAgreement> findAllByScheduleId(Long driverId);
 
 }

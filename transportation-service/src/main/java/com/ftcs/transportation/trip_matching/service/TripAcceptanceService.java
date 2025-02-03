@@ -71,6 +71,9 @@ public class TripAcceptanceService  {
 
         TripAgreement tripAgreement = TripAgreement.builder()
                 .tripMatchingId(finalRecord.getId())
+                .scheduleId(finalRecord.getScheduleId())
+                .bookingId(finalRecord.getBookingId())
+                .tripMatchingId(finalRecord.getId())
                 .driverId(schedule.getAccountId())
                 .customerId(tripBooking.getAccountId())
                 .totalPrice(0.0)

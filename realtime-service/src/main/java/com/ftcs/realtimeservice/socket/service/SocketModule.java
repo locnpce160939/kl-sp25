@@ -1,6 +1,7 @@
 package com.ftcs.realtimeservice.socket.service;
 
 
+import com.corundumstudio.socketio.SocketIONamespace;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
@@ -8,6 +9,7 @@ import com.corundumstudio.socketio.listener.DisconnectListener;
 import com.ftcs.authservice.configs.filters.JwtAuthenticationFilter;
 import com.ftcs.authservice.configs.filters.ParseToken;
 import com.ftcs.realtimeservice.socket.contants.Message;
+import com.ftcs.realtimeservice.socket.contants.MessageType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -24,31 +26,32 @@ public class SocketModule {
     public SocketModule(SocketIOServer server, JwtAuthenticationFilter jwtAuthenticationFilter, ParseToken parseToken) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.parseToken = parseToken;
-        server.addConnectListener(onConnected());
-        server.addDisconnectListener(onDisconnected());
+        server.addConnectListener(onConnected(server));
+        server.addDisconnectListener(onDisconnected(server));
         server.addEventListener("message", Object.class, (client, data, ackRequest) -> {
             log.info("Event: message, Data: {}", data);
         });
         server.addEventListener("authenticate", String.class, onAuthenticate());
     }
 
-    private ConnectListener onConnected() {
+    private ConnectListener onConnected(SocketIOServer server) {
         return (client) -> {
             var params = client.getHandshakeData().getUrlParams();
             String room = params.get("room").stream().collect(Collectors.joining());
             String username = params.get("username").stream().collect(Collectors.joining());
             client.joinRoom(room);
             log.info("Socket ID[{}] - room[{}] - username [{}]  Connected to chat module through", client.getSessionId().toString(), room, username);
+            log.info("Client connected. Total clients: {}", server.getAllClients().size());
         };
-
     }
 
-    private DisconnectListener onDisconnected() {
+    private DisconnectListener onDisconnected(SocketIOServer server) {
         return client -> {
             var params = client.getHandshakeData().getUrlParams();
             String room = params.get("room").stream().collect(Collectors.joining());
             String username = params.get("username").stream().collect(Collectors.joining());
-            log.info("Socket ID[{}] - room[{}] - username [{}]  discnnected to chat module through", client.getSessionId().toString(), room, username);
+            log.info("Socket ID[{}] - room[{}] - username [{}]  disconnected to chat module through", client.getSessionId().toString(), room, username);
+            log.info("Client disconnected. Total clients: {}", server.getAllClients().size());
         };
     }
 
@@ -86,6 +89,5 @@ public class SocketModule {
             }
         };
     }
-
 
 }

@@ -31,14 +31,14 @@ public class ScheduleController {
     @PutMapping("/update/{scheduleId}")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
     public ApiResponse<String> updateSchedule(@Valid @RequestBody ScheduleRequestDTO requestDTO,
-                                              @PathVariable("scheduleId") Integer scheduleId) {
+                                              @PathVariable("scheduleId") Long scheduleId) {
         scheduleService.updateSchedule(requestDTO, scheduleId);
         return new ApiResponse<>("Schedule updated successfully");
     }
 
     @PutMapping("/updateStatus/{scheduleId}")
     public ApiResponse<String> updateStatusSchedule(@Valid @RequestBody UpdateStatusScheduleRequestDTO requestDTO,
-                                                    @PathVariable("scheduleId") Integer scheduleId) {
+                                                    @PathVariable("scheduleId") Long scheduleId) {
         scheduleService.updateStatusSchedule(requestDTO, scheduleId);
         return new ApiResponse<>("Schedule status updated successfully");
     }
@@ -71,7 +71,7 @@ public class ScheduleController {
     }
 
     @GetMapping("/{scheduleId}")
-    public ApiResponse<Schedule> getScheduleById(@PathVariable("scheduleId") Integer scheduleId) {
+    public ApiResponse<Schedule> getScheduleById(@PathVariable("scheduleId") Long scheduleId) {
         Schedule schedule = scheduleService.getScheduleById(scheduleId);
         return new ApiResponse<>(schedule);
     }

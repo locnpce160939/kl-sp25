@@ -27,9 +27,9 @@ public class TripMatchingController {
         tripMatchingService.sendTripBookingUpdates(requestDTO);
     }
 
-    @GetMapping("/{scheduleId}")
-    public ApiResponse<?> getMatchedTrips(@PathVariable("scheduleId") Long scheduleId) {
-        return ApiResponse.success(tripMatchingService.getMatchedTrips(scheduleId));
+    @GetMapping()
+    public ApiResponse<?> getMatchedTrips(@RequestAttribute("accountId") Integer accountId) {
+        return ApiResponse.success(tripMatchingService.getMatchedTrips(accountId));
     }
 
     @GetMapping("/find-matches")

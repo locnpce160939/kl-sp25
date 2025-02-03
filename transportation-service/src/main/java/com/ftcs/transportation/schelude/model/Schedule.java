@@ -42,6 +42,9 @@ public class Schedule {
     @Column(name = "EndDate", nullable = false)
     private LocalDateTime endDate;
 
+    @Column(name = "LocationDriver")
+    private String locationDriver;
+
     @Column(name = "AvailableCapacity", nullable = false)
     private Integer availableCapacity;
 

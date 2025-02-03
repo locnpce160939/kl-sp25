@@ -6,6 +6,7 @@ import com.ftcs.realtimeservice.socket.contants.Message;
 import com.ftcs.realtimeservice.socket.contants.MessageType;
 import com.ftcs.realtimeservice.socket.service.SocketService;
 import com.ftcs.transportation.schelude.model.Schedule;
+import com.ftcs.transportation.schelude.repository.ScheduleRepository;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
 import com.ftcs.transportation.trip_matching.dto.MatchResult;
 import com.ftcs.transportation.trip_matching.projection.ScheduleBookingProjection;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static com.ftcs.common.utils.JsonUtils.toJson;
 
@@ -42,6 +44,7 @@ public class TripMatchingService {
     private final MatchingStrategy<MatchResult> matchPointsStrategy;
     private final MatchingStrategy<Boolean> directionStrategy;
 
+    private final ScheduleRepository scheduleRepository;
     private final SocketService socketService;
 
     public void sendTripBookingUpdates(TripMatchingCache matchedTrips) {
@@ -55,8 +58,12 @@ public class TripMatchingService {
         socketService.sendSocketMessage(message);
     }
 
-    public List<TripMatchingCache> getMatchedTrips(Long scheduleId) {
-        return tripMatchingRepository.findByScheduleIdOrderBySameDirectionDescCommonPointsDesc(scheduleId);
+    public List<TripMatchingCache> getMatchedTrips(Integer accountId) {
+        List<Schedule> schedules = scheduleRepository.findAllByAccountId(accountId);
+        List<Long> scheduleIds = schedules.stream()
+                .map(Schedule::getScheduleId)
+                .collect(Collectors.toList());
+        return tripMatchingRepository.findByScheduleIdInOrderBySameDirectionDescCommonPointsDesc(scheduleIds);
     }
 
     @Async

@@ -151,7 +151,7 @@ public class TripBookingsService {
                 .orElseThrow(() -> new BadRequestException("You haven't booked any trips yet!"));
     }
 
-    private Schedule findScheduleByScheduleId(Integer scheduleId) {
+    private Schedule findScheduleByScheduleId(Long scheduleId) {
         return scheduleRepository.findScheduleByScheduleId(scheduleId)
                 .orElseThrow(() -> new BadRequestException("Schedule not found!"));
     }

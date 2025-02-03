@@ -26,6 +26,12 @@ public class TripAgreement {
     @Column(name = "TripMatchingId", nullable = false)
     private Long tripMatchingId;
 
+    @Column(name = "ScheduleId", nullable = false)
+    private Long scheduleId;
+
+    @Column(name = "BookingId", nullable = false)
+    private Long bookingId;
+
     @Column(name = "DriverId", nullable = false)
     private Integer driverId;
 

@@ -101,7 +101,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private void authenticateUser(UserDetails userDetails, HttpServletRequest request) {
         String role = (String) request.getAttribute("role");
-        System.out.println(role);
         List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(role));
 
         UsernamePasswordAuthenticationToken authentication =
