@@ -55,13 +55,22 @@ public class TripBookingsService {
         tripBookingsRepository.save(tripBookings);
     }
 
-    public TripBookingsDetailDTO getTripBookings(Long bookingId) {
-        TripBookings tripBookings = findTripBookingsById(bookingId);
-        TripBookingsDetailDTO detailDTO = toDTO(tripBookings);
-        detailDTO.setTripAgreement(getTripAgreement(tripBookings.getTripAgreementId()));
-        detailDTO.setDriver(getDriver(detailDTO.getTripAgreement().getDriverId()));
+    public TripBookingsDetailDTO getTripBookingDetails(Long bookingId, Integer accountId) {
+        TripBookings tripBooking = findTripBookingsById(bookingId);
+
+        if (!tripBooking.getAccountId().equals(accountId)) {
+            throw new BadRequestException("No permission to access this booking");
+        }
+
+        TripBookingsDetailDTO detailDTO = toDTO(tripBooking);
+        TripAgreement tripAgreement = getTripAgreement(tripBooking.getTripAgreementId());
+
+        detailDTO.setTripAgreement(tripAgreement);
+        detailDTO.setDriver(getDriver(tripAgreement.getDriverId()));
+
         return detailDTO;
     }
+
 
     public List<TripBookings> getAllTripBookings() {
         List<TripBookings> bookings = tripBookingsRepository.findAll();

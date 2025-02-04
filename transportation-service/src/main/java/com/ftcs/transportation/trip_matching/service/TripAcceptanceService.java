@@ -39,7 +39,10 @@ public class TripAcceptanceService  {
         TripMatchingFinal finalRecord = saveFinalTripMatching(cache);
         tripMatchingCacheRepository.deleteById(cacheId);
 
-        createAndSaveTripAgreement(cache, finalRecord);
+        TripAgreement tripAgreement = createAndSaveTripAgreement(cache, finalRecord);
+
+        updateTripBookings(tripAgreement);
+
     }
 
     private TripMatchingFinal saveFinalTripMatching(TripMatchingCache cache) {
@@ -65,7 +68,7 @@ public class TripAcceptanceService  {
         return tripMatchingFinalRepository.save(finalRecord);
     }
 
-    private void createAndSaveTripAgreement(TripMatchingCache cache, TripMatchingFinal finalRecord) {
+    private TripAgreement createAndSaveTripAgreement(TripMatchingCache cache, TripMatchingFinal finalRecord) {
         Schedule schedule = getSchedule(cache.getScheduleId());
         TripBookings tripBooking = getTripBookings(cache.getBookingId());
 
@@ -83,6 +86,12 @@ public class TripAcceptanceService  {
                 .agreementStatus(AgreementStatusType.IN_TRANSIT)
                 .build();
 
+        return tripAgreementRepository.save(tripAgreement);
+    }
+
+    private void updateTripBookings(TripAgreement tripAgreement) {
+        TripBookings tripBooking = getTripBookings(tripAgreement.getBookingId());
+        tripBooking.setTripAgreementId(tripAgreement.getId());
         tripAgreementRepository.save(tripAgreement);
     }
 

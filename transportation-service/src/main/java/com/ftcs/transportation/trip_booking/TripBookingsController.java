@@ -1,6 +1,5 @@
-package com.ftcs.transportation.trip_booking.controller;
+package com.ftcs.transportation.trip_booking;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ftcs.common.dto.ApiResponse;
 import com.ftcs.transportation.TransportationURL;
 import com.ftcs.transportation.trip_booking.dto.FindTripBookingByTimePeriodRequestDTO;
@@ -54,8 +53,9 @@ public class TripBookingsController {
     }
 
     @GetMapping("/{bookingId}")
-    public ApiResponse<TripBookingsDetailDTO> getTripBookings(@PathVariable("bookingId") Long bookingId) {
-        TripBookingsDetailDTO detailDTO = tripBookingsService.getTripBookings(bookingId);
+    public ApiResponse<TripBookingsDetailDTO> getTripBookings(@PathVariable("bookingId") Long bookingId,
+                                                              @RequestAttribute("accountId") Integer accountId) {
+        TripBookingsDetailDTO detailDTO = tripBookingsService.getTripBookingDetails(bookingId, accountId);
         return new ApiResponse<>(detailDTO);
     }
 
