@@ -19,10 +19,10 @@ public class Review {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ReviewId", nullable = false)
-    private Integer reviewId;
+    private Long reviewId;
 
     @Column(name = "BookingId", nullable = false)
-    private Integer bookingId;
+    private Long bookingId;
 
     @Column(name = "Rating", nullable = false)
     private Double rating;

@@ -1,9 +1,15 @@
 package com.ftcs.transportation.trip_booking.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.ftcs.authservice.features.account.Account;
+import com.ftcs.authservice.features.account.AccountRepository;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.transportation.schelude.model.Schedule;
 import com.ftcs.transportation.schelude.repository.ScheduleRepository;
+import com.ftcs.transportation.trip_agreement.model.TripAgreement;
+import com.ftcs.transportation.trip_agreement.repository.TripAgreementRepository;
 import com.ftcs.transportation.trip_booking.dto.FindTripBookingByTimePeriodRequestDTO;
+import com.ftcs.transportation.trip_booking.dto.TripBookingsDetailDTO;
 import com.ftcs.transportation.trip_booking.dto.TripBookingsRequestDTO;
 import com.ftcs.transportation.trip_booking.dto.UpdateStatusTripBookingsRequestDTO;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
@@ -13,6 +19,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
+import static com.ftcs.transportation.trip_booking.mapper.TripBookingsMapper.toDTO;
+
 @Service
 @AllArgsConstructor
 public class TripBookingsService {
@@ -20,6 +28,8 @@ public class TripBookingsService {
 
     private final TripBookingsRepository tripBookingsRepository;
     private final ScheduleRepository scheduleRepository;
+    private final TripAgreementRepository tripAgreementRepository;
+    private final AccountRepository accountRepository;
 
     public TripBookings createTripBookings(TripBookingsRequestDTO requestDTO, Integer accountId) {
         validateExpirationDate(requestDTO);
@@ -31,23 +41,36 @@ public class TripBookingsService {
         return tripBookings;
     }
 
-    public void updateTripBookings(TripBookingsRequestDTO requestDTO, Integer bookingId) {
+    public void updateTripBookings(TripBookingsRequestDTO requestDTO, Long bookingId) {
         validateExpirationDate(requestDTO);
         TripBookings tripBookings = findTripBookingsById(bookingId);
         mapRequestToTripBookings(requestDTO, tripBookings);
         tripBookingsRepository.save(tripBookings);
     }
 
-    public void cancelTripBookings(Integer bookingId) {
+    public void cancelTripBookings(Long bookingId) {
         TripBookings tripBookings = findTripBookingsById(bookingId);
         validateCancellationStatus(tripBookings);
         tripBookings.setStatus("Cancelled");
         tripBookingsRepository.save(tripBookings);
     }
 
-    public TripBookings getTripBookings(Integer bookingId) {
-        return findTripBookingsById(bookingId);
+    public TripBookingsDetailDTO getTripBookingDetails(Long bookingId, Integer accountId) {
+        TripBookings tripBooking = findTripBookingsById(bookingId);
+
+        if (!tripBooking.getAccountId().equals(accountId)) {
+            throw new BadRequestException("No permission to access this booking");
+        }
+
+        TripBookingsDetailDTO detailDTO = toDTO(tripBooking);
+        TripAgreement tripAgreement = getTripAgreement(tripBooking.getTripAgreementId());
+
+        detailDTO.setTripAgreement(tripAgreement);
+        detailDTO.setDriver(getDriver(tripAgreement.getDriverId()));
+
+        return detailDTO;
     }
+
 
     public List<TripBookings> getAllTripBookings() {
         List<TripBookings> bookings = tripBookingsRepository.findAll();
@@ -57,7 +80,7 @@ public class TripBookingsService {
         return bookings;
     }
 
-    public void updateStatusForDriver(UpdateStatusTripBookingsRequestDTO requestDTO, Integer accountId, Integer bookingId) {
+    public void updateStatusForDriver(UpdateStatusTripBookingsRequestDTO requestDTO, Integer accountId, Long bookingId) {
         TripBookings tripBookings = findTripBookingsById(bookingId);
         if (tripBookings.getStatus().equals("Arranging driver")) {
             handleDriverStatusUpdate(requestDTO, accountId, tripBookings);
@@ -66,7 +89,7 @@ public class TripBookingsService {
         }
     }
 
-    public void continueFindingDriver(UpdateStatusTripBookingsRequestDTO requestDTO, Integer bookingId) {
+    public void continueFindingDriver(UpdateStatusTripBookingsRequestDTO requestDTO, Long bookingId) {
         TripBookings tripBookings = findTripBookingsById(bookingId);
         if ("Cancelled".equals(tripBookings.getStatus()) &&
                 "Confirmed".equals(requestDTO.getOption())) {
@@ -101,7 +124,7 @@ public class TripBookingsService {
         return tripBookings;
     }
 
-    public void confirmCompleteDelivery(UpdateStatusTripBookingsRequestDTO requestDTO, String role, Integer bookingId) {
+    public void confirmCompleteDelivery(UpdateStatusTripBookingsRequestDTO requestDTO, String role, Long bookingId) {
         TripBookings tripBookings = findTripBookingsById(bookingId);
         if (isDriverConfirmingDelivery(role, tripBookings)) {
             updateBookingStatus(tripBookings, "Delivered");
@@ -140,9 +163,14 @@ public class TripBookingsService {
         }
     }
 
-    private TripBookings findTripBookingsById(Integer bookingId) {
+    private TripBookings findTripBookingsById(Long bookingId) {
         return tripBookingsRepository.findTripBookingsByBookingId(bookingId)
                 .orElseThrow(() -> new BadRequestException("Trip booking not found!"));
+    }
+
+    private Account getDriver(Integer accountId) {
+        return accountRepository.findById(accountId)
+                .orElseThrow(() -> new BadRequestException("Driver not found!"));
     }
 
     private TripBookings findTripBookingsByAccountId(Integer accountId) {
@@ -150,7 +178,7 @@ public class TripBookingsService {
                 .orElseThrow(() -> new BadRequestException("You haven't booked any trips yet!"));
     }
 
-    private Schedule findScheduleByScheduleId(Integer scheduleId) {
+    private Schedule findScheduleByScheduleId(Long scheduleId) {
         return scheduleRepository.findScheduleByScheduleId(scheduleId)
                 .orElseThrow(() -> new BadRequestException("Schedule not found!"));
     }
@@ -161,6 +189,10 @@ public class TripBookingsService {
         }
     }
 
+    private TripAgreement getTripAgreement(Long tripAgreementId) {
+        return tripAgreementRepository.findById(tripAgreementId)
+                .orElseThrow(() -> new BadRequestException("Trip agreement not found!"));
+    }
     private void handleDriverStatusUpdate(UpdateStatusTripBookingsRequestDTO requestDTO,
                                           Integer accountId, TripBookings tripBookings) {
         Schedule schedule = scheduleRepository.findScheduleByAccountId(accountId)

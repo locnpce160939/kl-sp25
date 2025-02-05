@@ -46,6 +46,11 @@
         </dependency>
         <dependency>
             <groupId>com.ftcs</groupId>
+            <artifactId>realtime-service</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.ftcs</groupId>
             <artifactId>transportation-service</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
@@ -80,6 +85,16 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-sleuth-zipkin</artifactId>
             <version>2.2.8.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>io.socket</groupId>
+            <artifactId>socket.io-server</artifactId>
+            <version>4.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.corundumstudio.socketio</groupId>
+            <artifactId>netty-socketio</artifactId>
+            <version>1.7.23</version>
         </dependency>
     </dependencies>
 

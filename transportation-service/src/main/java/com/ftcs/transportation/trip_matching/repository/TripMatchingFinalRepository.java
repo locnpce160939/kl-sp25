@@ -7,5 +7,5 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-public interface TripMatchingFinalRepository extends JpaRepository<TripMatchingFinal, Integer> {
+public interface TripMatchingFinalRepository extends JpaRepository<TripMatchingFinal, Long> {
 }

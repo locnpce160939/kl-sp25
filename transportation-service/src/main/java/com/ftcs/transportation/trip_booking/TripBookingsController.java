@@ -1,8 +1,9 @@
-package com.ftcs.transportation.trip_booking.controller;
+package com.ftcs.transportation.trip_booking;
 
 import com.ftcs.common.dto.ApiResponse;
 import com.ftcs.transportation.TransportationURL;
 import com.ftcs.transportation.trip_booking.dto.FindTripBookingByTimePeriodRequestDTO;
+import com.ftcs.transportation.trip_booking.dto.TripBookingsDetailDTO;
 import com.ftcs.transportation.trip_booking.dto.TripBookingsRequestDTO;
 import com.ftcs.transportation.trip_booking.dto.UpdateStatusTripBookingsRequestDTO;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
@@ -32,14 +33,14 @@ public class TripBookingsController {
     @PutMapping("/update/{bookingId}")
     @PreAuthorize("hasPermission(null, 'CUSTOMER')")
     public ApiResponse<String> updateTripBookings(@Valid @RequestBody TripBookingsRequestDTO requestDTO,
-                                                  @PathVariable("bookingId") Integer bookingId) {
+                                                  @PathVariable("bookingId") Long bookingId) {
         tripBookingsService.updateTripBookings(requestDTO, bookingId);
         return new ApiResponse<>("Trip booking updated successfully");
     }
 
     @PutMapping("/cancel/{bookingId}")
     @PreAuthorize("hasPermission(null, 'CUSTOMER')")
-    public ApiResponse<String> cancelTripBookings(@Valid @PathVariable("bookingId") Integer bookingId) {
+    public ApiResponse<String> cancelTripBookings(@Valid @PathVariable("bookingId") Long bookingId) {
         tripBookingsService.cancelTripBookings(bookingId);
         return new ApiResponse<>("Trip booking cancelled successfully");
     }
@@ -52,9 +53,10 @@ public class TripBookingsController {
     }
 
     @GetMapping("/{bookingId}")
-    public ApiResponse<TripBookings> getTripBookings(@PathVariable("bookingId") Integer bookingId) {
-        TripBookings tripBookings = tripBookingsService.getTripBookings(bookingId);
-        return new ApiResponse<>(tripBookings);
+    public ApiResponse<TripBookingsDetailDTO> getTripBookings(@PathVariable("bookingId") Long bookingId,
+                                                              @RequestAttribute("accountId") Integer accountId) {
+        TripBookingsDetailDTO detailDTO = tripBookingsService.getTripBookingDetails(bookingId, accountId);
+        return new ApiResponse<>(detailDTO);
     }
 
     @PostMapping("/filter")
@@ -68,7 +70,7 @@ public class TripBookingsController {
     @PreAuthorize("hasPermission(null, 'DRIVER')")
     public ApiResponse<String> updateStatusForDriver(@Valid @RequestBody UpdateStatusTripBookingsRequestDTO requestDTO,
                                                      @RequestAttribute("accountId") Integer accountId,
-                                                     @PathVariable("bookingId") Integer bookingId) {
+                                                     @PathVariable("bookingId") Long bookingId) {
         tripBookingsService.updateStatusForDriver(requestDTO, accountId, bookingId);
         return new ApiResponse<>("Driver status updated successfully");
     }
@@ -76,7 +78,7 @@ public class TripBookingsController {
     @PutMapping("/continueFindingDriver/{bookingId}")
     @PreAuthorize("hasPermission(null, 'CUSTOMER')")
     public ApiResponse<String> continueFindingDriver(@Valid @RequestBody UpdateStatusTripBookingsRequestDTO requestDTO,
-                                                     @PathVariable("bookingId") Integer bookingId) {
+                                                     @PathVariable("bookingId") Long bookingId) {
         tripBookingsService.continueFindingDriver(requestDTO, bookingId);
         return new ApiResponse<>("Continuing to find driver");
     }
@@ -85,7 +87,7 @@ public class TripBookingsController {
     @PreAuthorize("hasPermission(null, 'CUSTOMER') or hasPermission(null, 'DRIVER')")
     public ApiResponse<?> confirmCompleteDelivery(@Valid @RequestBody UpdateStatusTripBookingsRequestDTO requestDTO,
                                                   @RequestAttribute("role") String role,
-                                                  @PathVariable("bookingId") Integer bookingId) {
+                                                  @PathVariable("bookingId") Long bookingId) {
         tripBookingsService.confirmCompleteDelivery(requestDTO, role, bookingId);
         return new ApiResponse<>("Trip booking confirmed delivery successfully");
     }

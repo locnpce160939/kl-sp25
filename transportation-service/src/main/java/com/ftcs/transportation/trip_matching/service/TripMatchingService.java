@@ -1,6 +1,12 @@
 package com.ftcs.transportation.trip_matching.service;
 
+import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.SocketIOServer;
+import com.ftcs.realtimeservice.socket.contants.Message;
+import com.ftcs.realtimeservice.socket.contants.MessageType;
+import com.ftcs.realtimeservice.socket.service.SocketService;
 import com.ftcs.transportation.schelude.model.Schedule;
+import com.ftcs.transportation.schelude.repository.ScheduleRepository;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
 import com.ftcs.transportation.trip_matching.dto.MatchResult;
 import com.ftcs.transportation.trip_matching.projection.ScheduleBookingProjection;
@@ -12,23 +18,52 @@ import com.ftcs.transportation.trip_matching.repository.TripMatchingCacheReposit
 import com.ftcs.transportation.trip_matching.service.strategy.MatchingContext;
 import com.ftcs.transportation.trip_matching.service.strategy.MatchingStrategy;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+
+import static com.ftcs.common.utils.JsonUtils.toJson;
 
 @Service
 @AllArgsConstructor
 public class TripMatchingService {
+    @Autowired
+    private final SocketIOServer server;
+
+
     private final TripMatchingCacheRepository tripMatchingRepository;
     private final DirectionsDataRepository tripDirectionsDataRepository;
 
     private final MatchingStrategy<MatchResult> matchPointsStrategy;
     private final MatchingStrategy<Boolean> directionStrategy;
 
-    public List<TripMatchingCache> getMatchedTrips(Integer scheduleId) {
-        return tripMatchingRepository.findByScheduleIdOrderBySameDirectionDescCommonPointsDesc(scheduleId);
+    private final ScheduleRepository scheduleRepository;
+    private final SocketService socketService;
+
+    public void sendTripBookingUpdates(TripMatchingCache matchedTrips) {
+        Message message = Message.builder()
+                .messageType(MessageType.NOTIFICATION)
+                .room("1")
+                .content(toJson(matchedTrips))
+                .username("admin")
+                .build();
+
+        socketService.sendSocketMessage(message);
+    }
+
+    public List<TripMatchingCache> getMatchedTrips(Integer accountId) {
+        List<Schedule> schedules = scheduleRepository.findAllByAccountId(accountId);
+        List<Long> scheduleIds = schedules.stream()
+                .map(Schedule::getScheduleId)
+                .collect(Collectors.toList());
+        return tripMatchingRepository.findByScheduleIdInOrderBySameDirectionDescCommonPointsDesc(scheduleIds);
     }
 
     @Async
@@ -53,6 +88,8 @@ public class TripMatchingService {
 
                 TripMatchingCache tripMatching = createTripMatching(scheduleBookingDTO.getSchedule(), scheduleBookingDTO.getTripBooking(), matchPointsResult, sameDirection);
                 matchedTrips.add(tripMatching);
+
+                sendTripBookingUpdates(tripMatching);
         }
 
         return matchedTrips;

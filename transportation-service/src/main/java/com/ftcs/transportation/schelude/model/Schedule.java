@@ -19,7 +19,7 @@ public class Schedule {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ScheduleId", nullable = false)
-    private Integer scheduleId;
+    private Long scheduleId;
 
     @Column(name = "AccountId", nullable = false)
     private Integer accountId;
@@ -41,6 +41,9 @@ public class Schedule {
 
     @Column(name = "EndDate", nullable = false)
     private LocalDateTime endDate;
+
+    @Column(name = "LocationDriver")
+    private String locationDriver;
 
     @Column(name = "AvailableCapacity", nullable = false)
     private Integer availableCapacity;

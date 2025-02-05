@@ -3,7 +3,7 @@ package com.ftcs.transportation.trip_matching.projection;
 import java.time.LocalDateTime;
 
 public interface ScheduleBookingProjection {
-    Integer getScheduleId();
+    Long getScheduleId();
     Integer getAccountId();
     String getStartLocation();
     String getEndLocation();
@@ -17,7 +17,7 @@ public interface ScheduleBookingProjection {
     LocalDateTime getScheduleCreateAt();
     LocalDateTime getScheduleUpdateAt();
 
-    Integer getBookingId();
+    Long getBookingId();
     Integer getBookingAccountId();
     String getBookingType();
     LocalDateTime getBookingDate();

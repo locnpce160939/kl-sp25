@@ -1,13 +1,18 @@
 package com.ftcs.transportation.trip_matching.service;
 
 import com.ftcs.common.exception.BadRequestException;
+import com.ftcs.transportation.schelude.model.Schedule;
 import com.ftcs.transportation.schelude.repository.ScheduleRepository;
+import com.ftcs.transportation.trip_booking.model.TripBookings;
 import com.ftcs.transportation.trip_booking.repository.TripBookingsRepository;
+import com.ftcs.transportation.trip_agreement.constant.AgreementStatusType;
+import com.ftcs.transportation.trip_matching.constant.PaymentStatusType;
+import com.ftcs.transportation.trip_agreement.model.TripAgreement;
 import com.ftcs.transportation.trip_matching.model.TripMatchingCache;
 import com.ftcs.transportation.trip_matching.model.TripMatchingFinal;
+import com.ftcs.transportation.trip_agreement.repository.TripAgreementRepository;
 import com.ftcs.transportation.trip_matching.repository.TripMatchingCacheRepository;
 import com.ftcs.transportation.trip_matching.repository.TripMatchingFinalRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,19 +24,28 @@ import java.util.Optional;
 public class TripAcceptanceService  {
     private final TripMatchingCacheRepository tripMatchingCacheRepository;
     private final TripMatchingFinalRepository tripMatchingFinalRepository;
+    private final ScheduleRepository scheduleRepository;
+    private final TripBookingsRepository tripBookingsRepository;
+    private final TripAgreementRepository tripAgreementRepository;
 
     @Transactional
-    public void acceptTripBooking(Integer cacheId, Integer accountId){
+    public void acceptTripBooking(Long cacheId, Integer accountId){
         copyTripMatchingCacheToFinal(cacheId);
     }
 
-    public void copyTripMatchingCacheToFinal(Integer cacheId) {
-        Optional<TripMatchingCache> cacheRecord = tripMatchingCacheRepository.findById(cacheId);
-        if (cacheRecord.isEmpty()) {
-            throw new BadRequestException("TripMatchingCache record not found for id: " + cacheId);
-        }
+    public void copyTripMatchingCacheToFinal(Long cacheId) {
+        TripMatchingCache cache = getTripMatchingCacheById(cacheId);
 
-        TripMatchingCache cache = cacheRecord.get();
+        TripMatchingFinal finalRecord = saveFinalTripMatching(cache);
+        tripMatchingCacheRepository.deleteById(cacheId);
+
+        TripAgreement tripAgreement = createAndSaveTripAgreement(cache, finalRecord);
+
+        updateTripBookings(tripAgreement);
+
+    }
+
+    private TripMatchingFinal saveFinalTripMatching(TripMatchingCache cache) {
         TripMatchingFinal finalRecord = TripMatchingFinal.builder()
                 .scheduleId(cache.getScheduleId())
                 .bookingId(cache.getBookingId())
@@ -51,8 +65,48 @@ public class TripAcceptanceService  {
                 .status(cache.getStatus())
                 .build();
 
-        tripMatchingFinalRepository.save(finalRecord);
+        return tripMatchingFinalRepository.save(finalRecord);
+    }
 
-        tripMatchingCacheRepository.deleteById(cacheId);
+    private TripAgreement createAndSaveTripAgreement(TripMatchingCache cache, TripMatchingFinal finalRecord) {
+        Schedule schedule = getSchedule(cache.getScheduleId());
+        TripBookings tripBooking = getTripBookings(cache.getBookingId());
+
+        TripAgreement tripAgreement = TripAgreement.builder()
+                .tripMatchingId(finalRecord.getId())
+                .scheduleId(finalRecord.getScheduleId())
+                .bookingId(finalRecord.getBookingId())
+                .tripMatchingId(finalRecord.getId())
+                .driverId(schedule.getAccountId())
+                .customerId(tripBooking.getAccountId())
+                .totalPrice(0.0)
+                .paymentStatus(PaymentStatusType.PAIR)
+                .distance(Optional.ofNullable(tripBooking.getTotalDistance()).orElse(0))
+                .estimatedDuration(100)
+                .agreementStatus(AgreementStatusType.IN_TRANSIT)
+                .build();
+
+        return tripAgreementRepository.save(tripAgreement);
+    }
+
+    private void updateTripBookings(TripAgreement tripAgreement) {
+        TripBookings tripBooking = getTripBookings(tripAgreement.getBookingId());
+        tripBooking.setTripAgreementId(tripAgreement.getId());
+        tripAgreementRepository.save(tripAgreement);
+    }
+
+    private TripMatchingCache getTripMatchingCacheById(Long cacheId) {
+        return tripMatchingCacheRepository.findById(cacheId)
+                .orElseThrow(() -> new BadRequestException("TripMatchingCache record not found for id: " + cacheId));
+    }
+
+    public Schedule getSchedule(Long scheduleId) {
+        return scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new BadRequestException("Schedule not found!"));
+    }
+
+    public TripBookings getTripBookings(Long tripBookingId) {
+        return tripBookingsRepository.findById(tripBookingId)
+                .orElseThrow(() -> new BadRequestException("TripBookings not found!"));
     }
 }

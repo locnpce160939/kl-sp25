@@ -1,5 +1,6 @@
 package com.ftcs.transportation.schelude.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.transportation.schelude.dto.FindScheduleByTimePeriodRequestDTO;
 import com.ftcs.transportation.schelude.dto.ScheduleRequestDTO;
@@ -43,7 +44,7 @@ public class ScheduleService {
 
 
 
-    public void updateSchedule(ScheduleRequestDTO requestDTO, Integer scheduleId) {
+    public void updateSchedule(ScheduleRequestDTO requestDTO, Long scheduleId) {
         Schedule schedule = getScheduleById(scheduleId);
         validateScheduleDates(requestDTO.getStartDate(), requestDTO.getEndDate());
         mapScheduleRequestToEntity(requestDTO, schedule);
@@ -51,7 +52,7 @@ public class ScheduleService {
         scheduleRepository.save(schedule);
     }
 
-    public void updateStatusSchedule(UpdateStatusScheduleRequestDTO requestDTO, Integer scheduleId) {
+    public void updateStatusSchedule(UpdateStatusScheduleRequestDTO requestDTO, Long scheduleId) {
         Schedule schedule = getScheduleById(scheduleId);
         schedule.setStatus(requestDTO.getStatus());
         schedule.setUpdateAt(LocalDateTime.now());
@@ -74,7 +75,7 @@ public class ScheduleService {
         return schedules;
     }
 
-    public Schedule getScheduleById(Integer scheduleId) {
+    public Schedule getScheduleById(Long scheduleId) {
         return scheduleRepository.findScheduleByScheduleId(scheduleId)
                 .orElseThrow(() -> new BadRequestException("Schedule does not exist"));
     }

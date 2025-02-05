@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Application</title>
+    <style>
+        .chat-container {
+            width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .messages {
+            height: 400px;
+            border: 1px solid #ccc;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 10px;
+        }
+        .message {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .join, .leave {
+            color: #666;
+            font-style: italic;
+        }
+        .chat {
+            background-color: #e9ecef;
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        #messageInput {
+            flex-grow: 1;
+            padding: 5px;
+        }
+        button {
+            padding: 5px 15px;
+        }
+    </style>
+</head>
+<body>
+<div class="chat-container">
+    <div class="messages" id="messages"></div>
+    <div class="input-container">
+        <input type="text" id="messageInput" placeholder="Type your message...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+<script>
+    const room = 'public'; // You can change this or make it dynamic
+    const socket = io('http://localhost:9092', {
+        query: {
+            room: room
+        }
+    });
+
+    const messages = document.getElementById('messages');
+    const messageInput = document.getElementById('messageInput');
+
+    socket.on('connect', () => {
+        console.log('Connected to server');
+    });
+
+    socket.on('message', (message) => {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message', message.type.toLowerCase());
+
+        if (message.type === 'CHAT') {
+            messageDiv.textContent = `${message.sender}: ${message.content}`;
+        } else {
+            messageDiv.textContent = `${message.sender} ${message.content}`;
+        }
+
+        messages.appendChild(messageDiv);
+        messages.scrollTop = messages.scrollHeight;
+    });
+
+    function sendMessage() {
+        const content = messageInput.value.trim();
+        if (content) {
+            const message = {
+                sender: socket.id,
+                content: content,
+                type: 'CHAT'
+            };
+            socket.emit('chat', message);
+            messageInput.value = '';
+        }
+    }
+
+    messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+</script>
+</body>
+</html>

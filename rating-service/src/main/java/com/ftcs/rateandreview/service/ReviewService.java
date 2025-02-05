@@ -19,7 +19,7 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final TripBookingsRepository tripBookingsRepository;
 
-    public void createRateAndReview(Integer accountId, ReviewRequestDTO requestDTO, Integer bookingId, String role) {
+    public void createRateAndReview(Integer accountId, ReviewRequestDTO requestDTO, Long bookingId, String role) {
         TripBookings tripBookings = getTripBookingsByBookingId(bookingId);
         validateReviewRequest(requestDTO);
         validateOwnership(accountId, tripBookings);
@@ -69,7 +69,7 @@ public class ReviewService {
         }
     }
 
-    private TripBookings getTripBookingsByBookingId(Integer bookingId) {
+    private TripBookings getTripBookingsByBookingId(Long bookingId) {
         return tripBookingsRepository.findTripBookingsByBookingId(bookingId)
                 .orElseThrow(() -> new RuntimeException("Trip booking not found."));
     }

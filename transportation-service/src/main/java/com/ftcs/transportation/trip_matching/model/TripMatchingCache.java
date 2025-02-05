@@ -19,13 +19,13 @@ public class TripMatchingCache {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "Id", nullable = false)
-    private Integer id;
+    private Long id;
 
     @Column(name = "ScheduleId")
-    private Integer scheduleId;
+    private Long scheduleId;
 
     @Column(name = "BookingId")
-    private Integer bookingId;
+    private Long bookingId;
 
     @Column(name = "DriverStartLocation")
     private String driverStartLocation;

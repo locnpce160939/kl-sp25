@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface ReviewRepository extends JpaRepository<Review, Integer> {
+public interface ReviewRepository extends JpaRepository<Review, Long> {
     Optional<Review> findReviewByReviewId(Integer reviewId);
 //    Optional<Review> findReviewByPeopleRating(String peopleRating);
     @Query("SELECT r FROM Review r JOIN TripBookings t ON r.bookingId = t.bookingId WHERE t.accountId = :accountId")

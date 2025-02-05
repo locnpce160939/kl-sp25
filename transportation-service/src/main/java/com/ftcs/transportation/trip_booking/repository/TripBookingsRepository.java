@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public interface TripBookingsRepository extends JpaRepository<TripBookings, Integer> {
-    Optional<TripBookings> findTripBookingsByBookingId(Integer bookingId);
+public interface TripBookingsRepository extends JpaRepository<TripBookings, Long> {
+    Optional<TripBookings> findTripBookingsByBookingId(Long bookingId);
     Optional<TripBookings> findTripBookingsByAccountId(Integer accountId);
     List<TripBookings> findAllByBookingDateBetweenAndStatus(LocalDateTime startDate, LocalDateTime endDate, String status);
     List<TripBookings> findAllByStatus(String status);
