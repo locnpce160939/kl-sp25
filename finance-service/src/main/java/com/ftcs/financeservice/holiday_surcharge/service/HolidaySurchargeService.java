@@ -43,14 +43,19 @@ public class HolidaySurchargeService {
     }
 
     public void updateHolidaySurcharge(Integer accountId, Integer holidaySurchargeId, HolidaySurchargeRequestDTO requestDTO) {
-        validateHolidayPeriod(requestDTO.getStartDate(), requestDTO.getEndDate());
         HolidaySurcharge holidaySurcharge = getHolidaySurchargeById(holidaySurchargeId);
+        boolean datesChanged = !holidaySurcharge.getStartDate().equals(requestDTO.getStartDate()) ||
+                !holidaySurcharge.getEndDate().equals(requestDTO.getEndDate());
+        if (datesChanged) {
+            validateHolidayPeriod(requestDTO.getStartDate(), requestDTO.getEndDate());
+        }
         holidaySurcharge.setHolidayName(requestDTO.getHolidayName());
         holidaySurcharge.setStartDate(requestDTO.getStartDate());
         holidaySurcharge.setEndDate(requestDTO.getEndDate());
         holidaySurcharge.setSurchargePercentage(requestDTO.getSurchargePercentage());
         holidaySurcharge.setUpdatedBy(accountId);
         holidaySurcharge.setUpdatedDate(LocalDateTime.now());
+
         holidaySurchargeRepository.save(holidaySurcharge);
     }
 
