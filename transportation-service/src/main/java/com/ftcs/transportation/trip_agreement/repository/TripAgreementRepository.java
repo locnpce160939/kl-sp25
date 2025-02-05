@@ -9,5 +9,7 @@ public interface TripAgreementRepository extends JpaRepository<TripAgreement, Lo
     List<TripAgreement> findAllByCustomerId(Integer customerId);
     List<TripAgreement> findAllByDriverId(Integer driverId);
     List<TripAgreement> findAllByScheduleId(Long driverId);
+    TripAgreement findByBookingId(Long bookingId);
+
 
 }
