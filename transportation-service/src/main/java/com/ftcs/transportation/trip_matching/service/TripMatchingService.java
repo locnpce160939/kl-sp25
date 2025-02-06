@@ -18,6 +18,7 @@ import com.ftcs.transportation.trip_matching.repository.TripMatchingCacheReposit
 import com.ftcs.transportation.trip_matching.service.strategy.MatchingContext;
 import com.ftcs.transportation.trip_matching.service.strategy.MatchingStrategy;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
@@ -33,6 +34,7 @@ import static com.ftcs.common.utils.JsonUtils.toJson;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class TripMatchingService {
     @Autowired
     private final SocketIOServer server;
@@ -48,13 +50,16 @@ public class TripMatchingService {
     private final SocketService socketService;
 
     public void sendTripBookingUpdates(TripMatchingCache matchedTrips) {
+        Schedule schedule = scheduleRepository.findScheduleByScheduleId(matchedTrips.getScheduleId()).orElse(null);
+        assert schedule != null;
         Message message = Message.builder()
                 .messageType(MessageType.NOTIFICATION)
-                .room("1")
+                .room(schedule.getAccountId().toString())
                 .content(toJson(matchedTrips))
                 .username("admin")
                 .build();
-
+        log.info("Event: NOTIFICATION, Data: TripBooking id {} send to {} Schedule id {}",
+                matchedTrips.getBookingId(), schedule.getAccountId(), schedule.getScheduleId());
         socketService.sendSocketMessage(message);
     }
 
