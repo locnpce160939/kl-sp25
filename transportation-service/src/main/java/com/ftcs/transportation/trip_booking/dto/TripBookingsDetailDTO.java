@@ -2,6 +2,7 @@ package com.ftcs.transportation.trip_booking.dto;
 
 import com.ftcs.authservice.features.account.Account;
 import com.ftcs.transportation.trip_agreement.model.TripAgreement;
+import com.ftcs.transportation.trip_booking.constant.TripBookingStatus;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
 import lombok.Builder;
 import lombok.Data;
@@ -23,7 +24,7 @@ public class TripBookingsDetailDTO {
     private String startLocationAddress;
     private String endLocationAddress;
     private Integer capacity;
-    private String status;
+    private TripBookingStatus status;
     private LocalDateTime expirationDate;
     private Integer totalDistance;
     private String notes;

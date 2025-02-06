@@ -4,10 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ftcs.authservice.features.account.Account;
 import com.ftcs.authservice.features.account.AccountRepository;
 import com.ftcs.common.exception.BadRequestException;
+import com.ftcs.transportation.schelude.constant.ScheduleStatus;
 import com.ftcs.transportation.schelude.model.Schedule;
 import com.ftcs.transportation.schelude.repository.ScheduleRepository;
 import com.ftcs.transportation.trip_agreement.model.TripAgreement;
 import com.ftcs.transportation.trip_agreement.repository.TripAgreementRepository;
+import com.ftcs.transportation.trip_booking.constant.TripBookingStatus;
 import com.ftcs.transportation.trip_booking.dto.FindTripBookingByTimePeriodRequestDTO;
 import com.ftcs.transportation.trip_booking.dto.TripBookingsDetailDTO;
 import com.ftcs.transportation.trip_booking.dto.TripBookingsRequestDTO;
@@ -37,6 +39,7 @@ public class TripBookingsService {
         TripBookings tripBookings = new TripBookings();
         tripBookings.setAccountId(accountId);
         mapRequestToTripBookings(requestDTO, tripBookings);
+        tripBookings.setStatus(TripBookingStatus.ARRANGING_DRIVER);
         tripBookings = tripBookingsRepository.save(tripBookings);
         tripMatchingService.matchTripsForAll();
         return tripBookings;
@@ -52,7 +55,7 @@ public class TripBookingsService {
     public void cancelTripBookings(Long bookingId) {
         TripBookings tripBookings = findTripBookingsById(bookingId);
         validateCancellationStatus(tripBookings);
-        tripBookings.setStatus("Cancelled");
+        tripBookings.setStatus(TripBookingStatus.CANCELLED);
         tripBookingsRepository.save(tripBookings);
     }
 
@@ -74,7 +77,6 @@ public class TripBookingsService {
         return detailDTO;
     }
 
-
     public List<TripBookings> getAllTripBookings() {
         List<TripBookings> bookings = tripBookingsRepository.findAll();
         if (bookings.isEmpty()) {
@@ -85,21 +87,29 @@ public class TripBookingsService {
 
     public void updateStatusForDriver(UpdateStatusTripBookingsRequestDTO requestDTO, Integer accountId, Long bookingId) {
         TripBookings tripBookings = findTripBookingsById(bookingId);
-        if (tripBookings.getStatus().equals("Arranging driver")) {
+        if (tripBookings.getStatus() == TripBookingStatus.ARRANGING_DRIVER) {
             handleDriverStatusUpdate(requestDTO, accountId, tripBookings);
-        }else{
+        } else {
             throw new BadRequestException("Trip bookings status is not arranged");
         }
     }
 
+    public void updateStatusTripBooking(UpdateStatusTripBookingsRequestDTO requestDTO, Long bookingId) {
+        TripBookings tripBookings = findTripBookingsById(bookingId);
+        tripBookings.setStatus(requestDTO.getStatus());
+        tripBookingsRepository.save(tripBookings);
+    }
+
     public void continueFindingDriver(UpdateStatusTripBookingsRequestDTO requestDTO, Long bookingId) {
         TripBookings tripBookings = findTripBookingsById(bookingId);
-        if ("Cancelled".equals(tripBookings.getStatus()) &&
+        if (tripBookings.getStatus() == TripBookingStatus.CANCELLED &&
                 "Confirmed".equals(requestDTO.getOption())) {
-            tripBookings.setStatus("Arranging driver");
+            tripBookings.setStatus(TripBookingStatus.ARRANGING_DRIVER);
             tripBookingsRepository.save(tripBookings);
         }
     }
+
+
 
     public List<TripBookings> filterTripBookings(FindTripBookingByTimePeriodRequestDTO requestDTO) {
         boolean hasDateRange = requestDTO.getStartDate() != null && requestDTO.getEndDate() != null;
@@ -130,9 +140,9 @@ public class TripBookingsService {
     public void confirmCompleteDelivery(UpdateStatusTripBookingsRequestDTO requestDTO, String role, Long bookingId) {
         TripBookings tripBookings = findTripBookingsById(bookingId);
         if (isDriverConfirmingDelivery(role, tripBookings)) {
-            updateBookingStatus(tripBookings, "Delivered");
-        } else if (isCustomerConfirmingCompletion(role, tripBookings, requestDTO)) {
-            //completeOrder(tripBookings);
+            updateBookingStatus(tripBookings, TripBookingStatus.DELIVERED);
+        } else {
+            isCustomerConfirmingCompletion(role, tripBookings, requestDTO);//completeOrder(tripBookings);
         }
     }
 
@@ -155,20 +165,19 @@ public class TripBookingsService {
 
 
     private boolean isDriverConfirmingDelivery(String role, TripBookings tripBookings) {
-        return "DRIVER".equals(role) && "Delivered".equals(tripBookings.getStatus());
+        return "DRIVER".equals(role) && tripBookings.getStatus() == TripBookingStatus.DELIVERED;
     }
 
     private boolean isCustomerConfirmingCompletion(String role, TripBookings tripBookings, UpdateStatusTripBookingsRequestDTO requestDTO) {
         return "CUSTOMER".equals(role)
-                && "Delivered".equals(tripBookings.getStatus())
-                && "Received the item".equals(requestDTO.getStatus());
+                && tripBookings.getStatus() == TripBookingStatus.DELIVERED
+                && TripBookingStatus.RECEIVED_THE_ITEM.name().equals(requestDTO.getStatus());
     }
 
-    private void updateBookingStatus(TripBookings tripBookings, String status) {
+    private void updateBookingStatus(TripBookings tripBookings, TripBookingStatus status) {
         tripBookings.setStatus(status);
         tripBookingsRepository.save(tripBookings);
     }
-
 
     private void validateExpirationDate(TripBookingsRequestDTO requestDTO) {
         if (!requestDTO.getExpirationDate().isAfter(requestDTO.getBookingDate())) {
@@ -197,7 +206,7 @@ public class TripBookingsService {
     }
 
     private void validateCancellationStatus(TripBookings tripBookings) {
-        if ("Driver is on the way".equals(tripBookings.getStatus())) {
+        if (tripBookings.getStatus() == TripBookingStatus.DRIVER_ON_THE_WAY) {
             throw new BadRequestException("You can't cancel because the driver is on the way");
         }
     }
@@ -206,20 +215,20 @@ public class TripBookingsService {
         return tripAgreementRepository.findById(tripAgreementId)
                 .orElseThrow(() -> new BadRequestException("Trip agreement not found!"));
     }
+
     private void handleDriverStatusUpdate(UpdateStatusTripBookingsRequestDTO requestDTO,
                                           Integer accountId, TripBookings tripBookings) {
         Schedule schedule = scheduleRepository.findScheduleByAccountId(accountId)
                 .orElseThrow(() -> new BadRequestException("Schedule does not exist!"));
-        if (!"Waiting for delivery".equals(schedule.getStatus())) {
+        if (schedule.getStatus() != ScheduleStatus.WAITING_FOR_DELIVERY) {
             throw new BadRequestException("Schedule status must be 'Waiting for delivery' to proceed.");
         }
         if ("Confirmed".equals(requestDTO.getOption())) {
-            tripBookings.setStatus("Driver is on the way");
-            //tripBookings.setScheduleId(schedule.getScheduleId());
-            schedule.setStatus("Getting to the point");
+            tripBookings.setStatus(TripBookingStatus.DRIVER_ON_THE_WAY);
+            schedule.setStatus(ScheduleStatus.GETTING_TO_THE_POINT);
             scheduleRepository.save(schedule);
         } else {
-            tripBookings.setStatus("Cancelled");
+            tripBookings.setStatus(TripBookingStatus.CANCELLED);
         }
 
         tripBookingsRepository.save(tripBookings);
@@ -234,6 +243,5 @@ public class TripBookingsService {
         tripBookings.setExpirationDate(requestDTO.getExpirationDate());
         tripBookings.setStartLocationAddress(requestDTO.getStartLocationAddress());
         tripBookings.setEndLocationAddress(requestDTO.getEndLocationAddress());
-        tripBookings.setStatus("Arranging driver");
     }
 }

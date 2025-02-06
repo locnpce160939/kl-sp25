@@ -1,5 +1,6 @@
 package com.ftcs.transportation.trip_booking.model;
 
+import com.ftcs.transportation.trip_booking.constant.TripBookingStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -48,8 +49,9 @@ public class TripBookings {
     @Column(name = "Capacity", nullable = false)
     private Integer capacity;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "Status", length = 50, nullable = false)
-    private String status;
+    private TripBookingStatus status;
 
     @Column(name = "ExpirationDate")
     private LocalDateTime expirationDate;
