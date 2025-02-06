@@ -59,12 +59,12 @@ public class TripBookingsController {
         return new ApiResponse<>(detailDTO);
     }
 
-    @PostMapping("/filter")
-    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
-    public ApiResponse<List<TripBookings>> filterTripBookings(@Valid @RequestBody FindTripBookingByTimePeriodRequestDTO requestDTO) {
-        List<TripBookings> tripBookings = tripBookingsService.filterTripBookings(requestDTO);
-        return new ApiResponse<>(tripBookings);
-    }
+//    @PostMapping("/filter")
+//    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
+//    public ApiResponse<List<TripBookings>> filterTripBookings(@Valid @RequestBody FindTripBookingByTimePeriodRequestDTO requestDTO) {
+//        List<TripBookings> tripBookings = tripBookingsService.filterTripBookings(requestDTO);
+//        return new ApiResponse<>(tripBookings);
+//    }
 
     @PutMapping("/updateStatusForDriver/{bookingId}")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
@@ -107,5 +107,13 @@ public class TripBookingsController {
     @GetMapping("/schedule/{scheduleId}")
     public ApiResponse<List<TripBookings>> getByScheduleId(@PathVariable("scheduleId") Long scheduleId) {
         return new ApiResponse<>(tripBookingsService.getBySchedule(scheduleId));
+    }
+
+    @PutMapping("/updateStatus/{bookingId}")
+    @PreAuthorize("hasPermission(null, 'DRIVER')")
+    public ApiResponse<?> updateStatus(@Valid @RequestBody UpdateStatusTripBookingsRequestDTO requestDTO,
+                                       @PathVariable("bookingId") Long bookingId){
+        tripBookingsService.updateStatusTripBooking(requestDTO, bookingId);
+        return new ApiResponse<>("Trip booking status updated successfully");
     }
 }

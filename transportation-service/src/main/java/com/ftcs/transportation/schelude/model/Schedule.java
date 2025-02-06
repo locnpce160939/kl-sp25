@@ -1,5 +1,6 @@
 package com.ftcs.transportation.schelude.model;
 
+import com.ftcs.transportation.schelude.constant.ScheduleStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -48,8 +49,9 @@ public class Schedule {
     @Column(name = "AvailableCapacity", nullable = false)
     private Integer availableCapacity;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "Status", length = 50, nullable = false)
-    private String status;
+    private ScheduleStatus status;
 
     @Column(name = "Notes", length = 255)
     private String notes;
