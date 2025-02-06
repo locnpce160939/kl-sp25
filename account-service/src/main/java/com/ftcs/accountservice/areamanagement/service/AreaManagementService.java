@@ -7,6 +7,8 @@ import com.ftcs.accountservice.driver.identification.repository.AddressDriverRep
 import com.ftcs.accountservice.driver.identification.repository.DriverIdentificationRepository;
 import com.ftcs.accountservice.driver.management.dto.ListDriverDTO;
 import com.ftcs.accountservice.driver.management.repository.DriverRepository;
+import com.ftcs.accountservice.driver.vehicle.repository.VehicleRepository;
+import com.ftcs.accountservice.driver.verification.service.VerificationDriverService;
 import com.ftcs.authservice.features.account.AccountRepository;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.common.feature.location.repository.ProvinceRepository;
@@ -30,6 +32,7 @@ public class AreaManagementService {
     private final DriverIdentificationRepository driverIdentificationRepository;
     private final AccountRepository accountRepository;
     private final DriverRepository driverRepository;
+    private final VerificationDriverService verificationDriverService;
 
     public void addNewArea(Integer accountId, AreaManagementRequestDTO requestDTO) {
         List<Integer> provinceIds = requestDTO.getProvinceIds();
@@ -123,6 +126,6 @@ public class AreaManagementService {
         String provinceString = provinceIds.stream()
                 .map(String::valueOf)
                 .collect(Collectors.joining(","));
-        return mapToListDriverDTO(driverRepository.getAllDriversByProvinces(provinceString));
+        return mapToListDriverDTO(driverRepository.getAllDriversByProvinces(provinceString), verificationDriverService);
     }
 }

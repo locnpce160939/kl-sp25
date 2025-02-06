@@ -2,6 +2,7 @@ package com.ftcs.accountservice.driver.identification.repository;
 
 
 import com.ftcs.accountservice.driver.identification.model.DriverIdentification;
+import com.ftcs.accountservice.driver.shared.StatusDocumentType;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,6 +16,8 @@ public interface DriverIdentificationRepository extends JpaRepository<DriverIden
     //Optional<DriverIdentification> findDriverIdentificationByAccountId(Integer accountId);
 
     Optional<DriverIdentification> findDriverIdentificationByDriverIdentificationId(Integer driverIdentificationId);
+
+    boolean existsByAccountIdAndStatus(Integer accountId, StatusDocumentType statusDocumentType);
 
     boolean existsByAccountId(Integer accountId);
 

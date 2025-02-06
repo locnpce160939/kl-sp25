@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 public class DriverIdentityDTO {
+    private Integer driverIdentificationId;
     private String driverIDNumber;
     private String driverFullName;
     private String driverGender;
@@ -20,5 +21,7 @@ public class DriverIdentityDTO {
     private LocalDateTime driverIDIssueDate;
     private LocalDateTime driverIDExpiryDate;
     private String driverIDIssuedBy;
-    private Boolean driverIDVerified;
+    private String driverIDStatus;
+    private String driverFrontView;
+    private String driverBackView;
 }

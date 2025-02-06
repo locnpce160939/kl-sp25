@@ -18,7 +18,7 @@ public class ListDriverDTO {
     private String role;
     private String profilePicture;
     private LocalDateTime lastLogin;
-    private String accountStatus;
+    private boolean accountStatus;
 
     // Information about driver identity (grouped into DriverIdentityDTO)
     private DriverIdentityDTO driverIdentity;

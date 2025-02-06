@@ -12,6 +12,7 @@ public interface ListDriverProjection {
     LocalDateTime getLastLogin();
     String getAccountStatus();
 
+    Integer getDriverIdentificationId();
     String getDriverIDNumber();
     String getDriverFullName();
     String getDriverGender();
@@ -23,6 +24,11 @@ public interface ListDriverProjection {
     LocalDateTime getDriverIDExpiryDate();
     String getDriverIDIssuedBy();
     Boolean getDriverIDVerified();
+    String getDriverIDFrontView();
+    String getDriverIDBackView();
+    String getDriverIDStatus();
+
+
 
     String getLicenseNumber();
     String getLicenseType();
@@ -30,6 +36,9 @@ public interface ListDriverProjection {
     LocalDateTime getLicenseExpiryDate();
     String getIssuingAuthority();
     String getLicenseStatus();
+    Integer getLicenseId();
+    String getLicenseFrontView();
+    String getLicenseBackView();
 
     Integer getVehicleId();
     String getLicensePlate();
@@ -41,6 +50,9 @@ public interface ListDriverProjection {
     String getVehicleDimensions();
     String getVehicleStatus();
     Boolean getVehicleVerified();
+    String getVehicleFrontView();
+    String getVehicleBackView();
+
 
     Integer getAddressDriverId();
     String getStreetAddress();

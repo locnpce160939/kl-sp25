@@ -2,6 +2,7 @@ package com.ftcs.accountservice.driver.management.mapper;
 
 import com.ftcs.accountservice.driver.management.dto.*;
 import com.ftcs.accountservice.driver.management.projection.ListDriverProjection;
+import com.ftcs.accountservice.driver.verification.service.VerificationDriverService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,8 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 public class DriverMapper {
-
-    public static List<ListDriverDTO> mapToListDriverDTO(List<ListDriverProjection> driverDetails) {
+    public static List<ListDriverDTO> mapToListDriverDTO(List<ListDriverProjection> driverDetails, VerificationDriverService verificationDriverService) {
         Map<Integer, ListDriverDTO> driverMap = new HashMap<>();
 
         for (ListDriverProjection driver : driverDetails) {
@@ -26,8 +26,9 @@ public class DriverMapper {
                         driver.getRole(),
                         driver.getProfilePicture(),
                         driver.getLastLogin(),
-                        driver.getAccountStatus(),
+                        verificationDriverService.checkRequiredInformation(accountId),
                         new DriverIdentityDTO(
+                                driver.getDriverIdentificationId(),
                                 driver.getDriverIDNumber(),
                                 driver.getDriverFullName(),
                                 driver.getDriverGender(),
@@ -38,15 +39,20 @@ public class DriverMapper {
                                 driver.getDriverIDIssueDate(),
                                 driver.getDriverIDExpiryDate(),
                                 driver.getDriverIDIssuedBy(),
-                                driver.getDriverIDVerified()
+                                driver.getDriverIDStatus(),
+                                driver.getDriverIDFrontView(),
+                                driver.getDriverIDBackView()
                         ),
                         new LicenseDTO(
+                                driver.getLicenseId(),
                                 driver.getLicenseNumber(),
                                 driver.getLicenseType(),
                                 driver.getLicenseIssuedDate(),
                                 driver.getLicenseExpiryDate(),
                                 driver.getIssuingAuthority(),
-                                driver.getLicenseStatus()
+                                driver.getLicenseStatus(),
+                                driver.getLicenseFrontView(),
+                                driver.getLicenseBackView()
                         ),
 
                         new ArrayList<>(),
@@ -71,7 +77,9 @@ public class DriverMapper {
                     driver.getVehicleCapacity(),
                     driver.getVehicleDimensions(),
                     driver.getVehicleStatus(),
-                    driver.getVehicleVerified()
+                    driver.getVehicleVerified(),
+                    driver.getVehicleFrontView(),
+                    driver.getVehicleBackView()
             );
             driverMap.get(accountId).getVehicles().add(vehicleDTO);
 

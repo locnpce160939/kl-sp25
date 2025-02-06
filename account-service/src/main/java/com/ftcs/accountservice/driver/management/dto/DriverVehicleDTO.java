@@ -19,4 +19,6 @@ public class DriverVehicleDTO {
     private String vehicleDimensions;
     private String vehicleStatus;
     private Boolean vehicleVerified;
+    private String vehicleFrontView;
+    private String vehicleBackView;
 }

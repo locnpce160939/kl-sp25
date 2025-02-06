@@ -2,6 +2,7 @@ package com.ftcs.accountservice.driver.verification.service;
 
 import com.ftcs.accountservice.driver.identification.model.DriverIdentification;
 import com.ftcs.accountservice.driver.license.model.License;
+import com.ftcs.accountservice.driver.shared.StatusDocumentType;
 import com.ftcs.accountservice.driver.vehicle.model.Vehicle;
 import com.ftcs.accountservice.driver.identification.repository.DriverIdentificationRepository;
 import com.ftcs.accountservice.driver.license.repository.LicenseRepository;
@@ -68,10 +69,18 @@ public class VerificationDriverService {
     }
 
     public StatusDocumentsDTO validateRequiredInformation(Integer accountId) {
-        boolean hasLicense = licenseRepository.existsByAccountId(accountId);
-        boolean hasVehicle = vehicleRepository.existsByAccountId(accountId);
-        boolean hasIdentification = identificationRepository.existsByAccountId(accountId);
+        boolean hasLicense = licenseRepository.existsByAccountIdAndStatus(accountId, StatusDocumentType.APPROVED);
+        boolean hasVehicle = vehicleRepository.existsByAccountIdAndStatus(accountId, StatusDocumentType.APPROVED);
+        boolean hasIdentification = identificationRepository.existsByAccountIdAndStatus(accountId, StatusDocumentType.APPROVED);
 
         return new StatusDocumentsDTO(hasLicense, hasVehicle, hasIdentification);
+    }
+
+    public boolean checkRequiredInformation(Integer accountId) {
+        boolean hasLicense = licenseRepository.existsByAccountIdAndStatus(accountId, StatusDocumentType.APPROVED);
+        boolean hasVehicle = vehicleRepository.existsByAccountIdAndStatus(accountId, StatusDocumentType.APPROVED);
+        boolean hasIdentification = identificationRepository.existsByAccountIdAndStatus(accountId, StatusDocumentType.APPROVED);
+
+        return hasLicense && hasVehicle && hasIdentification;
     }
 }
