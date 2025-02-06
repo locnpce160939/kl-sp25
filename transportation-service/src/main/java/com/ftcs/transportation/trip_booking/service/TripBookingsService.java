@@ -18,6 +18,7 @@ import com.ftcs.transportation.trip_matching.service.TripMatchingService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.ftcs.transportation.trip_booking.mapper.TripBookingsMapper.toDTO;
 
@@ -58,15 +59,17 @@ public class TripBookingsService {
     public TripBookingsDetailDTO getTripBookingDetails(Long bookingId, Integer accountId) {
         TripBookings tripBooking = findTripBookingsById(bookingId);
 
-        if (!tripBooking.getAccountId().equals(accountId)) {
-            throw new BadRequestException("No permission to access this booking");
-        }
+//        if (!tripBooking.getAccountId().equals(accountId)) {
+//            throw new BadRequestException("No permission to access this booking");
+//        }
 
         TripBookingsDetailDTO detailDTO = toDTO(tripBooking);
         TripAgreement tripAgreement = getTripAgreement(tripBooking.getTripAgreementId());
 
         detailDTO.setTripAgreement(tripAgreement);
         detailDTO.setDriver(getDriver(tripAgreement.getDriverId()));
+        detailDTO.setCustomer(getDriver(tripAgreement.getCustomerId()));
+
 
         return detailDTO;
     }
@@ -140,6 +143,16 @@ public class TripBookingsService {
     public List<TripBookings> getTripBookingsByAccountIdOfAdminRole(Integer accountId) {
         return tripBookingsRepository.findAllByAccountId(accountId);
     }
+
+    public List<TripBookings> getBySchedule(Long scheduleId) {
+        List<TripAgreement> tripAgreements = tripAgreementRepository.findAllByScheduleId(scheduleId);
+        List<Long> tripBookingIds = tripAgreements.stream()
+                .map(TripAgreement::getBookingId)
+                .collect(Collectors.toList());
+
+        return tripBookingsRepository.findAllById(tripBookingIds);
+    }
+
 
     private boolean isDriverConfirmingDelivery(String role, TripBookings tripBookings) {
         return "DRIVER".equals(role) && "Delivered".equals(tripBookings.getStatus());

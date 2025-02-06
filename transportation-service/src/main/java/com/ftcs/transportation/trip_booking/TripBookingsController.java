@@ -103,4 +103,9 @@ public class TripBookingsController {
     public ApiResponse<List<TripBookings>> getByAccountIdOfAdminRole(@PathVariable("accountId") Integer accountId) {
         return new ApiResponse<>(tripBookingsService.getTripBookingsByAccountIdOfAdminRole(accountId));
     }
+
+    @GetMapping("/schedule/{scheduleId}")
+    public ApiResponse<List<TripBookings>> getByScheduleId(@PathVariable("scheduleId") Long scheduleId) {
+        return new ApiResponse<>(tripBookingsService.getBySchedule(scheduleId));
+    }
 }

@@ -15,6 +15,7 @@ public class TripBookingsDetailDTO {
     private Integer accountId;
     private TripAgreement tripAgreement;
     private Account driver;
+    private Account customer;
     private String bookingType;
     private LocalDateTime bookingDate;
     private String pickupLocation;
