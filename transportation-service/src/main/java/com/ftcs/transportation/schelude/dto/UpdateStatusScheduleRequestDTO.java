@@ -1,5 +1,6 @@
 package com.ftcs.transportation.schelude.dto;
 
+import com.ftcs.transportation.schelude.constant.ScheduleStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,5 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateStatusScheduleRequestDTO {
-    private String status;
+    private ScheduleStatus status;
 }

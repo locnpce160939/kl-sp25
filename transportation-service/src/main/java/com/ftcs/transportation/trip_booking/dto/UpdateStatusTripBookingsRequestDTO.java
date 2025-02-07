@@ -1,5 +1,6 @@
 package com.ftcs.transportation.trip_booking.dto;
 
+import com.ftcs.transportation.trip_booking.constant.TripBookingStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateStatusTripBookingsRequestDTO {
-    private String status;
+    private TripBookingStatus status;
     private String option;
 
 }

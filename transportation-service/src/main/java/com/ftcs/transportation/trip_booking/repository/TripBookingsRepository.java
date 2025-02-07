@@ -11,8 +11,8 @@ import java.util.Optional;
 public interface TripBookingsRepository extends JpaRepository<TripBookings, Long> {
     Optional<TripBookings> findTripBookingsByBookingId(Long bookingId);
     Optional<TripBookings> findTripBookingsByAccountId(Integer accountId);
-    List<TripBookings> findAllByBookingDateBetweenAndStatus(LocalDateTime startDate, LocalDateTime endDate, String status);
-    List<TripBookings> findAllByStatus(String status);
+//    List<TripBookings> findAllByBookingDateBetweenAndStatus(LocalDateTime startDate, LocalDateTime endDate, String status);
+//    List<TripBookings> findAllByStatus(String status);
     List<TripBookings> findAllByBookingDateBetween(LocalDateTime startDate, LocalDateTime endDate);
     List<TripBookings> findAllByAccountId(Integer accountId);
 }

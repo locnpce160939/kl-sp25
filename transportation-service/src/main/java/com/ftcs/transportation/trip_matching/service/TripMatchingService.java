@@ -116,7 +116,7 @@ public class TripMatchingService {
         tripMatching.setCommonPoints(matchPointsResult.getCommonPoints());
         tripMatching.setTotalCustomerPoints(matchPointsResult.getTotalCustomerPoints());
         tripMatching.setSameDirection(sameDirection);
-        tripMatching.setStatus(booking.getStatus());
+        tripMatching.setStatus(String.valueOf(booking.getStatus()));
         tripMatchingRepository.save(tripMatching);
         return tripMatching;
     }

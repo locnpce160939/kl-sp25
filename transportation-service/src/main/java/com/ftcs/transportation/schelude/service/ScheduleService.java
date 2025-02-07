@@ -2,6 +2,7 @@ package com.ftcs.transportation.schelude.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ftcs.common.exception.BadRequestException;
+import com.ftcs.transportation.schelude.constant.ScheduleStatus;
 import com.ftcs.transportation.schelude.dto.FindScheduleByTimePeriodRequestDTO;
 import com.ftcs.transportation.schelude.dto.ScheduleRequestDTO;
 import com.ftcs.transportation.schelude.dto.UpdateStatusScheduleRequestDTO;
@@ -36,7 +37,7 @@ public class ScheduleService {
         Schedule schedule = new Schedule();
         schedule.setAccountId(accountId);
         mapScheduleRequestToEntity(requestDTO, schedule);
-        schedule.setStatus("Waiting for delivery");
+        schedule.setStatus(ScheduleStatus.WAITING_FOR_DELIVERY);
         schedule = scheduleRepository.save(schedule);
         tripMatchingService.matchTripsForAll();
         return schedule;

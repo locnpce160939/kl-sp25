@@ -18,7 +18,7 @@ public class TripBookingsMapper {
                 .startLocationAddress(tripBookings.getStartLocationAddress())
                 .endLocationAddress(tripBookings.getEndLocationAddress())
                 .capacity(tripBookings.getCapacity())
-                .status(tripBookings.getStatus())
+                .status(String.valueOf(tripBookings.getStatus()))
                 .expirationDate(tripBookings.getExpirationDate())
                 .totalDistance(tripBookings.getTotalDistance())
                 .notes(tripBookings.getNotes())

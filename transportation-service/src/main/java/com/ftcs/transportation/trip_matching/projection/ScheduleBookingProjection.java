@@ -1,5 +1,8 @@
 package com.ftcs.transportation.trip_matching.projection;
 
+import com.ftcs.transportation.schelude.constant.ScheduleStatus;
+import com.ftcs.transportation.trip_booking.constant.TripBookingStatus;
+
 import java.time.LocalDateTime;
 
 public interface ScheduleBookingProjection {
@@ -12,7 +15,7 @@ public interface ScheduleBookingProjection {
     LocalDateTime getStartDate();
     LocalDateTime getEndDate();
     Integer getAvailableCapacity();
-    String getScheduleStatus();
+    ScheduleStatus getScheduleStatus();
     String getScheduleNotes();
     LocalDateTime getScheduleCreateAt();
     LocalDateTime getScheduleUpdateAt();
@@ -26,7 +29,7 @@ public interface ScheduleBookingProjection {
     String getBookingStartLocationAddress();
     String getBookingEndLocationAddress();
     Integer getBookingCapacity();
-    String getBookingStatus();
+    TripBookingStatus getBookingStatus();
     LocalDateTime getExpirationDate();
     Double getTotalPrice();
     String getBookingNotes();
