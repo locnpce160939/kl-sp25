@@ -20,11 +20,7 @@ public class WeightRangeService {
     private final WeightRangeRepository weightRangeRepository;
 
     public List<WeightRange> getAllWeightRanges() {
-        List<WeightRange> weightRanges = weightRangeRepository.findAll();
-        if (weightRanges.isEmpty()) {
-            throw new BadRequestException("No weight ranges found.");
-        }
-        return weightRanges;
+        return weightRangeRepository.findAll();
     }
 
     public WeightRange findByWeightRangeId(Integer weightRangeId) {

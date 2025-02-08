@@ -1,6 +1,6 @@
-package com.ftcs.transportation.schelude.dto;
+package com.ftcs.transportation.schedule.dto;
 
-import com.ftcs.transportation.schelude.constant.ScheduleStatus;
+import com.ftcs.transportation.schedule.constant.ScheduleStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

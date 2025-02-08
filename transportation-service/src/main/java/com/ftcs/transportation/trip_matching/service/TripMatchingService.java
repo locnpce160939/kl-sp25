@@ -1,12 +1,11 @@
 package com.ftcs.transportation.trip_matching.service;
 
-import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.ftcs.realtimeservice.socket.contants.Message;
 import com.ftcs.realtimeservice.socket.contants.MessageType;
 import com.ftcs.realtimeservice.socket.service.SocketService;
-import com.ftcs.transportation.schelude.model.Schedule;
-import com.ftcs.transportation.schelude.repository.ScheduleRepository;
+import com.ftcs.transportation.schedule.model.Schedule;
+import com.ftcs.transportation.schedule.repository.ScheduleRepository;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
 import com.ftcs.transportation.trip_matching.dto.MatchResult;
 import com.ftcs.transportation.trip_matching.projection.ScheduleBookingProjection;
@@ -20,11 +19,8 @@ import com.ftcs.transportation.trip_matching.service.strategy.MatchingStrategy;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;

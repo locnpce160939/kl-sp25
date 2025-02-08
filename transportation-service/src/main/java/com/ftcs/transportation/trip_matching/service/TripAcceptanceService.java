@@ -1,8 +1,8 @@
 package com.ftcs.transportation.trip_matching.service;
 
 import com.ftcs.common.exception.BadRequestException;
-import com.ftcs.transportation.schelude.model.Schedule;
-import com.ftcs.transportation.schelude.repository.ScheduleRepository;
+import com.ftcs.transportation.schedule.model.Schedule;
+import com.ftcs.transportation.schedule.repository.ScheduleRepository;
 import com.ftcs.transportation.trip_booking.constant.TripBookingStatus;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
 import com.ftcs.transportation.trip_booking.repository.TripBookingsRepository;

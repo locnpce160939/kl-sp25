@@ -1,20 +1,18 @@
-package com.ftcs.transportation.schelude.service;
+package com.ftcs.transportation.schedule.service;
 
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ftcs.accountservice.driver.identification.dto.DriverIdentificationRequestDTO;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.realtimeservice.socket.contants.Message;
 import com.ftcs.realtimeservice.socket.contants.MessageType;
 import com.ftcs.realtimeservice.socket.service.SocketService;
-import com.ftcs.transportation.schelude.dto.LocationDriverDTO;
-import com.ftcs.transportation.schelude.model.Schedule;
-import com.ftcs.transportation.schelude.repository.ScheduleRepository;
+import com.ftcs.transportation.schedule.dto.LocationDriverDTO;
+import com.ftcs.transportation.schedule.model.Schedule;
+import com.ftcs.transportation.schedule.repository.ScheduleRepository;
 import com.ftcs.transportation.trip_agreement.model.TripAgreement;
 import com.ftcs.transportation.trip_agreement.repository.TripAgreementRepository;
-import com.ftcs.transportation.trip_matching.model.TripMatchingCache;
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,10 +21,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 import static com.ftcs.common.utils.JsonUtils.toJson;
-import static com.ftcs.realtimeservice.socket.service.SocketUtils.isAuthenticated;
 
 @Service
 @AllArgsConstructor

@@ -67,11 +67,7 @@ public class AddressService {
     }
 
     public List<Address> getAllAddressByAccountId(Integer accountId){
-        List<Address> addresses = addressRepository.findAddressByAccountId(accountId);
-        if(addresses.isEmpty()){
-            throw new BadRequestException("No address found for account id " + accountId);
-        }
-        return addresses;
+        return addressRepository.findAddressByAccountId(accountId);
     }
 
     private Address findAddressByAddressId(Integer addressId) {

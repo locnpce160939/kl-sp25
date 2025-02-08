@@ -1,6 +1,6 @@
 package com.ftcs.transportation.trip_matching.projection;
 
-import com.ftcs.transportation.schelude.constant.ScheduleStatus;
+import com.ftcs.transportation.schedule.constant.ScheduleStatus;
 import com.ftcs.transportation.trip_booking.constant.TripBookingStatus;
 
 import java.time.LocalDateTime;

@@ -1,13 +1,12 @@
-package com.ftcs.transportation.schelude.service;
+package com.ftcs.transportation.schedule.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ftcs.common.exception.BadRequestException;
-import com.ftcs.transportation.schelude.constant.ScheduleStatus;
-import com.ftcs.transportation.schelude.dto.FindScheduleByTimePeriodRequestDTO;
-import com.ftcs.transportation.schelude.dto.ScheduleRequestDTO;
-import com.ftcs.transportation.schelude.dto.UpdateStatusScheduleRequestDTO;
-import com.ftcs.transportation.schelude.model.Schedule;
-import com.ftcs.transportation.schelude.repository.ScheduleRepository;
+import com.ftcs.transportation.schedule.constant.ScheduleStatus;
+import com.ftcs.transportation.schedule.dto.FindScheduleByTimePeriodRequestDTO;
+import com.ftcs.transportation.schedule.dto.ScheduleRequestDTO;
+import com.ftcs.transportation.schedule.dto.UpdateStatusScheduleRequestDTO;
+import com.ftcs.transportation.schedule.model.Schedule;
+import com.ftcs.transportation.schedule.repository.ScheduleRepository;
 import com.ftcs.transportation.trip_matching.service.TripMatchingService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -61,19 +60,12 @@ public class ScheduleService {
     }
 
     public List<Schedule> getAllSchedulesByAccountId(Integer accountId) {
-        List<Schedule> schedules = scheduleRepository.findAllByAccountId(accountId);
-        if (schedules == null || schedules.isEmpty()) {
-            throw new BadRequestException("No schedules found for the specified account.");
-        }
-        return schedules;
+        return scheduleRepository.findAllByAccountId(accountId);
+
     }
 
     public List<Schedule> getAllSchedulesByAccountIdOfDriver(Integer accountId) {
-        List<Schedule> schedules = scheduleRepository.findAllByAccountId(accountId);
-        if (schedules == null || schedules.isEmpty()) {
-            throw new BadRequestException("No schedules found for the specified account.");
-        }
-        return schedules;
+        return  scheduleRepository.findAllByAccountId(accountId);
     }
 
     public Schedule getScheduleById(Long scheduleId) {

@@ -1,6 +1,6 @@
-package com.ftcs.transportation.schelude.model;
+package com.ftcs.transportation.schedule.model;
 
-import com.ftcs.transportation.schelude.constant.ScheduleStatus;
+import com.ftcs.transportation.schedule.constant.ScheduleStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
