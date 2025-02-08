@@ -1,6 +1,5 @@
 package com.ftcs.transportation.trip_booking.repository;
 
-import com.ftcs.transportation.schelude.model.Schedule;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
 import org.springframework.data.jpa.repository.JpaRepository;
 

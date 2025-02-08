@@ -17,11 +17,7 @@ public class DistanceRangeService {
     private final DistanceRangeRepository distanceRangeRepository;
 
     public List<DistanceRange> getAllDistanceRanges() {
-        List<DistanceRange> distanceRanges = distanceRangeRepository.findAll();
-        if (distanceRanges.isEmpty()) {
-            throw new BadRequestException("No distance ranges found.");
-        }
-        return distanceRanges;
+        return distanceRangeRepository.findAll();
     }
 
     public DistanceRange findByDistanceId(Integer distanceId) {

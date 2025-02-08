@@ -1,6 +1,6 @@
 package com.ftcs.transportation.trip_matching.service.strategy;
 
-import com.ftcs.transportation.schelude.model.Schedule;
+import com.ftcs.transportation.schedule.model.Schedule;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
 import lombok.AllArgsConstructor;
 import lombok.Data;

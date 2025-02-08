@@ -1,4 +1,4 @@
-package com.ftcs.transportation.schelude.constant;
+package com.ftcs.transportation.schedule.constant;
 
 public enum ScheduleStatus {
     WAITING_FOR_DELIVERY,

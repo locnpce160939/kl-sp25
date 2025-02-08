@@ -1,16 +1,14 @@
 package com.ftcs.transportation.trip_booking.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ftcs.authservice.features.account.Account;
 import com.ftcs.authservice.features.account.AccountRepository;
 import com.ftcs.common.exception.BadRequestException;
-import com.ftcs.transportation.schelude.constant.ScheduleStatus;
-import com.ftcs.transportation.schelude.model.Schedule;
-import com.ftcs.transportation.schelude.repository.ScheduleRepository;
+import com.ftcs.transportation.schedule.constant.ScheduleStatus;
+import com.ftcs.transportation.schedule.model.Schedule;
+import com.ftcs.transportation.schedule.repository.ScheduleRepository;
 import com.ftcs.transportation.trip_agreement.model.TripAgreement;
 import com.ftcs.transportation.trip_agreement.repository.TripAgreementRepository;
 import com.ftcs.transportation.trip_booking.constant.TripBookingStatus;
-import com.ftcs.transportation.trip_booking.dto.FindTripBookingByTimePeriodRequestDTO;
 import com.ftcs.transportation.trip_booking.dto.TripBookingsDetailDTO;
 import com.ftcs.transportation.trip_booking.dto.TripBookingsRequestDTO;
 import com.ftcs.transportation.trip_booking.dto.UpdateStatusTripBookingsRequestDTO;
@@ -78,11 +76,7 @@ public class TripBookingsService {
 
 
     public List<TripBookings> getAllTripBookings() {
-        List<TripBookings> bookings = tripBookingsRepository.findAll();
-        if (bookings.isEmpty()) {
-            throw new BadRequestException("No trip bookings found");
-        }
-        return bookings;
+        return tripBookingsRepository.findAll();
     }
 
     public void updateStatusForDriver(UpdateStatusTripBookingsRequestDTO requestDTO, Integer accountId, Long bookingId) {

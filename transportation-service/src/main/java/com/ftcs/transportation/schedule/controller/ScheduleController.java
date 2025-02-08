@@ -1,13 +1,12 @@
-package com.ftcs.transportation.schelude.controller;
+package com.ftcs.transportation.schedule.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ftcs.common.dto.ApiResponse;
 import com.ftcs.transportation.TransportationURL;
-import com.ftcs.transportation.schelude.dto.FindScheduleByTimePeriodRequestDTO;
-import com.ftcs.transportation.schelude.dto.ScheduleRequestDTO;
-import com.ftcs.transportation.schelude.dto.UpdateStatusScheduleRequestDTO;
-import com.ftcs.transportation.schelude.model.Schedule;
-import com.ftcs.transportation.schelude.service.ScheduleService;
+import com.ftcs.transportation.schedule.dto.FindScheduleByTimePeriodRequestDTO;
+import com.ftcs.transportation.schedule.dto.ScheduleRequestDTO;
+import com.ftcs.transportation.schedule.dto.UpdateStatusScheduleRequestDTO;
+import com.ftcs.transportation.schedule.model.Schedule;
+import com.ftcs.transportation.schedule.service.ScheduleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;

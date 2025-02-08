@@ -17,11 +17,7 @@ public class HolidaySurchargeService {
     private final HolidaySurchargeRepository holidaySurchargeRepository;
 
     public List<HolidaySurcharge> getAllHolidaySurcharges() {
-        List<HolidaySurcharge> surcharges = holidaySurchargeRepository.findAll();
-        if (surcharges.isEmpty()) {
-            throw new BadRequestException("No holiday surcharges found.");
-        }
-        return surcharges;
+        return holidaySurchargeRepository.findAll();
     }
 
     public HolidaySurcharge getHolidaySurchargeById(Integer holidaySurchargeId) {

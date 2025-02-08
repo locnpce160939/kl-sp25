@@ -1,4 +1,4 @@
-package com.ftcs.transportation.schelude.dto;
+package com.ftcs.transportation.schedule.dto;
 
 import lombok.*;
 

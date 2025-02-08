@@ -87,9 +87,6 @@ public class AccountService {
 
     public List<Account> getAllAccounts() {
         List<Account> accounts = accountRepository.findAll();
-        if (accounts.isEmpty()) {
-            throw new BadRequestException("No accounts found!");
-        }
         accounts.forEach(account -> account.setPassword(""));
         return accounts;
     }
