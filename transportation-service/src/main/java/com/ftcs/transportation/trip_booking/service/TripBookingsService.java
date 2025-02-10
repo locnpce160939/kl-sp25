@@ -37,7 +37,7 @@ public class TripBookingsService {
         TripBookings tripBookings = new TripBookings();
         tripBookings.setAccountId(accountId);
         mapRequestToTripBookings(requestDTO, tripBookings);
-        tripBookings = tripBookingsRepository.save(tripBookings);
+        tripBookingsRepository.save(tripBookings);
         tripMatchingService.matchTripsForAll();
         return tripBookings;
     }

@@ -62,9 +62,27 @@ public class AccountService {
         return accountRepository.save(account);
     }
 
+    public Account updateAccount(Integer accountId, RegisterRequestDTO requestDTO) {
+        Account account = findAccountByAccountId(accountId);
+
+        if (accountRepository.existsByUsernameAndAccountIdNot(requestDTO.getUsername(), accountId)) {
+            throw new BadRequestException("Username Exists!");
+        }
+        if (accountRepository.existsByEmailAndAccountIdNot(requestDTO.getEmail(), accountId)) {
+            throw new BadRequestException("Email Exists!");
+        }
+
+        account.setUsername(requestDTO.getUsername());
+        account.setPhone(requestDTO.getPhone());
+        account.setFullName(requestDTO.getFullName());
+        account.setEmail(requestDTO.getEmail());
+
+        return accountRepository.save(account);
+    }
+
+
     public void deleteAccount(Integer id) {
-        Account account = accountRepository.findById(id)
-                .orElseThrow(() -> new BadRequestException("Account does not exist!"));
+        Account account = findAccountByAccountId(id);
         account.setStatus("isDisabled");
         accountRepository.save(account);
     }
@@ -139,19 +157,11 @@ public class AccountService {
         accountRepository.save(account);
     }
 
-    public List<Account> findAllByRole(String role) {
-        RoleType roleType;
-        try {
-            roleType = RoleType.valueOf(role.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("Invalid role: " + role);
-        }
-
-        List<Account> accounts = accountRepository.findAllByRole(roleType);
+    public List<Account> findAllByRole(RoleType role) {
+        List<Account> accounts = accountRepository.findAllByRoleAndStatusNot(role, "isDisabled");
         if (accounts.isEmpty()) {
-            throw new NotFoundException("No accounts found for the role: " + roleType);
+            throw new NotFoundException("No accounts found for the role: " + role);
         }
-
         accounts.forEach(account -> account.setPassword(""));
         return accounts;
     }

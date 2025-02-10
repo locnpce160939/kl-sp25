@@ -1,5 +1,6 @@
 package com.ftcs.accountservice.account.dto;
 
+import com.ftcs.authservice.features.account.contacts.RoleType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,5 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FilterRequestDTO {
-    private String role;
+    private RoleType role;
 }

@@ -1,5 +1,7 @@
 package com.ftcs.transportation.schedule.service;
 
+import com.ftcs.accountservice.driver.vehicle.model.Vehicle;
+import com.ftcs.accountservice.driver.vehicle.repository.VehicleRepository;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.transportation.schedule.constant.ScheduleStatus;
 import com.ftcs.transportation.schedule.dto.FindScheduleByTimePeriodRequestDTO;
@@ -20,8 +22,11 @@ import java.util.List;
 public class ScheduleService {
     private final TripMatchingService tripMatchingService;
     private final ScheduleRepository scheduleRepository;
+    private final VehicleRepository vehicleRepository;
 
     public Schedule createSchedule(ScheduleRequestDTO requestDTO, Integer accountId) {
+        Vehicle vehicle = vehicleRepository.findVehicleByVehicleId(requestDTO.getVehicleId()).
+                orElseThrow(() -> new BadRequestException("Vehicle not found"));
         validateScheduleDates(requestDTO.getStartDate(), requestDTO.getEndDate());
         List<Schedule> schedules = scheduleRepository.findAllByAccountId(accountId);
 
@@ -35,9 +40,10 @@ public class ScheduleService {
         }
         Schedule schedule = new Schedule();
         schedule.setAccountId(accountId);
+        schedule.setVehicleId(requestDTO.getVehicleId());
         mapScheduleRequestToEntity(requestDTO, schedule);
         schedule.setStatus(ScheduleStatus.WAITING_FOR_DELIVERY);
-        schedule = scheduleRepository.save(schedule);
+        scheduleRepository.save(schedule);
         tripMatchingService.matchTripsForAll();
         return schedule;
     }
