@@ -35,6 +35,11 @@ public class ReviewController {
         return new ApiResponse<>("Fetched reviews successfully.", reviews);
     }
 
+    @GetMapping("/driver/{driverId}")
+    public ApiResponse<?> getAllReviewsDriver(@PathVariable("driverId") Integer driverId) {
+        return new ApiResponse<>("Get reviews driver successfully.", reviewService.findAllReviewsDriver(driverId));
+    }
+
     @PutMapping("updateReview/{reviewId}")
     @PreAuthorize("hasPermission(null, 'CUSTOMER') or hasPermission(null, 'DRIVER')")
     public ApiResponse<?> updateReview(@Valid @RequestBody ReviewRequestDTO requestDTO,

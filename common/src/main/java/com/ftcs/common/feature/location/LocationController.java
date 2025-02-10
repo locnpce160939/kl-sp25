@@ -2,6 +2,7 @@ package com.ftcs.common.feature.location;
 
 import com.ftcs.common.dto.ApiResponse;
 import com.ftcs.common.feature.CommonURL;
+import com.ftcs.common.feature.location.service.GeocodingService;
 import com.ftcs.common.feature.location.service.LocationService;
 import com.ftcs.common.service.ReverseGeocodeService;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ public class LocationController {
 
     private final LocationService locationService;
     private final ReverseGeocodeService reverseGeocodeService;
+    private final GeocodingService geocodingService;
 
     @GetMapping("/provinces")
     public ApiResponse<?> getProvinces() {
@@ -33,5 +35,10 @@ public class LocationController {
     @GetMapping("/reverse-geocode")
     public ApiResponse<?> reverseGeocode(@RequestParam("latitude") Double latitude, @RequestParam("longitude") Double longitude) {
         return new ApiResponse<>(reverseGeocodeService.getAddressFromCoordinates(latitude, longitude));
+    }
+
+    @GetMapping("/address-geocode")
+    public ApiResponse<?> reverseGeocode(@RequestParam("address") String address) {
+        return new ApiResponse<>(geocodingService.getGeocode(address));
     }
 }

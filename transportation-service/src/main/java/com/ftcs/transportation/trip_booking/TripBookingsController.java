@@ -2,12 +2,10 @@ package com.ftcs.transportation.trip_booking;
 
 import com.ftcs.common.dto.ApiResponse;
 import com.ftcs.transportation.TransportationURL;
-import com.ftcs.transportation.trip_booking.dto.FindTripBookingByTimePeriodRequestDTO;
-import com.ftcs.transportation.trip_booking.dto.TripBookingsDetailDTO;
-import com.ftcs.transportation.trip_booking.dto.TripBookingsRequestDTO;
-import com.ftcs.transportation.trip_booking.dto.UpdateStatusTripBookingsRequestDTO;
+import com.ftcs.transportation.trip_booking.dto.*;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
 import com.ftcs.transportation.trip_booking.service.TripBookingsService;
+import com.ftcs.transportation.trip_matching.service.DirectionsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,6 +19,7 @@ import java.util.List;
 public class TripBookingsController {
 
     private final TripBookingsService tripBookingsService;
+    private final DirectionsService directionsService;
 
     @PostMapping("/create")
     @PreAuthorize("hasPermission(null, 'CUSTOMER')")
@@ -107,5 +106,10 @@ public class TripBookingsController {
     @GetMapping("/schedule/{scheduleId}")
     public ApiResponse<List<TripBookings>> getByScheduleId(@PathVariable("scheduleId") Long scheduleId) {
         return new ApiResponse<>(tripBookingsService.getBySchedule(scheduleId));
+    }
+
+    @GetMapping("/direction")
+    public ApiResponse<?> findDirection(@RequestParam("origin") String origin, @RequestParam("destination") String destination) {
+        return new ApiResponse<>(directionsService.getDirections(origin, destination));
     }
 }

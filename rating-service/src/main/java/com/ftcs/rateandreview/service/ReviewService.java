@@ -3,6 +3,7 @@ package com.ftcs.rateandreview.service;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.rateandreview.dto.ReviewRequestDTO;
 import com.ftcs.rateandreview.model.Review;
+import com.ftcs.rateandreview.projection.DriverReviewProjection;
 import com.ftcs.rateandreview.repository.ReviewRepository;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
 import com.ftcs.transportation.trip_booking.repository.TripBookingsRepository;
@@ -54,6 +55,10 @@ public class ReviewService {
 
     public List<Review> findAllReviewsByAccountId(Integer accountId) {
         return reviewRepository.findAllByAccountId(accountId);
+    }
+
+    public List<DriverReviewProjection> findAllReviewsDriver(Integer driverId) {
+        return reviewRepository.getDriverReviews(driverId);
     }
 
     private void validateOwnership(Integer accountId, TripBookings tripBookings) {
