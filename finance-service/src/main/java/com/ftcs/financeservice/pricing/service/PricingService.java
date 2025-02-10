@@ -22,11 +22,7 @@ public class PricingService {
     private final DistanceRangeRepository distanceRangeRepository;
 
     public List<Pricing> getAllPricing() {
-        List<Pricing> pricing = pricingRepository.findAll();
-        if (pricing.isEmpty()) {
-            throw new BadRequestException("No pricing found.");
-        }
-        return pricing;
+        return pricingRepository.findAll();
     }
 
     public Pricing getPricingById(Integer pricingId) {

@@ -30,7 +30,7 @@ public class AccountController {
         return new ApiResponse<>(accountService.registerConfirmUser(requestDTO, request));
     }
 
-    @DeleteMapping("/isDisable/{accountId}")
+    @PutMapping("/isDisable/{accountId}")
     @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
     public ApiResponse<?> deleteAccount(@Valid @PathVariable("accountId") Integer accountId) {
         accountService.deleteAccount(accountId);
@@ -89,6 +89,10 @@ public class AccountController {
         return new ApiResponse<>(accountService.findAllByRole(requestDTO.getRole()));
     }
 
-
-
+    @PutMapping("/editAccount/{accountId}")
+    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
+    public ApiResponse<?> editAccount(@Valid @RequestBody RegisterRequestDTO requestDTO,
+                                      @PathVariable("accountId") Integer accountId) {
+        return new ApiResponse<>(accountService.updateAccount(accountId, requestDTO));
+    }
 }

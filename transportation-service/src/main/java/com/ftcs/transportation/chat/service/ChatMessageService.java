@@ -10,19 +10,14 @@ import com.ftcs.realtimeservice.socket.service.SocketService;
 import com.ftcs.transportation.chat.dto.ChatMessageDto;
 import com.ftcs.transportation.chat.model.ChatMessage;
 import com.ftcs.transportation.chat.repository.ChatMessageRepository;
-import com.ftcs.transportation.schelude.dto.LocationDriverDTO;
-import com.ftcs.transportation.schelude.repository.ScheduleRepository;
 import com.ftcs.transportation.trip_agreement.model.TripAgreement;
 import com.ftcs.transportation.trip_agreement.repository.TripAgreementRepository;
-import com.ftcs.transportation.trip_booking.model.TripBookings;
-import com.ftcs.transportation.trip_booking.repository.TripBookingsRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.ftcs.common.utils.JsonUtils.toJson;
 import static com.ftcs.realtimeservice.socket.service.SocketUtils.getRoomSocket;

@@ -1,5 +1,6 @@
-package com.ftcs.transportation.schelude.dto;
+package com.ftcs.transportation.schedule.dto;
 
+import io.swagger.models.auth.In;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,6 +25,9 @@ public class ScheduleRequestDTO {
 
     @NotBlank(message = "End location cannot be blank")
     private String endLocationAddress;
+
+    @NotBlank(message = "Vehicle cannot be blank")
+    private Integer vehicleId;
 
     @NotNull(message = "Start date cannot be null")
     @Future(message = "Start date must be in the future")

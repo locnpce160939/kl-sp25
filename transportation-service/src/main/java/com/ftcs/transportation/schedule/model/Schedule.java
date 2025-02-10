@@ -1,5 +1,6 @@
-package com.ftcs.transportation.schelude.model;
+package com.ftcs.transportation.schedule.model;
 
+import com.ftcs.transportation.schedule.constant.ScheduleStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -42,14 +43,18 @@ public class Schedule {
     @Column(name = "EndDate", nullable = false)
     private LocalDateTime endDate;
 
+    @Column(name = "Vehicle", nullable = false)
+    private Integer vehicleId;
+
     @Column(name = "LocationDriver")
     private String locationDriver;
 
     @Column(name = "AvailableCapacity", nullable = false)
     private Integer availableCapacity;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "Status", length = 50, nullable = false)
-    private String status;
+    private ScheduleStatus status;
 
     @Column(name = "Notes", length = 255)
     private String notes;

@@ -1,6 +1,6 @@
-package com.ftcs.transportation.schelude.repository;
+package com.ftcs.transportation.schedule.repository;
 
-import com.ftcs.transportation.schelude.model.Schedule;
+import com.ftcs.transportation.schedule.model.Schedule;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;

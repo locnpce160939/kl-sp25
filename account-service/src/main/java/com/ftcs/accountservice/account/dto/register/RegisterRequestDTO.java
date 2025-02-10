@@ -12,20 +12,20 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RegisterRequestDTO {
-    @NotBlank(message = "Username must not be null or empty")
+//    @NotBlank(message = "Username must not be null or empty")
     private String username;
 
-    @NotBlank(message = "Password must not be null or empty")
+//    @NotBlank(message = "Password must not be null or empty")
     private String password;
 
-    @NotBlank(message = "FullName must not be null or empty")
+//    @NotBlank(message = "FullName must not be null or empty")
     private String fullName;
 
-    @NotBlank(message = "Email must not be null or empty")
+//    @NotBlank(message = "Email must not be null or empty")
     @Email(message = "Email is not valid")
     private String email;
 
-    @NotBlank(message = "Phone must not be null or empty")
+//    @NotBlank(message = "Phone must not be null or empty")
     @Pattern(regexp = "^\\+?[0-9]{7,15}$", message = "Phone number is not valid")
     private String phone;
 

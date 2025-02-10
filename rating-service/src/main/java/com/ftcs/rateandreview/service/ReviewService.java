@@ -5,6 +5,7 @@ import com.ftcs.rateandreview.dto.ReviewRequestDTO;
 import com.ftcs.rateandreview.model.Review;
 import com.ftcs.rateandreview.projection.DriverReviewProjection;
 import com.ftcs.rateandreview.repository.ReviewRepository;
+import com.ftcs.transportation.trip_booking.constant.TripBookingStatus;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
 import com.ftcs.transportation.trip_booking.repository.TripBookingsRepository;
 import lombok.AllArgsConstructor;
@@ -24,7 +25,7 @@ public class ReviewService {
         TripBookings tripBookings = getTripBookingsByBookingId(bookingId);
         validateReviewRequest(requestDTO);
         validateOwnership(accountId, tripBookings);
-        if ("Order completed".equalsIgnoreCase(tripBookings.getStatus())) {
+        if (TripBookingStatus.ORDER_COMPLETED == tripBookings.getStatus()) {
             Review review = new Review();
             review.setBookingId(bookingId);
             review.setPeopleRating(role);
