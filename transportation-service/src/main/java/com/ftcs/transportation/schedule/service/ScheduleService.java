@@ -1,5 +1,6 @@
 package com.ftcs.transportation.schedule.service;
 
+import com.ftcs.accountservice.driver.shared.StatusDocumentType;
 import com.ftcs.accountservice.driver.vehicle.model.Vehicle;
 import com.ftcs.accountservice.driver.vehicle.repository.VehicleRepository;
 import com.ftcs.common.exception.BadRequestException;
@@ -25,30 +26,52 @@ public class ScheduleService {
     private final VehicleRepository vehicleRepository;
 
     public Schedule createSchedule(ScheduleRequestDTO requestDTO, Integer accountId) {
-        Vehicle vehicle = vehicleRepository.findVehicleByVehicleId(requestDTO.getVehicleId()).
-                orElseThrow(() -> new BadRequestException("Vehicle not found"));
+        Vehicle vehicle = getValidatedVehicle(requestDTO.getVehicleId(), accountId);
         validateScheduleDates(requestDTO.getStartDate(), requestDTO.getEndDate());
-        List<Schedule> schedules = scheduleRepository.findAllByAccountId(accountId);
-
-        if (!schedules.isEmpty()) {
-            Schedule latestSchedule = schedules.stream()
-                    .max(Comparator.comparing(Schedule::getEndDate))
-                    .orElseThrow(() -> new BadRequestException("Unable to find latest schedule."));
-            if (!requestDTO.getStartDate().isAfter(latestSchedule.getEndDate().plusDays(1))) {
-                throw new BadRequestException("The new schedule must start at least one day after the last schedule's end date.");
-            }
-        }
-        Schedule schedule = new Schedule();
-        schedule.setAccountId(accountId);
-        schedule.setVehicleId(requestDTO.getVehicleId());
-        mapScheduleRequestToEntity(requestDTO, schedule);
-        schedule.setStatus(ScheduleStatus.WAITING_FOR_DELIVERY);
+        validateScheduleTiming(accountId, requestDTO.getStartDate());
+        Schedule schedule = buildNewSchedule(requestDTO, accountId);
         scheduleRepository.save(schedule);
         tripMatchingService.matchTripsForAll();
         return schedule;
     }
 
+    private Vehicle getValidatedVehicle(Integer vehicleId, Integer accountId) {
+        Vehicle vehicle = vehicleRepository.findVehicleByVehicleId(vehicleId)
+                .orElseThrow(() -> new BadRequestException("Vehicle not found"));
 
+        if (!vehicle.getStatus().equals(StatusDocumentType.APPROVED)) {
+            throw new BadRequestException("Vehicle is not approved");
+        }
+
+        boolean isOwnedByAccount = vehicleRepository.findVehiclesByAccountId(accountId)
+                .stream()
+                .anyMatch(v -> v.getVehicleId().equals(vehicleId));
+
+        if (!isOwnedByAccount) {
+            throw new BadRequestException("Vehicle does not belong to this account");
+        }
+        return vehicle;
+    }
+
+    private void validateScheduleTiming(Integer accountId, LocalDateTime startDate) {
+        List<Schedule> schedules = scheduleRepository.findAllByAccountId(accountId);
+        schedules.stream()
+                .max(Comparator.comparing(Schedule::getEndDate))
+                .ifPresent(latestSchedule -> {
+                    if (!startDate.isAfter(latestSchedule.getEndDate().plusDays(1))) {
+                        throw new BadRequestException("The new schedule must start at least one day after the last schedule's end date.");
+                    }
+                });
+    }
+
+    private Schedule buildNewSchedule(ScheduleRequestDTO requestDTO, Integer accountId) {
+        Schedule schedule = new Schedule();
+        schedule.setAccountId(accountId);
+        schedule.setVehicleId(requestDTO.getVehicleId());
+        mapScheduleRequestToEntity(requestDTO, schedule);
+        schedule.setStatus(ScheduleStatus.WAITING_FOR_DELIVERY);
+        return schedule;
+    }
 
     public void updateSchedule(ScheduleRequestDTO requestDTO, Long scheduleId) {
         Schedule schedule = getScheduleById(scheduleId);
@@ -67,11 +90,10 @@ public class ScheduleService {
 
     public List<Schedule> getAllSchedulesByAccountId(Integer accountId) {
         return scheduleRepository.findAllByAccountId(accountId);
-
     }
 
     public List<Schedule> getAllSchedulesByAccountIdOfDriver(Integer accountId) {
-        return  scheduleRepository.findAllByAccountId(accountId);
+        return scheduleRepository.findAllByAccountId(accountId);
     }
 
     public Schedule getScheduleById(Long scheduleId) {
@@ -87,22 +109,19 @@ public class ScheduleService {
         boolean hasDateRange = requestDTO.getStartDate() != null && requestDTO.getEndDate() != null;
         boolean hasStatus = requestDTO.getStatus() != null && !requestDTO.getStatus().isEmpty();
         List<Schedule> schedules;
+
         if (hasDateRange && hasStatus) {
             schedules = scheduleRepository.findAllByStartDateBetweenAndStatus(
-                    requestDTO.getStartDate(),
-                    requestDTO.getEndDate(),
-                    requestDTO.getStatus()
-            );
+                    requestDTO.getStartDate(), requestDTO.getEndDate(), requestDTO.getStatus());
         } else if (hasDateRange) {
             schedules = scheduleRepository.findAllByStartDateBetween(
-                    requestDTO.getStartDate(),
-                    requestDTO.getEndDate()
-            );
+                    requestDTO.getStartDate(), requestDTO.getEndDate());
         } else if (hasStatus) {
             schedules = scheduleRepository.findAllByStatus(requestDTO.getStatus());
         } else {
             schedules = scheduleRepository.findAll();
         }
+
         if (schedules.isEmpty()) {
             throw new BadRequestException("No schedules found with the given criteria.");
         }
@@ -117,7 +136,6 @@ public class ScheduleService {
         schedule.setAvailableCapacity(requestDTO.getAvailableCapacity());
         schedule.setStartLocationAddress(requestDTO.getStartLocationAddress());
         schedule.setEndLocationAddress(requestDTO.getEndLocationAddress());
-
     }
 
     private void validateScheduleDates(LocalDateTime startDate, LocalDateTime endDate) {
