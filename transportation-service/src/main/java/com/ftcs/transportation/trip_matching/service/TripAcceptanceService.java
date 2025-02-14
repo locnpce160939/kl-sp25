@@ -72,7 +72,9 @@ public class TripAcceptanceService  {
     private TripAgreement createAndSaveTripAgreement(TripMatchingCache cache, TripMatchingFinal finalRecord) {
         Schedule schedule = getSchedule(cache.getScheduleId());
         TripBookings tripBooking = getTripBookings(cache.getBookingId());
-
+        Integer distance = Optional.ofNullable(tripBooking.getTotalDistance())
+                .map(d -> d.intValue())
+                .orElse(0);
         TripAgreement tripAgreement = TripAgreement.builder()
                 .tripMatchingId(finalRecord.getId())
                 .scheduleId(finalRecord.getScheduleId())
@@ -82,7 +84,7 @@ public class TripAcceptanceService  {
                 .customerId(tripBooking.getAccountId())
                 .totalPrice(0.0)
                 .paymentStatus(PaymentStatusType.PAIR)
-                .distance(Optional.ofNullable(tripBooking.getTotalDistance()).orElse(0))
+                .distance(distance)
                 .estimatedDuration(100)
                 .agreementStatus(AgreementStatusType.IN_TRANSIT)
                 .build();

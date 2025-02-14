@@ -57,7 +57,7 @@ public class TripBookings {
     private LocalDateTime expirationDate;
 
     @Column(name = "TotalDistance", nullable = false)
-    private Integer totalDistance;
+    private Double totalDistance;
 
     @Column(name = "Notes", length = 255)
     private String notes;

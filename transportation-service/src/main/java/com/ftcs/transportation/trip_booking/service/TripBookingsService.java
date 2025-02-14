@@ -14,32 +14,67 @@ import com.ftcs.transportation.trip_booking.dto.TripBookingsRequestDTO;
 import com.ftcs.transportation.trip_booking.dto.UpdateStatusTripBookingsRequestDTO;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
 import com.ftcs.transportation.trip_booking.repository.TripBookingsRepository;
+import com.ftcs.transportation.trip_matching.dto.DirectionsResponseDTO;
+import com.ftcs.transportation.trip_matching.service.DirectionsService;
 import com.ftcs.transportation.trip_matching.service.TripMatchingService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import static com.ftcs.transportation.trip_booking.mapper.TripBookingsMapper.toDTO;
 
 @Service
 @AllArgsConstructor
 public class TripBookingsService {
     private final TripMatchingService tripMatchingService;
+    private static final Logger logger = LoggerFactory.getLogger(TripBookingsService.class);
 
     private final TripBookingsRepository tripBookingsRepository;
     private final ScheduleRepository scheduleRepository;
     private final TripAgreementRepository tripAgreementRepository;
     private final AccountRepository accountRepository;
+    private final DirectionsService directionsService; // Add this dependency
 
     public TripBookings createTripBookings(TripBookingsRequestDTO requestDTO, Integer accountId) {
         validateExpirationDate(requestDTO);
+
+        DirectionsResponseDTO directionsResponse = getDirectionsAndDistance(requestDTO);
+
         TripBookings tripBookings = new TripBookings();
         tripBookings.setAccountId(accountId);
         mapRequestToTripBookings(requestDTO, tripBookings);
+
+        // Set total distance if available
+        if (directionsResponse != null &&
+                !directionsResponse.getRoutes().isEmpty() &&
+                !directionsResponse.getRoutes().get(0).getLegs().isEmpty()) {
+
+            DirectionsResponseDTO.LegDto firstLeg = directionsResponse.getRoutes().get(0).getLegs().get(0);
+            if (firstLeg.getDistance() != null) {
+                // Convert meters to kilometers
+                double distanceInKm = firstLeg.getDistance().getValue() / 1000.0;
+                tripBookings.setTotalDistance(distanceInKm);
+            }
+        }
+
         tripBookingsRepository.save(tripBookings);
         tripMatchingService.matchTripsForAll();
         return tripBookings;
+    }
+
+    private DirectionsResponseDTO getDirectionsAndDistance(TripBookingsRequestDTO requestDTO) {
+        try {
+            // Convert addresses to coordinates format "lat,lng"
+            String origin = requestDTO.getPickupLocation();
+            String destination = requestDTO.getDropoffLocation();
+
+            return directionsService.getDirections(origin, destination);
+        } catch (Exception e) {
+            logger.error("Error getting directions: ", e);
+            return null;
+        }
     }
 
     public void updateTripBookings(TripBookingsRequestDTO requestDTO, Long bookingId) {
