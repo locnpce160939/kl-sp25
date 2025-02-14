@@ -9,16 +9,22 @@ import com.ftcs.transportation.schedule.repository.ScheduleRepository;
 import com.ftcs.transportation.trip_agreement.model.TripAgreement;
 import com.ftcs.transportation.trip_agreement.repository.TripAgreementRepository;
 import com.ftcs.transportation.trip_booking.constant.TripBookingStatus;
+import com.ftcs.transportation.trip_booking.dto.PreviewTripBookingDTO;
 import com.ftcs.transportation.trip_booking.dto.TripBookingsDetailDTO;
 import com.ftcs.transportation.trip_booking.dto.TripBookingsRequestDTO;
 import com.ftcs.transportation.trip_booking.dto.UpdateStatusTripBookingsRequestDTO;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
+import com.ftcs.transportation.trip_booking.projection.BasePriceProjection;
 import com.ftcs.transportation.trip_booking.repository.TripBookingsRepository;
 import com.ftcs.transportation.trip_matching.dto.DirectionsResponseDTO;
 import com.ftcs.transportation.trip_matching.service.DirectionsService;
 import com.ftcs.transportation.trip_matching.service.TripMatchingService;
 import lombok.AllArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -261,6 +267,30 @@ public class TripBookingsService {
 
         tripBookingsRepository.save(tripBookings);
     }
+
+    public PreviewTripBookingDTO getPreviewTripBookingDTO(String origin, String destination, BigDecimal weight) {
+        DirectionsResponseDTO directionsDTO = directionsService.getDirections(origin, destination);
+        BigDecimal distance = BigDecimal.valueOf(directionsDTO.getRoutes().get(0).getLegs().get(0).getDistance().getValue())
+                .divide(BigDecimal.valueOf(1000), RoundingMode.HALF_UP);
+        BasePriceProjection basePriceProjection = tripBookingsRepository.findBasePrice(distance, weight);
+        return getPreviewTripBookingDTO(weight, basePriceProjection, distance);
+    }
+
+    private static @NotNull PreviewTripBookingDTO getPreviewTripBookingDTO(BigDecimal weight, BasePriceProjection basePriceProjection, BigDecimal distance) {
+        if (basePriceProjection == null || basePriceProjection.getBasePrice() == null) {
+            throw new RuntimeException("Base price not found for the given distance and weight");
+        }
+
+        BigDecimal basePrice = basePriceProjection.getBasePrice();
+
+        BigDecimal totalPrice = basePrice.multiply(weight).multiply(distance);
+
+        PreviewTripBookingDTO previewTripBookingDTO = new PreviewTripBookingDTO();
+        previewTripBookingDTO.setPrice(totalPrice);
+        previewTripBookingDTO.setExpectedDistance(distance);
+        return previewTripBookingDTO;
+    }
+
 
     private void mapRequestToTripBookings(TripBookingsRequestDTO requestDTO, TripBookings tripBookings) {
         tripBookings.setBookingType(requestDTO.getBookingType());

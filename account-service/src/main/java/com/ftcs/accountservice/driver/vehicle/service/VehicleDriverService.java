@@ -138,4 +138,8 @@ public class VehicleDriverService {
             throw new BadRequestException("This vehicle does not belong to the specified account.");
         }
     }
+
+    public List<Vehicle> getVehicleApproved(Integer accountId){
+        return vehicleRepository.findByAccountIdAndStatus(accountId, StatusDocumentType.APPROVED);
+    }
 }

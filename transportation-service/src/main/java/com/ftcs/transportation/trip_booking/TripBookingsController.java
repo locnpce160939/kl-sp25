@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -109,8 +110,8 @@ public class TripBookingsController {
     }
 
     @GetMapping("/direction")
-    public ApiResponse<?> findDirection(@RequestParam("origin") String origin, @RequestParam("destination") String destination) {
-        return new ApiResponse<>(directionsService.getDirections(origin, destination));
+    public ApiResponse<?> findDirection(@RequestParam("origin") String origin, @RequestParam("destination") String destination, @RequestParam("weight") BigDecimal weight) {
+        return new ApiResponse<>(tripBookingsService.getPreviewTripBookingDTO(origin, destination, weight));
     }
 
     @PutMapping("/updateStatus/{bookingId}")

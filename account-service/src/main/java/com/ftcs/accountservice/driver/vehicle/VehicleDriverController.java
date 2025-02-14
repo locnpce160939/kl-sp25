@@ -63,4 +63,10 @@ public class VehicleDriverController {
         vehicleDriverService.updateStatus(vehicleId, requestDTO);
         return new ApiResponse<>("Updated vehicle successfully");
     }
+
+    @GetMapping("/vehicle/list")
+    @PreAuthorize("hasPermission(null, 'DRIVER')")
+    public ApiResponse<?> getVehiclesByAccountIdAndStatus(@RequestAttribute("accountId") Integer accountId) {
+        return new ApiResponse<>(vehicleDriverService.getVehicleApproved(accountId));
+    }
 }
