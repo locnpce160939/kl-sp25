@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
@@ -58,6 +59,9 @@ public class TripBookings {
 
     @Column(name = "TotalDistance", nullable = false)
     private Double totalDistance;
+
+    @Column(name = "Price", nullable = false)
+    private Double price;
 
     @Column(name = "Notes", length = 255)
     private String notes;

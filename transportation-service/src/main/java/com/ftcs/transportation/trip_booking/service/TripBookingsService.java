@@ -46,24 +46,13 @@ public class TripBookingsService {
     public TripBookings createTripBookings(TripBookingsRequestDTO requestDTO, Integer accountId) {
         validateExpirationDate(requestDTO);
 
-        DirectionsResponseDTO directionsResponse = getDirectionsAndDistance(requestDTO);
-
         TripBookings tripBookings = new TripBookings();
         tripBookings.setAccountId(accountId);
         mapRequestToTripBookings(requestDTO, tripBookings);
 
-        // Set total distance if available
-        if (directionsResponse != null &&
-                !directionsResponse.getRoutes().isEmpty() &&
-                !directionsResponse.getRoutes().get(0).getLegs().isEmpty()) {
-
-            DirectionsResponseDTO.LegDto firstLeg = directionsResponse.getRoutes().get(0).getLegs().get(0);
-            if (firstLeg.getDistance() != null) {
-                // Convert meters to kilometers
-                double distanceInKm = firstLeg.getDistance().getValue() / 1000.0;
-                tripBookings.setTotalDistance(distanceInKm);
-            }
-        }
+        PreviewTripBookingDTO previewTripBookingDTO = getPreviewTripBookingDTO(requestDTO.getPickupLocation(), requestDTO.getDropoffLocation(), BigDecimal.valueOf(requestDTO.getCapacity()));
+        tripBookings.setTotalDistance(previewTripBookingDTO.getExpectedDistance());
+        tripBookings.setPrice(previewTripBookingDTO.getPrice());
 
         tripBookingsRepository.save(tripBookings);
         tripMatchingService.matchTripsForAll();
@@ -270,27 +259,24 @@ public class TripBookingsService {
 
     public PreviewTripBookingDTO getPreviewTripBookingDTO(String origin, String destination, BigDecimal weight) {
         DirectionsResponseDTO directionsDTO = directionsService.getDirections(origin, destination);
-        BigDecimal distance = BigDecimal.valueOf(directionsDTO.getRoutes().get(0).getLegs().get(0).getDistance().getValue())
-                .divide(BigDecimal.valueOf(1000), RoundingMode.HALF_UP);
-        BasePriceProjection basePriceProjection = tripBookingsRepository.findBasePrice(distance, weight);
+        double distance = directionsDTO.getRoutes().get(0).getLegs().get(0).getDistance().getValue() / 1000.0;
+        BasePriceProjection basePriceProjection = tripBookingsRepository.findBasePrice(BigDecimal.valueOf(distance), weight);
         return getPreviewTripBookingDTO(weight, basePriceProjection, distance);
     }
 
-    private static @NotNull PreviewTripBookingDTO getPreviewTripBookingDTO(BigDecimal weight, BasePriceProjection basePriceProjection, BigDecimal distance) {
+    private static @NotNull PreviewTripBookingDTO getPreviewTripBookingDTO(BigDecimal weight, BasePriceProjection basePriceProjection, double distance) {
         if (basePriceProjection == null || basePriceProjection.getBasePrice() == null) {
             throw new RuntimeException("Base price not found for the given distance and weight");
         }
 
         BigDecimal basePrice = basePriceProjection.getBasePrice();
-
-        BigDecimal totalPrice = basePrice.multiply(weight).multiply(distance);
+        double totalPrice = basePrice.multiply(weight).multiply(BigDecimal.valueOf(distance)).doubleValue();
 
         PreviewTripBookingDTO previewTripBookingDTO = new PreviewTripBookingDTO();
         previewTripBookingDTO.setPrice(totalPrice);
         previewTripBookingDTO.setExpectedDistance(distance);
         return previewTripBookingDTO;
     }
-
 
     private void mapRequestToTripBookings(TripBookingsRequestDTO requestDTO, TripBookings tripBookings) {
         tripBookings.setBookingType(requestDTO.getBookingType());

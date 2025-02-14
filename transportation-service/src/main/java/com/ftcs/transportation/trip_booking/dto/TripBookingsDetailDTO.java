@@ -26,6 +26,7 @@ public class TripBookingsDetailDTO {
     private String status;
     private LocalDateTime expirationDate;
     private Double totalDistance;
+    private Double price;
     private String notes;
     private LocalDateTime createAt;
     private LocalDateTime updateAt;

@@ -21,6 +21,7 @@ public class TripBookingsMapper {
                 .status(String.valueOf(tripBookings.getStatus()))
                 .expirationDate(tripBookings.getExpirationDate())
                 .totalDistance(tripBookings.getTotalDistance())
+                .price(tripBookings.getPrice())
                 .notes(tripBookings.getNotes())
                 .createAt(tripBookings.getCreateAt())
                 .updateAt(tripBookings.getUpdateAt())

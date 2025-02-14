@@ -10,6 +10,6 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PreviewTripBookingDTO {
-    BigDecimal price;
-    BigDecimal expectedDistance;
+    Double price;
+    Double expectedDistance;
 }
