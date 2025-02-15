@@ -110,7 +110,7 @@ public class TripMatchingService {
         tripMatching.setCustomerStartLocationAddress(booking.getStartLocationAddress());
         tripMatching.setCustomerEndLocationAddress(booking.getEndLocationAddress());
         tripMatching.setCommonPoints(matchPointsResult.getCommonPoints());
-        .,.        tripMatching.setCapacity(booking.getCapacity());
+        tripMatching.setCapacity(booking.getCapacity());
         tripMatching.setTotalCustomerPoints(matchPointsResult.getTotalCustomerPoints());
         tripMatching.setSameDirection(sameDirection);
         tripMatching.setStatus(String.valueOf(booking.getStatus()));
