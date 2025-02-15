@@ -89,10 +89,6 @@ public class TripBookingsService {
     public TripBookingsDetailDTO getTripBookingDetails(Long bookingId, Integer accountId) {
         TripBookings tripBooking = findTripBookingsById(bookingId);
 
-//        if (!tripBooking.getAccountId().equals(accountId)) {
-//            throw new BadRequestException("No permission to access this booking");
-//        }
-
         TripBookingsDetailDTO detailDTO = toDTO(tripBooking);
         TripAgreement tripAgreement = getTripAgreement(tripBooking.getTripAgreementId());
 

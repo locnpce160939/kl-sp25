@@ -26,7 +26,7 @@ public class ScheduleService {
     private final VehicleRepository vehicleRepository;
 
     public Schedule createSchedule(ScheduleRequestDTO requestDTO, Integer accountId) {
-        Vehicle vehicle = getValidatedVehicle(requestDTO.getVehicleId(), accountId);
+        getValidatedVehicle(requestDTO.getVehicleId(), accountId);
         validateScheduleDates(requestDTO.getStartDate(), requestDTO.getEndDate());
         validateScheduleTiming(accountId, requestDTO.getStartDate());
         Schedule schedule = buildNewSchedule(requestDTO, accountId);
@@ -35,7 +35,7 @@ public class ScheduleService {
         return schedule;
     }
 
-    private Vehicle getValidatedVehicle(Integer vehicleId, Integer accountId) {
+    private void getValidatedVehicle(Integer vehicleId, Integer accountId) {
         Vehicle vehicle = vehicleRepository.findVehicleByVehicleId(vehicleId)
                 .orElseThrow(() -> new BadRequestException("Vehicle not found"));
 
@@ -50,7 +50,6 @@ public class ScheduleService {
         if (!isOwnedByAccount) {
             throw new BadRequestException("Vehicle does not belong to this account");
         }
-        return vehicle;
     }
 
     private void validateScheduleTiming(Integer accountId, LocalDateTime startDate) {

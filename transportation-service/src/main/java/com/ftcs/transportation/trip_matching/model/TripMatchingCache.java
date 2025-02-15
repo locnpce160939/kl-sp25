@@ -63,6 +63,9 @@ public class TripMatchingCache {
     @Column(name = "TotalCustomerPoints")
     private Integer totalCustomerPoints;
 
+    @Column(name = "Capacity")
+    private Integer capacity;
+
     @Column(name = "SameDirection")
     private Boolean sameDirection;
 
