@@ -137,7 +137,6 @@ public class PaymentService {
                 .put("addInfo", generatePaymentContent(payment))
                 .put("format", "text")
                 .put("template", generatePaymentContent(payment));
-
         httpPost.setEntity(new StringEntity(jsonPayload.toString()));
         return httpPost;
     }
@@ -176,14 +175,14 @@ public class PaymentService {
         payment.setPaymentStatus(PaymentStatusType.PAIR);
         payment.setPaymentDate(LocalDateTime.now());
         paymentRepository.save(payment);
-        // Update trip booking status if needed
-//        TripBookings tripBooking = tripBookingsRepository.findById(payment.getBookingId())
-//                .orElseThrow(() -> new BadRequestException("Trip booking not found"));
-//        // Add logic to update trip booking status if necessary
     }
 
     private void validatePaymentRequest(Long bookingId) {
         TripBookings tripBookings = findTripBookingByBookingId(bookingId);
+        Payment payment = paymentRepository.findPaymentByBookingId(bookingId);
+        if(payment != null) {
+            throw new BadRequestException("Payment with bookingId" + bookingId + " already exists");
+        }
         if (tripBookings.getPrice() <= 0) {
             throw new BadRequestException("Invalid payment amount");
         }
@@ -215,6 +214,10 @@ public class PaymentService {
                 if (verifyTransaction(jsonData, payment)) {
                     updatePaymentStatus(payment);
                     notifyPaymentSuccess(payment);
+                    log.info("Scan" + payment.getPaymentId() + "success");
+                }
+                else{
+                    log.info("Scan" + payment.getPaymentId() + "fail");
                 }
             } catch (JsonProcessingException e) {
                 log.error("Error processing transaction for payment ID: {}", payment.getPaymentId(), e);
@@ -223,11 +226,9 @@ public class PaymentService {
     }
 
     private void notifyPaymentSuccess(Payment payment) {
-        // Lấy thông tin booking để get userId
         TripBookings booking = tripBookingsRepository.findById(payment.getBookingId())
                 .orElseThrow(() -> new BadRequestException("Booking not found: " + payment.getBookingId()));
 
-        // Tạo nội dung thông báo dạng JSON
         PaymentNotification notification = PaymentNotification.builder()
                 .paymentId(payment.getPaymentId())
                 .bookingId(payment.getBookingId())
@@ -245,15 +246,13 @@ public class PaymentService {
             jsonContent = "Payment " + payment.getPaymentId() + " successful";
         }
 
-        // Tạo message để gửi qua socket
         Message socketMessage = Message.builder()
                 .messageType(MessageType.NOTIFICATION)
                 .content(jsonContent)
-                .room(booking.getAccountId().toString()) // Sử dụng userId làm room
+                .room(booking.getAccountId().toString())
                 .username("SYSTEM")
                 .build();
 
-        // Gửi notification qua socket
         socketService.sendSocketMessage(socketMessage);
         log.info("Payment success notification sent to user: {}", booking.getAccountId());
     }
