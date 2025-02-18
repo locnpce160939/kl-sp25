@@ -1,5 +1,6 @@
 package com.ftcs.transportation.trip_booking.dto;
 
+import com.ftcs.transportation.trip_booking.constant.PaymentMethod;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -34,6 +35,9 @@ public class TripBookingsRequestDTO {
     @NotNull(message = "Capacity cannot be null")
     @Min(value = 1, message = "Capacity must be greater than or equal to 1")
     private Integer capacity;
+
+    @NotNull(message = "PaymentMethod cannot be null")
+    private PaymentMethod paymentMethod;
 
     @NotNull(message = "Expiration date cannot be null")
     @Future(message = "Expiration date must be in the future")

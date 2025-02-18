@@ -18,7 +18,8 @@
 		<module>realtime-service</module>
 		<module>rating-service</module>
         <module>finance-service</module>
-	</modules>
+        <module>payment-service</module>
+    </modules>
 
 	<properties>
 		<maven.compiler.source>17</maven.compiler.source>
@@ -82,6 +83,16 @@
 			<dependency>
 				<groupId>com.ftcs</groupId>
 				<artifactId>finance-service</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpclient</artifactId>
+				<version>4.5.13</version>
+			</dependency>
+			<dependency>
+				<groupId>com.ftcs</groupId>
+				<artifactId>payment-service</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 		</dependencies>

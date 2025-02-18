@@ -3,11 +3,13 @@ package com.ftcs.transportation.trip_booking.service;
 import com.ftcs.authservice.features.account.Account;
 import com.ftcs.authservice.features.account.AccountRepository;
 import com.ftcs.common.exception.BadRequestException;
+//import com.ftcs.payment.service.PaymentService;
 import com.ftcs.transportation.schedule.constant.ScheduleStatus;
 import com.ftcs.transportation.schedule.model.Schedule;
 import com.ftcs.transportation.schedule.repository.ScheduleRepository;
 import com.ftcs.transportation.trip_agreement.model.TripAgreement;
 import com.ftcs.transportation.trip_agreement.repository.TripAgreementRepository;
+import com.ftcs.transportation.trip_booking.constant.PaymentMethod;
 import com.ftcs.transportation.trip_booking.constant.TripBookingStatus;
 import com.ftcs.transportation.trip_booking.dto.PreviewTripBookingDTO;
 import com.ftcs.transportation.trip_booking.dto.TripBookingsDetailDTO;
@@ -36,7 +38,7 @@ import static com.ftcs.transportation.trip_booking.mapper.TripBookingsMapper.toD
 public class TripBookingsService {
     private final TripMatchingService tripMatchingService;
     private static final Logger logger = LoggerFactory.getLogger(TripBookingsService.class);
-
+//    private final PaymentService paymentService;
     private final TripBookingsRepository tripBookingsRepository;
     private final ScheduleRepository scheduleRepository;
     private final TripAgreementRepository tripAgreementRepository;
@@ -54,7 +56,10 @@ public class TripBookingsService {
         tripBookings.setTotalDistance(previewTripBookingDTO.getExpectedDistance());
         tripBookings.setPrice(previewTripBookingDTO.getPrice());
 
-        tripBookingsRepository.save(tripBookings);
+//        tripBookingsRepository.save(tripBookings);
+//        if(requestDTO.getPaymentMethod() == PaymentMethod.ONLINE_PAYMENT){
+//            paymentService.createPayment(tripBookings);
+//        }
         tripMatchingService.matchTripsForAll();
         return tripBookings;
     }
@@ -275,6 +280,7 @@ public class TripBookingsService {
     }
 
     private void mapRequestToTripBookings(TripBookingsRequestDTO requestDTO, TripBookings tripBookings) {
+        tripBookings.setPaymentMethod(requestDTO.getPaymentMethod());
         tripBookings.setBookingType(requestDTO.getBookingType());
         tripBookings.setBookingDate(requestDTO.getBookingDate());
         tripBookings.setPickupLocation(requestDTO.getPickupLocation());

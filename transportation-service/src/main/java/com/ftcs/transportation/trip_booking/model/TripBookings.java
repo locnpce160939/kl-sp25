@@ -1,5 +1,6 @@
 package com.ftcs.transportation.trip_booking.model;
 
+import com.ftcs.transportation.trip_booking.constant.PaymentMethod;
 import com.ftcs.transportation.trip_booking.constant.TripBookingStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -53,6 +54,10 @@ public class TripBookings {
     @Enumerated(EnumType.STRING)
     @Column(name = "Status", length = 50, nullable = false)
     private TripBookingStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "PaymentMethod", nullable = false)
+    private PaymentMethod paymentMethod;
 
     @Column(name = "ExpirationDate")
     private LocalDateTime expirationDate;
