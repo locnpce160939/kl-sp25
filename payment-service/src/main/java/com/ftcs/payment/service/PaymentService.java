@@ -25,6 +25,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +38,7 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 @Slf4j
+@EnableScheduling
 public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final RestTemplate restTemplate;

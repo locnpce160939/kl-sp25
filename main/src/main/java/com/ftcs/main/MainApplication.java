@@ -15,8 +15,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @ConfigurationPropertiesScan(basePackages = {"com.*"})
 @ComponentScan(basePackages = {"com.*"})
 @EntityScan(basePackages = {"com.*"})
-@EnableScheduling
 @EnableAsync
+@EnableScheduling
 public class MainApplication {
 
     public static void main(String[] args) {
