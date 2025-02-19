@@ -55,8 +55,7 @@ public class TripBookingsService {
         PreviewTripBookingDTO previewTripBookingDTO = getPreviewTripBookingDTO(requestDTO.getPickupLocation(), requestDTO.getDropoffLocation(), BigDecimal.valueOf(requestDTO.getCapacity()));
         tripBookings.setTotalDistance(previewTripBookingDTO.getExpectedDistance());
         tripBookings.setPrice(previewTripBookingDTO.getPrice());
-
-//        tripBookingsRepository.save(tripBookings);
+        tripBookingsRepository.save(tripBookings);
 //        if(requestDTO.getPaymentMethod() == PaymentMethod.ONLINE_PAYMENT){
 //            paymentService.createPayment(tripBookings);
 //        }
