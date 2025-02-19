@@ -48,6 +48,9 @@ public class Account {
     @Column(name = "Status", length = 20)
     private String status;
 
+    @Column(name = "Balance", nullable = false)
+    private Double balance;
+
     @Column(name = "Notes", length = 255)
     private String notes;
 

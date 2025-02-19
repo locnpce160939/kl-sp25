@@ -23,6 +23,8 @@ import com.ftcs.transportation.trip_matching.service.DirectionsService;
 import com.ftcs.transportation.trip_matching.service.TripMatchingService;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -45,6 +47,7 @@ public class TripBookingsService {
     private final AccountRepository accountRepository;
     private final DirectionsService directionsService; // Add this dependency
 
+
     public TripBookings createTripBookings(TripBookingsRequestDTO requestDTO, Integer accountId) {
         validateExpirationDate(requestDTO);
 
@@ -56,9 +59,6 @@ public class TripBookingsService {
         tripBookings.setTotalDistance(previewTripBookingDTO.getExpectedDistance());
         tripBookings.setPrice(previewTripBookingDTO.getPrice());
         tripBookingsRepository.save(tripBookings);
-//        if(requestDTO.getPaymentMethod() == PaymentMethod.ONLINE_PAYMENT){
-//            paymentService.createPayment(tripBookings);
-//        }
         tripMatchingService.matchTripsForAll();
         return tripBookings;
     }
@@ -120,9 +120,37 @@ public class TripBookingsService {
 
     public void updateStatusTripBooking(UpdateStatusTripBookingsRequestDTO requestDTO, Long bookingId) {
         TripBookings tripBookings = findTripBookingsById(bookingId);
+        if (tripBookings.getStatus() == TripBookingStatus.ORDER_COMPLETED &&
+                requestDTO.getStatus() == TripBookingStatus.ORDER_COMPLETED) {
+            throw new IllegalStateException("Trip booking has already been completed.");
+        }
+        if(requestDTO.getStatus() == TripBookingStatus.ORDER_COMPLETED){
+            TripAgreement tripAgreement = getTripAgreement(tripBookings.getTripAgreementId());
+            Schedule schedule = findScheduleByScheduleId(tripAgreement.getScheduleId());
+            Account account = findAccountByAccountId(schedule);
+            account.setBalance(account.getBalance() + tripBookings.getPrice());
+            accountRepository.save(account);
+        }
         tripBookings.setStatus(requestDTO.getStatus());
         tripBookingsRepository.save(tripBookings);
     }
+
+//        public void updateStatusTripBooking(UpdateStatusTripBookingsRequestDTO requestDTO, Long bookingId) {
+//        TripBookings tripBookings = findTripBookingsById(bookingId);
+//        tripBookings.setStatus(requestDTO.getStatus());
+//        tripBookingsRepository.save(tripBookings);
+//    }
+//    @EventListener
+//    public void handlePaymentSuccess(PaymentSuccessEvent event) {
+//        TripBookings tripBookings = findTripBookingsById(event.getBookingId());
+//        if (tripBookings.getStatus() == TripBookingStatus.ORDER_COMPLETED) {
+//            TripAgreement tripAgreement = getTripAgreement(tripBookings.getTripAgreementId());
+//            Schedule schedule = findScheduleByScheduleId(tripAgreement.getScheduleId());
+//            Account account = findAccountByAccountId(schedule);
+//            account.setBalance(account.getBalance() + event.getAmount());
+//            accountRepository.save(account);
+//        }
+//    }
 
     public void continueFindingDriver(UpdateStatusTripBookingsRequestDTO requestDTO, Long bookingId) {
         TripBookings tripBookings = findTripBookingsById(bookingId);
@@ -131,6 +159,12 @@ public class TripBookingsService {
             tripBookings.setStatus(TripBookingStatus.ARRANGING_DRIVER);
             tripBookingsRepository.save(tripBookings);
         }
+    }
+
+    public void changPaymentMethod(UpdateStatusTripBookingsRequestDTO requestDTO, Long bookingId) {
+        TripBookings tripBookings = findTripBookingsById(bookingId);
+        tripBookings.setPaymentMethod(requestDTO.getPaymentMethod());
+        tripBookingsRepository.save(tripBookings);
     }
 
 //    public List<TripBookings> filterTripBookings(FindTripBookingByTimePeriodRequestDTO requestDTO) {
@@ -211,6 +245,11 @@ public class TripBookingsService {
     private TripBookings findTripBookingsById(Long bookingId) {
         return tripBookingsRepository.findTripBookingsByBookingId(bookingId)
                 .orElseThrow(() -> new BadRequestException("Trip booking not found!"));
+    }
+
+    private Account findAccountByAccountId(Schedule schedule){
+        return accountRepository.findAccountByAccountId(schedule.getAccountId())
+                .orElseThrow(() -> new BadRequestException("Account not found"));
     }
 
     private Account getDriver(Integer accountId) {

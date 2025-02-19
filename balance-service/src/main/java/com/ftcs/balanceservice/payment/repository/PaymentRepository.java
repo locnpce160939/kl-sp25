@@ -1,6 +1,6 @@
-package com.ftcs.payment.repository;
+package com.ftcs.balanceservice.payment.repository;
 
-import com.ftcs.payment.model.Payment;
+import com.ftcs.balanceservice.payment.model.Payment;
 import com.ftcs.transportation.trip_booking.constant.PaymentMethod;
 import com.ftcs.transportation.trip_matching.constant.PaymentStatusType;
 import org.springframework.data.jpa.repository.JpaRepository;

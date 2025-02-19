@@ -18,7 +18,7 @@
 		<module>realtime-service</module>
 		<module>rating-service</module>
         <module>finance-service</module>
-        <module>payment-service</module>
+        <module>balance-service</module>
     </modules>
 
 	<properties>
@@ -92,7 +92,7 @@
 			</dependency>
 			<dependency>
 				<groupId>com.ftcs</groupId>
-				<artifactId>payment-service</artifactId>
+				<artifactId>balance-service</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 		</dependencies>

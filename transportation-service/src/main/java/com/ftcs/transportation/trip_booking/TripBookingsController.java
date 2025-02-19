@@ -121,4 +121,12 @@ public class TripBookingsController {
         tripBookingsService.updateStatusTripBooking(requestDTO, bookingId);
         return new ApiResponse<>("Trip booking status updated successfully");
     }
+
+    @PutMapping("/changePaymentMethod/{bookingId}")
+    @PreAuthorize("hasPermission(null, 'DRIVER')")
+    public ApiResponse<?> changePaymentMethod(@Valid @RequestBody UpdateStatusTripBookingsRequestDTO requestDTO,
+                                       @PathVariable("bookingId") Long bookingId){
+        tripBookingsService.changPaymentMethod(requestDTO, bookingId);
+        return new ApiResponse<>("Change PaymentMethod successfully");
+    }
 }

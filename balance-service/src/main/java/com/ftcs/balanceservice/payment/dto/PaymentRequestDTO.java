@@ -1,4 +1,4 @@
-package com.ftcs.payment.dto;
+package com.ftcs.balanceservice.payment.dto;
 
 import com.ftcs.transportation.trip_matching.constant.PaymentStatusType;
 import jakarta.persistence.*;
