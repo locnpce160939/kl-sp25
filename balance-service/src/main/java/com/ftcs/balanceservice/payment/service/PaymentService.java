@@ -62,6 +62,7 @@ public class PaymentService {
 
         Payment payment = Payment.builder()
                 .amount(booking.getPrice())
+                .accountId(accountId)
                 .bookingId(booking.getBookingId())
                 .paymentDate(LocalDateTime.now())
                 .paymentStatus(PaymentStatusType.PENDING)
