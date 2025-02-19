@@ -198,7 +198,7 @@ public class TripBookingsService {
         if (isDriverConfirmingDelivery(role, tripBookings)) {
             updateBookingStatus(tripBookings, TripBookingStatus.DELIVERED);
         } else {
-            isCustomerConfirmingCompletion(role, tripBookings, requestDTO);//completeOrder(tripBookings);
+            isCustomerConfirmingCompletion(role, tripBookings, requestDTO);
         }
     }
 
@@ -215,7 +215,6 @@ public class TripBookingsService {
         List<Long> tripBookingIds = tripAgreements.stream()
                 .map(TripAgreement::getBookingId)
                 .collect(Collectors.toList());
-
         return tripBookingsRepository.findAllById(tripBookingIds);
     }
 

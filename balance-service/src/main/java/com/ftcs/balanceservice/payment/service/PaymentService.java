@@ -2,6 +2,7 @@ package com.ftcs.balanceservice.payment.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ftcs.balanceservice.balance_history.service.BalanceHistoryService;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.balanceservice.payment.constant.PaymentNotification;
 import com.ftcs.balanceservice.payment.model.Payment;
@@ -43,6 +44,7 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final TripBookingsRepository tripBookingsRepository;
+    private final BalanceHistoryService balanceHistoryService;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final SocketService socketService;
@@ -158,7 +160,6 @@ public class PaymentService {
     private HttpPost createQrCodeRequest(Payment payment) throws Exception {
         HttpPost request = new HttpPost(VIETQR_API_URL);
         request.setHeader("Content-Type", "application/json");
-
         String paymentContent = "Pay for TripBookingId " + payment.getBookingId();
         JSONObject payload = new JSONObject()
                 .put("accountNo", DEFAULT_BANK_ACCOUNT)
