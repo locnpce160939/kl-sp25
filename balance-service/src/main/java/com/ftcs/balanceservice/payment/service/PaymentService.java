@@ -56,7 +56,7 @@ public class PaymentService {
                 .orElseThrow(() -> new BadRequestException("Payment not found with ID: " + paymentId));
     }
 
-    public Payment createPayment(Long bookingId) {
+    public Payment createPayment(Long bookingId, Integer accountId) {
         TripBookings booking = validateAndGetBooking(bookingId);
         validateOnlinePayment(booking);
 
