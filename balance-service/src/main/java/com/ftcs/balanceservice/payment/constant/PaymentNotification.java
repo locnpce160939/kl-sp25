@@ -1,4 +1,4 @@
-package com.ftcs.payment.constant;
+package com.ftcs.balanceservice.payment.constant;
 
 import com.ftcs.transportation.trip_matching.constant.PaymentStatusType;
 

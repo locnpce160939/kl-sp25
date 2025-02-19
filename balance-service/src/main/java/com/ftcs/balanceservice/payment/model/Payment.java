@@ -1,4 +1,4 @@
-package com.ftcs.payment.model;
+package com.ftcs.balanceservice.payment.model;
 
 import com.ftcs.transportation.trip_matching.constant.PaymentStatusType;
 import jakarta.persistence.*;

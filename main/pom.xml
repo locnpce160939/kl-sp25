@@ -61,7 +61,7 @@
         </dependency>
         <dependency>
             <groupId>com.ftcs</groupId>
-            <artifactId>payment-service</artifactId>
+            <artifactId>balance-service</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>

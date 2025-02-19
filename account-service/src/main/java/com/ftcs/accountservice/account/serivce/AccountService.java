@@ -45,6 +45,7 @@ public class AccountService {
         account.setPhone(requestDTO.getPhone());
         account.setStatus("Active");
         account.setRole(requestDTO.getRole());
+        account.setBalance(0.00);
         return accountRepository.save(account);
     }
 
@@ -59,6 +60,7 @@ public class AccountService {
         account.setRole(requestDTO.getRole());
         account.setEmail(requestDTO.getEmail());
         account.setStatus("Active");
+        account.setBalance(0.00);
         return accountRepository.save(account);
     }
 
