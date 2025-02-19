@@ -29,9 +29,10 @@ public class PaymentController {
     }
 
     @PostMapping("/bookings/{bookingId}")
-    public ApiResponse<Payment> createPayment(@PathVariable("bookingId") @Valid Long bookingId) {
+    public ApiResponse<Payment> createPayment(@PathVariable("bookingId") @Valid Long bookingId,
+                                              @RequestAttribute("accountId") Integer accountId) {
 
-        return new ApiResponse<>(paymentService.createPayment(bookingId));
+        return new ApiResponse<>(paymentService.createPayment(bookingId, accountId));
     }
 
     @GetMapping("/qr/{paymentId}")
