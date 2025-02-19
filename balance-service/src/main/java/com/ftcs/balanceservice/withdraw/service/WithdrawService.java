@@ -2,6 +2,7 @@ package com.ftcs.balanceservice.withdraw.service;
 
 import com.ftcs.authservice.features.account.Account;
 import com.ftcs.authservice.features.account.AccountRepository;
+import com.ftcs.balanceservice.balance_history.service.BalanceHistoryService;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.transportation.trip_booking.repository.TripBookingsRepository;
 import com.ftcs.balanceservice.withdraw.constant.WithdrawStatus;
@@ -19,10 +20,13 @@ import java.util.List;
 public class WithdrawService {
     private final WithdrawRepository withdrawRepository;
     private final AccountRepository accountRepository;
+    private final BalanceHistoryService balanceHistoryService;
 
     public void createWithdraw(WithdrawRequestDTO requestDTO, Integer accountId) {
         Account account = findAccountByAccountId(accountId);
         validateAmount(account, requestDTO);
+
+        // Create withdrawal request
         Withdraw withdraw = new Withdraw();
         withdraw.setAmount(requestDTO.getAmount());
         withdraw.setAccountId(accountId);
@@ -31,18 +35,59 @@ public class WithdrawService {
         withdraw.setStatus(WithdrawStatus.PENDING);
         withdraw.setRequestDate(LocalDateTime.now());
         withdrawRepository.save(withdraw);
+
+        // Deduct balance immediately
+        account.setBalance(account.getBalance() - requestDTO.getAmount());
+        accountRepository.save(account);
+
+        // Record balance history for the withdrawal request
+        balanceHistoryService.recordWithdrawalRequest(
+                withdraw.getWithdrawId(),
+                accountId,
+                requestDTO.getAmount());
     }
+
+//    public void updateStatusWithdraw(WithdrawRequestDTO requestDTO, Long withdrawId) {
+//        Withdraw withdraw = findWithdrawById(withdrawId);
+//        if (requestDTO.getStatus() == WithdrawStatus.APPROVED) {
+//            Account account = findAccountByAccountId(withdraw.getAccountId());
+//            account.setBalance(account.getBalance() - withdraw.getAmount());
+//            accountRepository.save(account);
+//        }
+//        withdraw.setStatus(requestDTO.getStatus());
+//        withdrawRepository.save(withdraw);
+//    }
 
     public void updateStatusWithdraw(WithdrawRequestDTO requestDTO, Long withdrawId) {
         Withdraw withdraw = findWithdrawById(withdrawId);
-        if (requestDTO.getStatus() == WithdrawStatus.APPROVED) {
-            Account account = findAccountByAccountId(withdraw.getAccountId());
-            account.setBalance(account.getBalance() - withdraw.getAmount());
-            accountRepository.save(account);
+
+        // Prevent status change if already processed
+        if (withdraw.getStatus() != WithdrawStatus.PENDING) {
+            throw new BadRequestException("Cannot update withdrawal that is already " + withdraw.getStatus());
         }
+
+        if (requestDTO.getStatus() == WithdrawStatus.REJECTED) {
+            // Refund the money if rejected
+            Account account = findAccountByAccountId(withdraw.getAccountId());
+            account.setBalance(account.getBalance() + withdraw.getAmount());
+            accountRepository.save(account);
+
+            // Record balance history for rejected withdrawal (refund)
+            balanceHistoryService.recordWithdrawalRejected(
+                    withdraw.getWithdrawId(),
+                    withdraw.getAccountId(),
+                    withdraw.getAmount());
+        } else if (requestDTO.getStatus() == WithdrawStatus.APPROVED) {
+            // Record balance history for approved withdrawal (no balance change as it was already deducted)
+            balanceHistoryService.recordWithdrawalApproved(
+                    withdraw.getWithdrawId(),
+                    withdraw.getAccountId());
+        }
+
         withdraw.setStatus(requestDTO.getStatus());
         withdrawRepository.save(withdraw);
     }
+
 
     public void updateForDriver(WithdrawRequestDTO requestDTO, Long withdrawId, Integer accountId) {
         Account account = findAccountByAccountId(accountId);
