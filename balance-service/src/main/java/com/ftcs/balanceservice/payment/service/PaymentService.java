@@ -176,9 +176,25 @@ public class PaymentService {
 
     private String extractQrDataUrl(HttpResponse response) throws Exception {
         String jsonResponse = EntityUtils.toString(response.getEntity());
-        return new JSONObject(jsonResponse)
-                .getJSONObject("data")
-                .getString("qrDataURL");
+        JSONObject responseObj = new JSONObject(jsonResponse);
+
+        // Log the complete response to understand its structure
+        log.debug("API Response: {}", jsonResponse);
+
+        // Check if response has data field
+        if (!responseObj.has("data")) {
+            log.error("Response doesn't contain 'data' field: {}", jsonResponse);
+            throw new BadRequestException("Invalid QR API response format");
+        }
+
+        // Handle the actual response structure
+        JSONObject dataObj = responseObj.getJSONObject("data");
+        if (!dataObj.has("qrDataURL")) {
+            log.error("Response data doesn't contain 'qrDataURL' field: {}", dataObj);
+            throw new BadRequestException("QR data URL not found in response");
+        }
+
+        return dataObj.getString("qrDataURL");
     }
 
     private boolean isTransactionValid(String transactionData, Payment payment) throws Exception {

@@ -3,6 +3,8 @@ package com.ftcs.balanceservice.withdraw.service;
 import com.ftcs.authservice.features.account.Account;
 import com.ftcs.authservice.features.account.AccountRepository;
 import com.ftcs.balanceservice.balance_history.service.BalanceHistoryService;
+import com.ftcs.balanceservice.withdraw.dto.WithdrawExportDTO;
+import com.ftcs.balanceservice.withdraw.dto.WithdrawTotalExportDTO;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.transportation.trip_booking.repository.TripBookingsRepository;
 import com.ftcs.balanceservice.withdraw.constant.WithdrawStatus;
@@ -13,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -85,6 +88,7 @@ public class WithdrawService {
         }
 
         withdraw.setStatus(requestDTO.getStatus());
+        withdraw.setProcessedDate(LocalDateTime.now()); // Set processed date
         withdrawRepository.save(withdraw);
     }
 
@@ -113,6 +117,60 @@ public class WithdrawService {
         return withdrawRepository.findAllByAccountId(accountId);
     }
 
+    public int batchUpdateWithdrawStatus(List<Long> withdrawIds, WithdrawStatus status) {
+        if (withdrawIds == null || withdrawIds.isEmpty()) {
+            throw new BadRequestException("No withdrawal IDs provided");
+        }
+
+        int updatedCount = 0;
+
+        for (Long withdrawId : withdrawIds) {
+            try {
+                Withdraw withdraw = findWithdrawById(withdrawId);
+
+                // Skip already processed withdrawals
+                if (withdraw.getStatus() != WithdrawStatus.PENDING) {
+                    continue;
+                }
+
+                // Handle balance changes based on new status
+                if (status == WithdrawStatus.REJECTED) {
+                    // Refund the money if rejected
+                    Account account = findAccountByAccountId(withdraw.getAccountId());
+                    account.setBalance(account.getBalance() + withdraw.getAmount());
+                    accountRepository.save(account);
+
+                    // Record balance history for rejected withdrawal (refund)
+                    balanceHistoryService.recordWithdrawalRejected(
+                            withdraw.getWithdrawId(),
+                            withdraw.getAccountId(),
+                            withdraw.getAmount());
+                } else if (status == WithdrawStatus.APPROVED) {
+                    // Record balance history for approved withdrawal
+                    balanceHistoryService.recordWithdrawalApproved(
+                            withdraw.getWithdrawId(),
+                            withdraw.getAccountId());
+                }
+
+                // Update withdraw status and processed date
+                withdraw.setStatus(status);
+                withdraw.setProcessedDate(LocalDateTime.now());
+                withdrawRepository.save(withdraw);
+
+                updatedCount++;
+            } catch (Exception e) {
+                // Log error but continue processing other withdrawals
+                System.err.println("Failed to update withdraw ID " + withdrawId + ": " + e.getMessage());
+            }
+        }
+
+        if (updatedCount == 0) {
+            throw new BadRequestException("No withdrawals were updated. Check that the selected withdrawals have PENDING status.");
+        }
+
+        return updatedCount;
+    }
+
     public List<Withdraw> getAllByAccountIdManagement(Integer accountId) {
         return withdrawRepository.findAllByAccountId(accountId);
     }
@@ -123,6 +181,69 @@ public class WithdrawService {
         }else if(requestDTO.getAmount() < 100000.00) {
             throw new BadRequestException("You must withdraw more than 100000");
         }
+    }
+
+    public WithdrawExportDTO exportWithdraw(Long withdrawId) {
+        Withdraw withdraw = findWithdrawById(withdrawId);
+        Account account = findAccountByAccountId(withdraw.getAccountId());
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        WithdrawExportDTO exportDTO = new WithdrawExportDTO();
+        exportDTO.setWithdrawId(withdraw.getWithdrawId());
+        exportDTO.setAccountId(withdraw.getAccountId());
+        exportDTO.setUsername(account.getUsername());
+        exportDTO.setAmount(withdraw.getAmount());
+        exportDTO.setBankName(withdraw.getBankName());
+        exportDTO.setBankAccountNumber(withdraw.getBankAccountNumber());
+        exportDTO.setStatus(withdraw.getStatus());
+        exportDTO.setRequestDate(withdraw.getRequestDate().format(formatter));
+
+        // Add processing date if available
+        if (withdraw.getProcessedDate() != null) {
+            exportDTO.setProcessedDate(withdraw.getProcessedDate().format(formatter));
+        }
+
+        return exportDTO;
+    }
+
+    /**
+     * Export total withdrawal amount for a specific account
+     * @param accountId ID of the account
+     * @return WithdrawTotalExportDTO containing account information and total withdrawal amount
+     */
+    public WithdrawTotalExportDTO exportTotalWithdrawByAccountId(Integer accountId) {
+        Account account = findAccountByAccountId(accountId);
+        List<Withdraw> withdrawals = getAllByAccountId(accountId);
+
+        double totalAmount = 0.0;
+        int totalApproved = 0;
+        int totalRejected = 0;
+        int totalPending = 0;
+
+        for (Withdraw withdraw : withdrawals) {
+            if (withdraw.getStatus() == WithdrawStatus.APPROVED) {
+                totalAmount += withdraw.getAmount();
+                totalApproved++;
+            } else if (withdraw.getStatus() == WithdrawStatus.REJECTED) {
+                totalRejected++;
+            } else if (withdraw.getStatus() == WithdrawStatus.PENDING) {
+                totalPending++;
+            }
+        }
+
+        WithdrawTotalExportDTO exportDTO = new WithdrawTotalExportDTO();
+        exportDTO.setAccountId(accountId);
+        exportDTO.setUsername(account.getUsername());
+        exportDTO.setCurrentBalance(account.getBalance());
+        exportDTO.setTotalWithdrawAmount(totalAmount);
+        exportDTO.setTotalWithdrawals(withdrawals.size());
+        exportDTO.setTotalApproved(totalApproved);
+        exportDTO.setTotalRejected(totalRejected);
+        exportDTO.setTotalPending(totalPending);
+        exportDTO.setExportDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+
+        return exportDTO;
     }
 
     private Account findAccountByAccountId(Integer accountId) {
