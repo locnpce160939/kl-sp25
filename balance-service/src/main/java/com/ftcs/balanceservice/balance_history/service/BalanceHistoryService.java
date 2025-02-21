@@ -19,6 +19,7 @@ public class BalanceHistoryService {
     private final BalanceHistoryRepository balanceHistoryRepository;
     private final AccountRepository accountRepository;
 
+
     public void recordPaymentCredit(Long paymentId, Integer accountId, Double amount) {
         Account account = findAccountById(accountId);
         Double previousBalance = account.getBalance() + amount;

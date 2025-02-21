@@ -165,6 +165,22 @@ public class WithdrawController {
                 .body(excelBytes);
     }
 
+    @PostMapping("/export/status")
+    @PreAuthorize("hasPermission(null, 'ADMIN')")
+    public ResponseEntity<byte[]> exportByStatus(@Valid @RequestBody WithdrawExportDTO requestDTO) throws IOException {
+        byte[] excelBytes = excelExportService.exportWithdrawalsByStatusToExcel(requestDTO);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.CONTENT_DISPOSITION,
+                "attachment; filename=all_withdrawals_" + getCurrentTimestamp() + ".xlsx");
+        headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .body(excelBytes);
+    }
+
     private String getCurrentTimestamp() {
         return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
     }

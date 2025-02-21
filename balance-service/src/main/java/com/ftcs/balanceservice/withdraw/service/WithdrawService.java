@@ -246,6 +246,10 @@ public class WithdrawService {
         return exportDTO;
     }
 
+    public List<Withdraw> getAllByStatus(WithdrawStatus status) {
+        return withdrawRepository.findAllByStatus(status);
+    }
+
     private Account findAccountByAccountId(Integer accountId) {
         return accountRepository.findAccountByAccountId(accountId)
                 .orElseThrow(() -> new BadRequestException("Account not found"));

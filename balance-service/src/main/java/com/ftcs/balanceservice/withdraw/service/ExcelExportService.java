@@ -528,6 +528,174 @@ public class ExcelExportService {
         }
     }
 
+    public byte[] exportWithdrawalsByStatusToExcel(WithdrawExportDTO requestDTO) throws IOException {
+        List<Withdraw> filteredWithdrawals = withdrawService.getAllByStatus(requestDTO.getStatus());
+
+        try (Workbook workbook = new XSSFWorkbook()) {
+            // Create summary sheet
+            Sheet summarySheet = workbook.createSheet("Summary");
+
+            // Create styles
+            CellStyle headerStyle = createHeaderStyle(workbook);
+            CellStyle currencyStyle = createCurrencyStyle(workbook);
+
+            // Add title
+            Row titleRow = summarySheet.createRow(0);
+            Cell titleCell = titleRow.createCell(0);
+            titleCell.setCellValue(requestDTO.getStatus().toString() + " Withdrawals Report");
+            CellStyle titleStyle = createTitleStyle(workbook);
+            titleCell.setCellStyle(titleStyle);
+
+            // Calculate statistics
+            double totalAmount = filteredWithdrawals.stream()
+                    .mapToDouble(Withdraw::getAmount)
+                    .sum();
+
+            // Group withdrawals by account
+            Map<Integer, List<Withdraw>> withdrawalsByAccount = filteredWithdrawals.stream()
+                    .collect(Collectors.groupingBy(Withdraw::getAccountId));
+
+            // Add statistics section
+            int rowNum = 2;
+            Row statsTitleRow = summarySheet.createRow(rowNum++);
+            Cell statsTitleCell = statsTitleRow.createCell(0);
+            statsTitleCell.setCellValue("Statistics");
+            Font statsTitleFont = workbook.createFont();
+            statsTitleFont.setBold(true);
+            CellStyle statsTitleStyle = workbook.createCellStyle();
+            statsTitleStyle.setFont(statsTitleFont);
+            statsTitleCell.setCellStyle(statsTitleStyle);
+
+            rowNum++;
+
+            createDataRow(summarySheet, rowNum++, "Total " + requestDTO.getStatus() + " Withdrawals", Integer.toString(filteredWithdrawals.size()));
+
+            Row totalAmountRow = summarySheet.createRow(rowNum++);
+            totalAmountRow.createCell(0).setCellValue("Total Amount");
+            Cell totalAmountCell = totalAmountRow.createCell(1);
+            totalAmountCell.setCellValue(totalAmount);
+            totalAmountCell.setCellStyle(currencyStyle);
+
+            createDataRow(summarySheet, rowNum++, "Number of Accounts", Integer.toString(withdrawalsByAccount.size()));
+
+            // Add average metrics if there are withdrawals
+            if (!filteredWithdrawals.isEmpty()) {
+                double avgAmount = totalAmount / filteredWithdrawals.size();
+                Row avgAmountRow = summarySheet.createRow(rowNum++);
+                avgAmountRow.createCell(0).setCellValue("Average Withdrawal Amount");
+                Cell avgAmountCell = avgAmountRow.createCell(1);
+                avgAmountCell.setCellValue(avgAmount);
+                avgAmountCell.setCellStyle(currencyStyle);
+            }
+
+            // Add statistics by account section
+            rowNum += 2;
+            Row accountStatsTitleRow = summarySheet.createRow(rowNum++);
+            Cell accountStatsTitleCell = accountStatsTitleRow.createCell(0);
+            accountStatsTitleCell.setCellValue("Statistics by Account");
+            accountStatsTitleCell.setCellStyle(statsTitleStyle);
+
+            rowNum++;
+
+            // Create header for account statistics table
+            Row accountStatsHeaderRow = summarySheet.createRow(rowNum++);
+            createHeaderCell(accountStatsHeaderRow, 0, "Account ID", headerStyle);
+            createHeaderCell(accountStatsHeaderRow, 1, "Username", headerStyle);
+            createHeaderCell(accountStatsHeaderRow, 2, "Number of Withdrawals", headerStyle);
+            createHeaderCell(accountStatsHeaderRow, 3, "Total Amount", headerStyle);
+
+            // For each account, add a row with statistics
+            for (Map.Entry<Integer, List<Withdraw>> entry : withdrawalsByAccount.entrySet()) {
+                Integer accId = entry.getKey();
+                List<Withdraw> accWithdrawals = entry.getValue();
+
+                Optional<Account> accountOpt = accountRepository.findAccountByAccountId(accId);
+                String username = accountOpt.isPresent() ? accountOpt.get().getUsername() : "Unknown";
+
+                double accTotalAmount = accWithdrawals.stream().mapToDouble(Withdraw::getAmount).sum();
+
+                Row accountRow = summarySheet.createRow(rowNum++);
+                accountRow.createCell(0).setCellValue(accId);
+                accountRow.createCell(1).setCellValue(username);
+                accountRow.createCell(2).setCellValue(accWithdrawals.size());
+
+                Cell accTotalCell = accountRow.createCell(3);
+                accTotalCell.setCellValue(accTotalAmount);
+                accTotalCell.setCellStyle(currencyStyle);
+            }
+
+            // Add date range section if appropriate for status
+            if (requestDTO.getStatus() == WithdrawStatus.APPROVED || requestDTO.getStatus() == WithdrawStatus.REJECTED) {
+                // Get the earliest and latest processed dates
+                Optional<LocalDateTime> earliestProcessedDate = filteredWithdrawals.stream()
+                        .map(Withdraw::getProcessedDate)
+                        .filter(date -> date != null)
+                        .min(LocalDateTime::compareTo);
+
+                Optional<LocalDateTime> latestProcessedDate = filteredWithdrawals.stream()
+                        .map(Withdraw::getProcessedDate)
+                        .filter(date -> date != null)
+                        .max(LocalDateTime::compareTo);
+
+                if (earliestProcessedDate.isPresent() && latestProcessedDate.isPresent()) {
+                    rowNum += 2;
+                    Row dateRangeTitleRow = summarySheet.createRow(rowNum++);
+                    Cell dateRangeTitleCell = dateRangeTitleRow.createCell(0);
+                    dateRangeTitleCell.setCellValue("Processing Date Range");
+                    dateRangeTitleCell.setCellStyle(statsTitleStyle);
+
+                    rowNum++;
+                    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                    createDataRow(summarySheet, rowNum++, "Earliest Processing Date",
+                            earliestProcessedDate.get().format(dateFormatter));
+                    createDataRow(summarySheet, rowNum++, "Latest Processing Date",
+                            latestProcessedDate.get().format(dateFormatter));
+                }
+            } else if (requestDTO.getStatus() == WithdrawStatus.PENDING) {
+                // For pending, show request date ranges
+                Optional<LocalDateTime> earliestRequestDate = filteredWithdrawals.stream()
+                        .map(Withdraw::getRequestDate)
+                        .filter(date -> date != null)
+                        .min(LocalDateTime::compareTo);
+
+                Optional<LocalDateTime> latestRequestDate = filteredWithdrawals.stream()
+                        .map(Withdraw::getRequestDate)
+                        .filter(date -> date != null)
+                        .max(LocalDateTime::compareTo);
+
+                if (earliestRequestDate.isPresent() && latestRequestDate.isPresent()) {
+                    rowNum += 2;
+                    Row dateRangeTitleRow = summarySheet.createRow(rowNum++);
+                    Cell dateRangeTitleCell = dateRangeTitleRow.createCell(0);
+                    dateRangeTitleCell.setCellValue("Request Date Range");
+                    dateRangeTitleCell.setCellStyle(statsTitleStyle);
+
+                    rowNum++;
+                    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                    createDataRow(summarySheet, rowNum++, "Earliest Request Date",
+                            earliestRequestDate.get().format(dateFormatter));
+                    createDataRow(summarySheet, rowNum++, "Latest Request Date",
+                            latestRequestDate.get().format(dateFormatter));
+                }
+            }
+
+            // Add generation timestamp
+            rowNum += 2;
+            createDataRow(summarySheet, rowNum, "Report Generated",
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+
+            // Auto-size columns
+            for (int i = 0; i < 4; i++) {
+                summarySheet.autoSizeColumn(i);
+            }
+
+            // Create details sheet with filtered withdrawals
+            createWithdrawalsDetailSheet(workbook, filteredWithdrawals, requestDTO.getStatus() + " Withdrawals");
+
+            return writeWorkbookToByteArray(workbook);
+        }
+    }
+
     /**
      * Create title style
      */

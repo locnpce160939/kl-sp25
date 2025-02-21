@@ -39,6 +39,7 @@ import static com.ftcs.transportation.trip_booking.mapper.TripBookingsMapper.toD
 @AllArgsConstructor
 public class TripBookingsService {
     private final TripMatchingService tripMatchingService;
+    private final ApplicationEventPublisher eventPublisher;
     private static final Logger logger = LoggerFactory.getLogger(TripBookingsService.class);
 //    private final PaymentService paymentService;
     private final TripBookingsRepository tripBookingsRepository;
