@@ -36,9 +36,9 @@ import java.util.List;
 @EnableScheduling
 public class PaymentService {
     private static final String VIETQR_API_URL = "https://api.vietqr.io/v2/generate";
-    private static final String TRANSACTION_CHECK_URL = "http://localhost/lsgd.php";
-    private static final String DEFAULT_BANK_ACCOUNT = "0791000055332";
-    private static final String DEFAULT_ACCOUNT_HOLDER = "Le Tan Quoc";
+    private static final String TRANSACTION_CHECK_URL = "https://payment.ftcs.online/history";
+    private static final String DEFAULT_BANK_ACCOUNT = "9073399999";
+    private static final String DEFAULT_ACCOUNT_HOLDER = "NGUYEN PHUOC LOC";
     private static final int DEFAULT_BANK_ID = 970436;
     private static final int PAYMENT_SCAN_INTERVAL = 3000;
 
@@ -109,7 +109,7 @@ public class PaymentService {
         }
     }
 
-    //@Scheduled(fixedRate = PAYMENT_SCAN_INTERVAL)
+//    @Scheduled(fixedRate = PAYMENT_SCAN_INTERVAL)
     public void scanPendingPayments() {
         log.info("Scanning pending payments");
         List<Payment> pendingPayments = paymentRepository.findPaymentByPaymentStatus(PaymentStatusType.PENDING);

@@ -11,10 +11,7 @@ import com.ftcs.transportation.trip_agreement.model.TripAgreement;
 import com.ftcs.transportation.trip_agreement.repository.TripAgreementRepository;
 import com.ftcs.transportation.trip_booking.constant.PaymentMethod;
 import com.ftcs.transportation.trip_booking.constant.TripBookingStatus;
-import com.ftcs.transportation.trip_booking.dto.PreviewTripBookingDTO;
-import com.ftcs.transportation.trip_booking.dto.TripBookingsDetailDTO;
-import com.ftcs.transportation.trip_booking.dto.TripBookingsRequestDTO;
-import com.ftcs.transportation.trip_booking.dto.UpdateStatusTripBookingsRequestDTO;
+import com.ftcs.transportation.trip_booking.dto.*;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
 import com.ftcs.transportation.trip_booking.projection.BasePriceProjection;
 import com.ftcs.transportation.trip_booking.repository.TripBookingsRepository;
@@ -22,6 +19,7 @@ import com.ftcs.transportation.trip_matching.dto.DirectionsResponseDTO;
 import com.ftcs.transportation.trip_matching.service.DirectionsService;
 import com.ftcs.transportation.trip_matching.service.TripMatchingService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
@@ -37,8 +35,10 @@ import static com.ftcs.transportation.trip_booking.mapper.TripBookingsMapper.toD
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class TripBookingsService {
     private final TripMatchingService tripMatchingService;
+    private final ApplicationEventPublisher eventPublisher;
     private static final Logger logger = LoggerFactory.getLogger(TripBookingsService.class);
 //    private final PaymentService paymentService;
     private final TripBookingsRepository tripBookingsRepository;
@@ -122,14 +122,24 @@ public class TripBookingsService {
         TripBookings tripBookings = findTripBookingsById(bookingId);
         if (tripBookings.getStatus() == TripBookingStatus.ORDER_COMPLETED &&
                 requestDTO.getStatus() == TripBookingStatus.ORDER_COMPLETED) {
-            throw new IllegalStateException("Trip booking has already been completed.");
+            throw new BadRequestException("Trip booking has already been completed.");
         }
         if(requestDTO.getStatus() == TripBookingStatus.ORDER_COMPLETED){
+            log.info("Publishing trip completion event for booking: {}", bookingId);
             TripAgreement tripAgreement = getTripAgreement(tripBookings.getTripAgreementId());
             Schedule schedule = findScheduleByScheduleId(tripAgreement.getScheduleId());
             Account account = findAccountByAccountId(schedule);
             account.setBalance(account.getBalance() + tripBookings.getPrice());
             accountRepository.save(account);
+            TripCompletedEvent event = TripCompletedEvent.builder()
+                    .bookingId(bookingId)
+                    .accountId(account.getAccountId())
+                    .amount(tripBookings.getPrice().doubleValue())
+                    .build();
+
+            log.info("Event data before publishing: {}", event);
+            eventPublisher.publishEvent(event);
+            log.info("Published trip completion event successfully");
         }
         tripBookings.setStatus(requestDTO.getStatus());
         tripBookingsRepository.save(tripBookings);

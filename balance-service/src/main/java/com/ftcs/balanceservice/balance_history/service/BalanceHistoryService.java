@@ -6,10 +6,12 @@ import com.ftcs.balanceservice.balance_history.repository.BalanceHistoryReposito
 import com.ftcs.authservice.features.account.Account;
 import com.ftcs.authservice.features.account.AccountRepository;
 import com.ftcs.common.exception.BadRequestException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -19,24 +21,47 @@ public class BalanceHistoryService {
     private final BalanceHistoryRepository balanceHistoryRepository;
     private final AccountRepository accountRepository;
 
-    public void recordPaymentCredit(Long paymentId, Integer accountId, Double amount) {
-        Account account = findAccountById(accountId);
-        Double previousBalance = account.getBalance() + amount;
-        Double currentBalance = account.getBalance();
+
+//    public void recordPaymentCredit(Long bookingId, Integer accountId, Double amount) {
+//        Account account = findAccountById(accountId);
+//        Double previousBalance = account.getBalance() - amount;  // Balance before credit
+//        Double currentBalance = account.getBalance();  // Balance after credit
+//
+//        BalanceHistory history = BalanceHistory.builder()
+//                .accountId(accountId)
+//                .amount(amount)
+//                .transactionType(TransactionType.PAYMENT_RECEIVED)  // Add this to your TransactionType enum
+//                .referenceId(bookingId)
+//                .previousBalance(previousBalance)
+//                .currentBalance(currentBalance)
+//                .description("Credit received for completed trip")
+//                .build();
+//
+//        balanceHistoryRepository.save(history);
+//        log.info("Created balance history record for trip completion {}: {} -> {}",
+//                bookingId, previousBalance, currentBalance);
+//    }
+
+    @Transactional
+    public void recordPaymentCredit(Long bookingId, Integer accountId, Double amount) {
+        log.info("Creating balance history for trip completion: bookingId={}, accountId={}, amount={}",
+                bookingId, accountId, amount);
+
+        Account account = accountRepository.findAccountByAccountId(accountId)
+                .orElseThrow(() -> new BadRequestException("Account not found: " + accountId));
 
         BalanceHistory history = BalanceHistory.builder()
                 .accountId(accountId)
                 .amount(amount)
-                .transactionType(TransactionType.PAYMENT_RECEIVED)
-                .referenceId(paymentId)
-                .previousBalance(previousBalance)
-                .currentBalance(currentBalance)
-                .description("Payment received for booking")
+                .transactionType(TransactionType.PAYMENT_RECEIVED) // Thêm type này vào enum TransactionType
+                .referenceId(bookingId)
+                .previousBalance(account.getBalance() - amount)
+                .currentBalance(account.getBalance())
+                .description("Payment received for completed trip #" + bookingId)
                 .build();
 
         balanceHistoryRepository.save(history);
-        log.info("Created balance history record for payment {}: {} -> {}",
-                paymentId, previousBalance, currentBalance);
+        log.info("Successfully created balance history: {}", history);
     }
 
     public void recordWithdrawalRequest(Long withdrawId, Integer accountId, Double amount) {
