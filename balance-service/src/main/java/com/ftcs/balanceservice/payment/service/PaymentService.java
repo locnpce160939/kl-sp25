@@ -109,7 +109,7 @@ public class PaymentService {
         }
     }
 
-    @Scheduled(fixedRate = PAYMENT_SCAN_INTERVAL)
+//    @Scheduled(fixedRate = PAYMENT_SCAN_INTERVAL)
     public void scanPendingPayments() {
         log.info("Scanning pending payments");
         List<Payment> pendingPayments = paymentRepository.findPaymentByPaymentStatus(PaymentStatusType.PENDING);
