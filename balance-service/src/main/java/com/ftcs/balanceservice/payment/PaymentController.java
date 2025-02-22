@@ -1,6 +1,7 @@
 package com.ftcs.balanceservice.payment;
 
 import com.ftcs.balanceservice.BalanceURL;
+import com.ftcs.balanceservice.payment.service.PaymentVerificationService;
 import com.ftcs.common.dto.ApiResponse;
 import com.ftcs.balanceservice.payment.model.Payment;
 import com.ftcs.balanceservice.payment.service.PaymentService;
@@ -16,6 +17,7 @@ import java.util.List;
 @RequestMapping(BalanceURL.PAYMENT)
 public class PaymentController {
     private final PaymentService paymentService;
+    private final PaymentVerificationService paymentVerificationService;
 
     @GetMapping
     @PreAuthorize("hasPermission(null, 'ADMIN')")
@@ -28,19 +30,8 @@ public class PaymentController {
         return new ApiResponse<>(paymentService.getPaymentById(paymentId));
     }
 
-    @PostMapping("/bookings/{bookingId}")
-    public ApiResponse<Payment> createPayment(@PathVariable("bookingId") @Valid Long bookingId,
-                                              @RequestAttribute("accountId") Integer accountId) {
-        return new ApiResponse<>(paymentService.createPayment(bookingId, accountId));
-    }
-
-    @GetMapping("/qr/{paymentId}")
-    public ApiResponse<String> generateQrCode(@PathVariable("paymentId") Long paymentId) {
-        return new ApiResponse<>(paymentService.generateQrCode(paymentId));
-    }
-
-    @GetMapping("/verify/{paymentId}")
-    public ApiResponse<String> verifyPayment(@PathVariable("paymentId") Long paymentId) {
-        return new ApiResponse<>(paymentService.verifyPayment(paymentId));
+    @GetMapping("/tripBooking/{tripBookingId}")
+    public ApiResponse<Payment> getPaymentByTripBooking(@PathVariable("tripBookingId") Long tripBookingId) {
+        return new ApiResponse<>(paymentService.getPaymentByTripBookingId(tripBookingId));
     }
 }

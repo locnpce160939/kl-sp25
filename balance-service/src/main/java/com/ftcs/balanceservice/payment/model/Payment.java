@@ -1,6 +1,6 @@
 package com.ftcs.balanceservice.payment.model;
 
-import com.ftcs.transportation.trip_matching.constant.PaymentStatusType;
+import com.ftcs.balanceservice.payment.constant.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -32,7 +32,7 @@ public class Payment {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "PaymentStatus", nullable = false)
-    private PaymentStatusType paymentStatus;
+    private PaymentStatus paymentStatus;
 
     @Column(name = "PaymentDate", nullable = false)
     private LocalDateTime paymentDate;

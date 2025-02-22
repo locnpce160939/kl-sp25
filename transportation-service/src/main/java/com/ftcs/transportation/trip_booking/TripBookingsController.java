@@ -20,13 +20,12 @@ import java.util.List;
 public class TripBookingsController {
 
     private final TripBookingsService tripBookingsService;
-    private final DirectionsService directionsService;
 
     @PostMapping("/create")
     @PreAuthorize("hasPermission(null, 'CUSTOMER')")
-    public ApiResponse<TripBookings> createTripBookings(@Valid @RequestBody TripBookingsRequestDTO requestDTO,
+    public ApiResponse<TripBookingsDTO> createTripBookings(@Valid @RequestBody TripBookingsRequestDTO requestDTO,
                                                         @RequestAttribute("accountId") Integer accountId) {
-        TripBookings tripBookings = tripBookingsService.createTripBookings(requestDTO, accountId);
+        TripBookingsDTO tripBookings = tripBookingsService.createTripBookings(requestDTO, accountId);
         return new ApiResponse<>(tripBookings);
     }
 

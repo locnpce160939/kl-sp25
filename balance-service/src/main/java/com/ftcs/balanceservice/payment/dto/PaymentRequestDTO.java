@@ -1,7 +1,6 @@
 package com.ftcs.balanceservice.payment.dto;
 
-import com.ftcs.transportation.trip_matching.constant.PaymentStatusType;
-import jakarta.persistence.*;
+import com.ftcs.balanceservice.payment.constant.PaymentStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,7 +13,7 @@ import java.time.LocalDateTime;
 public class PaymentRequestDTO {
     private Long bookingId;
     private Double amount;
-    private PaymentStatusType paymentStatus;
+    private PaymentStatus paymentStatus;
     private LocalDateTime paymentDate;
     private Long transactionId;
 }

@@ -1,5 +1,7 @@
 package com.ftcs.transportation.trip_booking.mapper;
 
+import com.ftcs.balanceservice.payment.model.Payment;
+import com.ftcs.transportation.trip_booking.dto.TripBookingsDTO;
 import com.ftcs.transportation.trip_booking.dto.TripBookingsDetailDTO;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
 
@@ -25,6 +27,61 @@ public class TripBookingsMapper {
                 .notes(tripBookings.getNotes())
                 .createAt(tripBookings.getCreateAt())
                 .updateAt(tripBookings.getUpdateAt())
+                .build();
+    }
+
+    public static TripBookingsDTO toTripBookingsDTO(TripBookings tripBookings, Payment payment) {
+        if (tripBookings == null) {
+            return TripBookingsDTO.builder().build();
+        }
+
+        return TripBookingsDTO.builder()
+                .bookingId(tripBookings.getBookingId())
+                .accountId(tripBookings.getAccountId())
+                .tripAgreementId(tripBookings.getTripAgreementId())
+                .bookingType(tripBookings.getBookingType())
+                .bookingDate(tripBookings.getBookingDate())
+                .pickupLocation(tripBookings.getPickupLocation())
+                .dropoffLocation(tripBookings.getDropoffLocation())
+                .startLocationAddress(tripBookings.getStartLocationAddress())
+                .endLocationAddress(tripBookings.getEndLocationAddress())
+                .capacity(tripBookings.getCapacity())
+                .status(tripBookings.getStatus())
+                .paymentMethod(tripBookings.getPaymentMethod())
+                .expirationDate(tripBookings.getExpirationDate())
+                .totalDistance(tripBookings.getTotalDistance())
+                .price(tripBookings.getPrice())
+                .notes(tripBookings.getNotes())
+                .createAt(tripBookings.getCreateAt())
+                .updateAt(tripBookings.getUpdateAt())
+                .payment(payment)
+                .build();
+    }
+
+    public static TripBookings toEntity(TripBookingsDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+
+        return TripBookings.builder()
+                .bookingId(dto.getBookingId())
+                .accountId(dto.getAccountId())
+                .tripAgreementId(dto.getTripAgreementId())
+                .bookingType(dto.getBookingType())
+                .bookingDate(dto.getBookingDate())
+                .pickupLocation(dto.getPickupLocation())
+                .dropoffLocation(dto.getDropoffLocation())
+                .startLocationAddress(dto.getStartLocationAddress())
+                .endLocationAddress(dto.getEndLocationAddress())
+                .capacity(dto.getCapacity())
+                .status(dto.getStatus())
+                .paymentMethod(dto.getPaymentMethod())
+                .expirationDate(dto.getExpirationDate())
+                .totalDistance(dto.getTotalDistance())
+                .price(dto.getPrice())
+                .notes(dto.getNotes())
+                .createAt(dto.getCreateAt())
+                .updateAt(dto.getUpdateAt())
                 .build();
     }
 }

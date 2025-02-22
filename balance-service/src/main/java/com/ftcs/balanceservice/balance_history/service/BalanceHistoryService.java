@@ -89,7 +89,7 @@ public class BalanceHistoryService {
 
         BalanceHistory history = BalanceHistory.builder()
                 .accountId(accountId)
-                .amount(0.0) // Zero amount since balance was already deducted at request time
+                .amount(0.0)
                 .transactionType(TransactionType.WITHDRAW_APPROVED)
                 .referenceId(withdrawId)
                 .previousBalance(account.getBalance())

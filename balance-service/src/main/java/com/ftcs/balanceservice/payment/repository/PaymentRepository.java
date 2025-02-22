@@ -1,14 +1,13 @@
 package com.ftcs.balanceservice.payment.repository;
 
+import com.ftcs.balanceservice.payment.constant.PaymentStatus;
 import com.ftcs.balanceservice.payment.model.Payment;
-import com.ftcs.transportation.trip_booking.constant.PaymentMethod;
-import com.ftcs.transportation.trip_matching.constant.PaymentStatusType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
-    List<Payment> findPaymentByPaymentStatus(PaymentStatusType status);
-    Payment findPaymentByBookingId(Long bookingId);
+    List<Payment> findPaymentByPaymentStatus(PaymentStatus status);
+    Optional<Payment> findPaymentByBookingId(Long bookingId);
 }

@@ -1,16 +1,18 @@
 package com.ftcs.balanceservice.payment.constant;
 
-import com.ftcs.transportation.trip_matching.constant.PaymentStatusType;
+
+import lombok.Builder;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
-@lombok.Data
-@lombok.Builder
+@Data
+@Builder
 public class PaymentNotification {
     private Long paymentId;
     private Long bookingId;
     private double amount;
-    private PaymentStatusType status;
+    private PaymentStatus status;
     private String message;
     private LocalDateTime timestamp;
 }

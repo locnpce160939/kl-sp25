@@ -6,7 +6,6 @@ import com.ftcs.balanceservice.balance_history.service.BalanceHistoryService;
 import com.ftcs.balanceservice.withdraw.dto.WithdrawExportDTO;
 import com.ftcs.balanceservice.withdraw.dto.WithdrawTotalExportDTO;
 import com.ftcs.common.exception.BadRequestException;
-import com.ftcs.transportation.trip_booking.repository.TripBookingsRepository;
 import com.ftcs.balanceservice.withdraw.constant.WithdrawStatus;
 import com.ftcs.balanceservice.withdraw.dto.WithdrawRequestDTO;
 import com.ftcs.balanceservice.withdraw.model.Withdraw;
@@ -40,14 +39,15 @@ public class WithdrawService {
         withdrawRepository.save(withdraw);
 
         // Deduct balance immediately
-        account.setBalance(account.getBalance() - requestDTO.getAmount());
-        accountRepository.save(account);
-
-        // Record balance history for the withdrawal request
         balanceHistoryService.recordWithdrawalRequest(
                 withdraw.getWithdrawId(),
                 accountId,
                 requestDTO.getAmount());
+        account.setBalance(account.getBalance() - requestDTO.getAmount());
+        accountRepository.save(account);
+
+        // Record balance history for the withdrawal request
+
     }
 
 //    public void updateStatusWithdraw(WithdrawRequestDTO requestDTO, Long withdrawId) {
