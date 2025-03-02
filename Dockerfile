@@ -13,7 +13,7 @@ COPY realtime-service/pom.xml realtime-service/pom.xml
 COPY balance-service/pom.xml balance-service/pom.xml
 COPY common/pom.xml common/pom.xml
 COPY transportation-service/pom.xml transportation-service/pom.xml
-COPY voucher-service-service/pom.xml voucher-service/pom.xml
+COPY voucher-service/pom.xml voucher-service/pom.xml
 
 # Resolve Maven dependencies
 RUN mvn dependency:go-offline
