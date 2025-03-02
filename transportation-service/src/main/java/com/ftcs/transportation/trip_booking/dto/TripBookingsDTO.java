@@ -28,6 +28,8 @@ public class TripBookingsDTO {
     private LocalDateTime expirationDate;
     private Double totalDistance;
     private Double price;
+    private Double originalPrice;
+    private Double discountAmount;
     private String notes;
     private LocalDateTime createAt;
     private LocalDateTime updateAt;
