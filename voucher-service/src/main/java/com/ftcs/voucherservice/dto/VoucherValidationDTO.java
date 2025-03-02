@@ -1,5 +1,6 @@
 package com.ftcs.voucherservice.dto;
 
+import com.ftcs.voucherservice.constant.PaymentMethod;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,5 +15,5 @@ public class VoucherValidationDTO {
     private String paymentMethod;
     private Double distanceKm;
     private Integer accountId;
-    private boolean isFirstOrder;
+    private Boolean isFirstOrder;
 }

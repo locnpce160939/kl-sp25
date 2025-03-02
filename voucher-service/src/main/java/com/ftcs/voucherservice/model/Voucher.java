@@ -58,8 +58,8 @@ public class Voucher {
     @Column(name = "Quantity")
     private Integer quantity;
 
-    @Column(name = "isFirst")
-    private Boolean isFirst;
+    @Column(name = "IsFirstOrder")
+    private Boolean isFirstOrder;
 
     @Column(name = "PaymentMethod")
     @Enumerated(EnumType.STRING)

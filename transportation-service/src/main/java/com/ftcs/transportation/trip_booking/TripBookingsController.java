@@ -1,11 +1,16 @@
 package com.ftcs.transportation.trip_booking;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ftcs.accountservice.driver.identification.dto.DriverIdentificationRequestDTO;
 import com.ftcs.common.dto.ApiResponse;
 import com.ftcs.transportation.TransportationURL;
 import com.ftcs.transportation.trip_booking.dto.*;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
 import com.ftcs.transportation.trip_booking.service.TripBookingsService;
 import com.ftcs.transportation.trip_matching.service.DirectionsService;
+import com.ftcs.voucherservice.dto.VoucherValidationDTO;
+import com.ftcs.voucherservice.model.Voucher;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,6 +25,7 @@ import java.util.List;
 public class TripBookingsController {
 
     private final TripBookingsService tripBookingsService;
+    private final ObjectMapper objectMapper;
 
     @PostMapping("/create")
     @PreAuthorize("hasPermission(null, 'CUSTOMER')")
@@ -127,5 +133,21 @@ public class TripBookingsController {
                                        @PathVariable("bookingId") Long bookingId){
         tripBookingsService.changPaymentMethod(requestDTO, bookingId);
         return new ApiResponse<>("Change PaymentMethod successfully");
+    }
+
+    @PostMapping("/applicable")
+    @PreAuthorize("hasPermission(null, 'CUSTOMER')")
+    public ApiResponse<List<Voucher>> getApplicableVouchers(@Valid @RequestBody VoucherValidationDTO validationDTO) {
+        return new ApiResponse<>(tripBookingsService.getApplicableVouchersForUser(validationDTO));
+    }
+
+    @PostMapping("/calculate-discount")
+    @PreAuthorize("hasPermission(null, 'CUSTOMER')")
+    public ApiResponse<VoucherDiscountDTO> calculateDiscount(
+            @RequestParam(value = "voucherId", required = false) Long voucherId,
+            @RequestParam(value = "voucherCode", required = false) String voucherCode,
+            @Valid @RequestBody VoucherValidationDTO validationDTO) throws JsonProcessingException {
+        return new ApiResponse<>(tripBookingsService.calculateVoucherDiscount(
+               voucherId, voucherCode, validationDTO));
     }
 }

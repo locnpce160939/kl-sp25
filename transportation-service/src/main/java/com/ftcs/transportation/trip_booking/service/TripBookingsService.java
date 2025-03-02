@@ -6,7 +6,6 @@ import com.ftcs.balanceservice.balance_history.service.BalanceHistoryService;
 import com.ftcs.balanceservice.payment.model.Payment;
 import com.ftcs.balanceservice.payment.service.PaymentService;
 import com.ftcs.common.exception.BadRequestException;
-//import com.ftcs.payment.service.PaymentService;
 import com.ftcs.transportation.schedule.constant.ScheduleStatus;
 import com.ftcs.transportation.schedule.model.Schedule;
 import com.ftcs.transportation.schedule.repository.ScheduleRepository;
@@ -21,6 +20,7 @@ import com.ftcs.transportation.trip_booking.repository.TripBookingsRepository;
 import com.ftcs.transportation.trip_matching.dto.DirectionsResponseDTO;
 import com.ftcs.transportation.trip_matching.service.DirectionsService;
 import com.ftcs.transportation.trip_matching.service.TripMatchingService;
+import com.ftcs.voucherservice.constant.VoucherStatus;
 import com.ftcs.voucherservice.dto.VoucherValidationDTO;
 import com.ftcs.voucherservice.model.Voucher;
 import com.ftcs.voucherservice.service.VoucherService;
@@ -30,11 +30,8 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import static com.ftcs.transportation.trip_booking.mapper.TripBookingsMapper.toDTO;
 import static com.ftcs.transportation.trip_booking.mapper.TripBookingsMapper.toTripBookingsDTO;
 
@@ -96,92 +93,65 @@ public class TripBookingsService {
 
         tripBookings.setTotalDistance(preview.getExpectedDistance());
 
-        // Save original price before applying voucher
+        // Lưu giá gốc trước khi áp dụng voucher
         Double originalPrice = preview.getPrice();
         tripBookings.setOriginalPrice(originalPrice);
 
-        // Create validation DTO with all necessary parameters including accountId
+        // Tạo DTO kiểm tra voucher với tất cả tham số cần thiết
         VoucherValidationDTO validationDTO = VoucherValidationDTO.builder()
                 .orderValue(originalPrice)
                 .paymentMethod(requestDTO.getPaymentMethod().toString())
                 .distanceKm(preview.getExpectedDistance())
                 .isFirstOrder(isFirstOrder(accountId))
-                .accountId(accountId) // Add accountId for per-account usage limit check
+                .accountId(accountId)
                 .build();
 
-        // Handle voucher based on code or ID
+        List<Voucher> list = getApplicableVouchersForUser(validationDTO);
+
+        // Tính toán giảm giá từ voucher
+        VoucherDiscountDTO discountInfo = calculateVoucherDiscount(
+                requestDTO.getVoucherId(),
+                requestDTO.getVoucherCode(),
+                validationDTO
+        );
+
         boolean voucherApplied = false;
 
-        // Check if there's a voucherId or voucherCode
-        if (requestDTO.getVoucherId() != null) {
-            // Case: voucher selected from list (using ID)
-            boolean isApplicable = voucherService.isVoucherApplicable(
-                    requestDTO.getVoucherId(),
-                    validationDTO
-            );
-
-            if (isApplicable) {
+        // Kiểm tra xem có áp dụng voucher không
+        if (discountInfo.getDiscountAmount() > 0) {
+            // Có voucher được áp dụng
+            if (requestDTO.getVoucherId() != null) {
                 Voucher voucher = voucherService.findVoucherById(requestDTO.getVoucherId());
-
-                // Calculate discount amount
-                Double discountAmount = voucherService.calculateDiscountAmount(
-                        requestDTO.getVoucherId(),
-                        originalPrice
-                );
-
-                // Update price after applying voucher
-                Double finalPrice = originalPrice - discountAmount;
-                tripBookings.setPrice(finalPrice);
-                tripBookings.setDiscountAmount(discountAmount);
-                tripBookings.setVoucherCode(voucher.getCode());
                 tripBookings.setVoucherId(requestDTO.getVoucherId());
+                tripBookings.setVoucherCode(voucher.getCode());
 
-                // Apply voucher (decrease quantity and update status) with account tracking
+                // Cập nhật trạng thái sử dụng voucher
                 voucherService.updateVoucherUsage(requestDTO.getVoucherId(), accountId);
                 voucherApplied = true;
-            } else {
-                throw new BadRequestException("Mã voucher không hợp lệ hoặc không thể sử dụng.");
-            }
-        } else if (requestDTO.getVoucherCode() != null && !requestDTO.getVoucherCode().isEmpty()) {
-            // Case: voucher code entered
-            boolean isApplicable = voucherService.isVoucherApplicableByCode(
-                    requestDTO.getVoucherCode(),
-                    validationDTO
-            );
-
-            if (isApplicable) {
+            } else if (requestDTO.getVoucherCode() != null && !requestDTO.getVoucherCode().isEmpty()) {
                 Voucher voucher = voucherService.findVoucherByCode(requestDTO.getVoucherCode());
-
-                // Calculate discount amount
-                Double discountAmount = voucherService.calculateDiscountAmount(
-                        requestDTO.getVoucherCode(),
-                        originalPrice
-                );
-
-                // Update price after applying voucher
-                Double finalPrice = originalPrice - discountAmount;
-                tripBookings.setPrice(finalPrice);
-                tripBookings.setDiscountAmount(discountAmount);
-                tripBookings.setVoucherCode(requestDTO.getVoucherCode());
                 tripBookings.setVoucherId(voucher.getVoucherId());
+                tripBookings.setVoucherCode(requestDTO.getVoucherCode());
 
-                // Apply voucher with account tracking
+                // Áp dụng voucher
                 voucherService.applyVoucher(requestDTO.getVoucherCode(), accountId);
                 voucherApplied = true;
-            } else {
-                throw new BadRequestException("Mã voucher không hợp lệ hoặc không thể sử dụng.");
             }
+
+            // Cập nhật giá và số tiền được giảm
+            tripBookings.setPrice(discountInfo.getFinalPrice());
+            tripBookings.setDiscountAmount(discountInfo.getDiscountAmount());
         } else {
-            // No voucher provided, use original price
+            // Không có voucher được áp dụng
             tripBookings.setPrice(originalPrice);
         }
 
-        // Only save if we're proceeding with the booking
+        // Lưu booking
         TripBookings savedBooking = tripBookingsRepository.save(tripBookings);
 
         Payment payment = null;
         if (savedBooking.getPaymentMethod() == PaymentMethod.ONLINE_PAYMENT) {
-            // Use the discounted price (if voucher applied)
+            // Sử dụng giá đã giảm (nếu voucher được áp dụng)
             payment = paymentService.createPayment(savedBooking.getBookingId(), savedBooking.getPrice(), accountId);
         }
 
@@ -189,6 +159,48 @@ public class TripBookingsService {
         return toTripBookingsDTO(savedBooking, payment);
     }
 
+    public List<Voucher> getApplicableVouchersForUser(VoucherValidationDTO validationDTO) {
+        List<Voucher> activeVouchers = voucherService.findAllByStatus(VoucherStatus.ACTIVE);
+
+        return activeVouchers.stream()
+                .filter(voucher -> voucherService.isVoucherApplicable(voucher, validationDTO))
+                .collect(Collectors.toList());
+    }
+
+    public VoucherDiscountDTO calculateVoucherDiscount(Long voucherId,
+                                                       String voucherCode, VoucherValidationDTO validationDTO) {
+
+        VoucherDiscountDTO result = new VoucherDiscountDTO();
+        Double discountAmount = 0.0;
+        Double finalPrice = validationDTO.getOrderValue();
+
+        // Kiểm tra nếu có voucherId
+        if (voucherId != null) {
+            boolean isApplicable = voucherService.isVoucherApplicable(voucherId, validationDTO);
+
+            if (isApplicable) {
+                // Tính số tiền được giảm
+                discountAmount = voucherService.calculateDiscountAmount(voucherId, validationDTO.getOrderValue());
+                finalPrice = validationDTO.getOrderValue() - discountAmount;
+            }
+        }
+        // Kiểm tra nếu có voucherCode
+        else if (voucherCode != null && !voucherCode.isEmpty()) {
+            boolean isApplicable = voucherService.isVoucherApplicableByCode(voucherCode, validationDTO);
+
+            if (isApplicable) {
+                // Tính số tiền được giảm
+                discountAmount = voucherService.calculateDiscountAmount(voucherCode, validationDTO.getOrderValue());
+                finalPrice = validationDTO.getOrderValue() - discountAmount;
+            }
+        }
+
+        // Cập nhật kết quả
+        result.setDiscountAmount(discountAmount);
+        result.setFinalPrice(finalPrice);
+
+        return result;
+    }
 
     public void updateTripBookings(TripBookingsRequestDTO requestDTO, Long bookingId) {
         validateExpirationDate(requestDTO);

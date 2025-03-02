@@ -41,7 +41,7 @@ public class VoucherService {
                 .startDate(requestDTO.getStartDate())
                 .endDate(requestDTO.getEndDate())
                 .quantity(requestDTO.getQuantity())
-                .isFirst(requestDTO.getIsFirst())
+                .isFirstOrder(requestDTO.getIsFirst())
                 .status(VoucherStatus.ACTIVE)
                 .paymentMethod(requestDTO.getPaymentMethod())
                 .minKm(requestDTO.getMinKm())
@@ -99,7 +99,7 @@ public class VoucherService {
         existingVoucher.setStartDate(requestDTO.getStartDate());
         existingVoucher.setEndDate(requestDTO.getEndDate());
         existingVoucher.setQuantity(requestDTO.getQuantity());
-        existingVoucher.setIsFirst(requestDTO.getIsFirst());
+        existingVoucher.setIsFirstOrder(requestDTO.getIsFirst());
         existingVoucher.setPaymentMethod(requestDTO.getPaymentMethod());
         existingVoucher.setMinKm(requestDTO.getMinKm());
         existingVoucher.setUsageLimit(requestDTO.getUsageLimit());
@@ -161,7 +161,7 @@ public class VoucherService {
         }
 
         // Check first order condition
-        if (voucher.getIsFirst() != null && voucher.getIsFirst() && !validationDTO.isFirstOrder()) {
+        if (voucher.getIsFirstOrder() != null && voucher.getIsFirstOrder() && !validationDTO.getIsFirstOrder()) {
             return false;
         }
 
