@@ -21,10 +21,12 @@ import com.ftcs.transportation.trip_booking.repository.TripBookingsRepository;
 import com.ftcs.transportation.trip_matching.dto.DirectionsResponseDTO;
 import com.ftcs.transportation.trip_matching.service.DirectionsService;
 import com.ftcs.transportation.trip_matching.service.TripMatchingService;
+import com.ftcs.voucherservice.dto.VoucherValidationDTO;
+import com.ftcs.voucherservice.model.Voucher;
+import com.ftcs.voucherservice.service.VoucherService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -48,7 +50,36 @@ public class TripBookingsService {
     private final AccountRepository accountRepository;
     private final DirectionsService directionsService;
     private final PaymentService paymentService;
+    private final VoucherService voucherService;
 
+
+//    public TripBookingsDTO createTripBookings(TripBookingsRequestDTO requestDTO, Integer accountId) {
+//        validateExpirationDate(requestDTO);
+//
+//        TripBookings tripBookings = new TripBookings();
+//        tripBookings.setAccountId(accountId);
+//        mapRequestToTripBookings(requestDTO, tripBookings);
+//
+//        PreviewTripBookingDTO preview = getPreviewTripBookingDTO(
+//                requestDTO.getPickupLocation(),
+//                requestDTO.getDropoffLocation(),
+//                BigDecimal.valueOf(requestDTO.getCapacity())
+//        );
+//
+//        tripBookings.setTotalDistance(preview.getExpectedDistance());
+//        tripBookings.setPrice(preview.getPrice());
+//
+//        TripBookings savedBooking = tripBookingsRepository.save(tripBookings);
+//
+//        Payment payment = null;
+//        if (savedBooking.getPaymentMethod() == PaymentMethod.ONLINE_PAYMENT) {
+//            payment = paymentService.createPayment(savedBooking.getBookingId(), savedBooking.getPrice(), accountId);
+//        }
+//
+//        tripMatchingService.matchTripsForAll();
+//        return toTripBookingsDTO(savedBooking, payment);
+//
+//    }
 
     public TripBookingsDTO createTripBookings(TripBookingsRequestDTO requestDTO, Integer accountId) {
         validateExpirationDate(requestDTO);
@@ -64,18 +95,98 @@ public class TripBookingsService {
         );
 
         tripBookings.setTotalDistance(preview.getExpectedDistance());
-        tripBookings.setPrice(preview.getPrice());
 
+        // Save original price before applying voucher
+        Double originalPrice = preview.getPrice();
+        tripBookings.setOriginalPrice(originalPrice);
+
+        // Create validation DTO with all necessary parameters including accountId
+        VoucherValidationDTO validationDTO = VoucherValidationDTO.builder()
+                .orderValue(originalPrice)
+                .paymentMethod(requestDTO.getPaymentMethod().toString())
+                .distanceKm(preview.getExpectedDistance())
+                .isFirstOrder(isFirstOrder(accountId))
+                .accountId(accountId) // Add accountId for per-account usage limit check
+                .build();
+
+        // Handle voucher based on code or ID
+        boolean voucherApplied = false;
+
+        // Check if there's a voucherId or voucherCode
+        if (requestDTO.getVoucherId() != null) {
+            // Case: voucher selected from list (using ID)
+            boolean isApplicable = voucherService.isVoucherApplicable(
+                    requestDTO.getVoucherId(),
+                    validationDTO
+            );
+
+            if (isApplicable) {
+                Voucher voucher = voucherService.findVoucherById(requestDTO.getVoucherId());
+
+                // Calculate discount amount
+                Double discountAmount = voucherService.calculateDiscountAmount(
+                        requestDTO.getVoucherId(),
+                        originalPrice
+                );
+
+                // Update price after applying voucher
+                Double finalPrice = originalPrice - discountAmount;
+                tripBookings.setPrice(finalPrice);
+                tripBookings.setDiscountAmount(discountAmount);
+                tripBookings.setVoucherCode(voucher.getCode());
+                tripBookings.setVoucherId(requestDTO.getVoucherId());
+
+                // Apply voucher (decrease quantity and update status) with account tracking
+                voucherService.updateVoucherUsage(requestDTO.getVoucherId(), accountId);
+                voucherApplied = true;
+            } else {
+                throw new BadRequestException("Mã voucher không hợp lệ hoặc không thể sử dụng.");
+            }
+        } else if (requestDTO.getVoucherCode() != null && !requestDTO.getVoucherCode().isEmpty()) {
+            // Case: voucher code entered
+            boolean isApplicable = voucherService.isVoucherApplicableByCode(
+                    requestDTO.getVoucherCode(),
+                    validationDTO
+            );
+
+            if (isApplicable) {
+                Voucher voucher = voucherService.findVoucherByCode(requestDTO.getVoucherCode());
+
+                // Calculate discount amount
+                Double discountAmount = voucherService.calculateDiscountAmount(
+                        requestDTO.getVoucherCode(),
+                        originalPrice
+                );
+
+                // Update price after applying voucher
+                Double finalPrice = originalPrice - discountAmount;
+                tripBookings.setPrice(finalPrice);
+                tripBookings.setDiscountAmount(discountAmount);
+                tripBookings.setVoucherCode(requestDTO.getVoucherCode());
+                tripBookings.setVoucherId(voucher.getVoucherId());
+
+                // Apply voucher with account tracking
+                voucherService.applyVoucher(requestDTO.getVoucherCode(), accountId);
+                voucherApplied = true;
+            } else {
+                throw new BadRequestException("Mã voucher không hợp lệ hoặc không thể sử dụng.");
+            }
+        } else {
+            // No voucher provided, use original price
+            tripBookings.setPrice(originalPrice);
+        }
+
+        // Only save if we're proceeding with the booking
         TripBookings savedBooking = tripBookingsRepository.save(tripBookings);
 
         Payment payment = null;
         if (savedBooking.getPaymentMethod() == PaymentMethod.ONLINE_PAYMENT) {
+            // Use the discounted price (if voucher applied)
             payment = paymentService.createPayment(savedBooking.getBookingId(), savedBooking.getPrice(), accountId);
         }
 
         tripMatchingService.matchTripsForAll();
         return toTripBookingsDTO(savedBooking, payment);
-
     }
 
 
@@ -287,5 +398,13 @@ public class TripBookingsService {
         tripBookings.setStartLocationAddress(requestDTO.getStartLocationAddress());
         tripBookings.setEndLocationAddress(requestDTO.getEndLocationAddress());
         tripBookings.setStatus(TripBookingStatus.ARRANGING_DRIVER);
+        tripBookings.setOriginalPrice(tripBookings.getOriginalPrice());
+        tripBookings.setDiscountAmount(tripBookings.getDiscountAmount());
+        tripBookings.setVoucherCode(tripBookings.getVoucherCode());
+        tripBookings.setVoucherId(tripBookings.getVoucherId());
+    }
+
+    private Boolean isFirstOrder(Integer accountId) {
+        return !tripBookingsRepository.existsByAccountId(accountId);
     }
 }

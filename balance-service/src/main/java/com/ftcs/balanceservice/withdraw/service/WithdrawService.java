@@ -27,8 +27,6 @@ public class WithdrawService {
     public void createWithdraw(WithdrawRequestDTO requestDTO, Integer accountId) {
         Account account = findAccountByAccountId(accountId);
         validateAmount(account, requestDTO);
-
-        // Create withdrawal request
         Withdraw withdraw = new Withdraw();
         withdraw.setAmount(requestDTO.getAmount());
         withdraw.setAccountId(accountId);
@@ -38,15 +36,12 @@ public class WithdrawService {
         withdraw.setRequestDate(LocalDateTime.now());
         withdrawRepository.save(withdraw);
 
-        // Deduct balance immediately
         balanceHistoryService.recordWithdrawalRequest(
                 withdraw.getWithdrawId(),
                 accountId,
                 requestDTO.getAmount());
         account.setBalance(account.getBalance() - requestDTO.getAmount());
         accountRepository.save(account);
-
-        // Record balance history for the withdrawal request
 
     }
 

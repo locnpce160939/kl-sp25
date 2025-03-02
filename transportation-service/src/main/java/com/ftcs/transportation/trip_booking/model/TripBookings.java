@@ -71,6 +71,18 @@ public class TripBookings {
     @Column(name = "Notes", length = 255)
     private String notes;
 
+    @Column(name = "DiscountAmount")
+    private Double discountAmount;
+
+    @Column(name = "VoucherCode")
+    private String voucherCode;
+
+    @Column(name = "OriginalPrice")
+    private Double originalPrice;
+
+    @Column(name = "VoucherId")
+    private Long voucherId;
+
     @CreationTimestamp
     @Column(name = "CreateAt", updatable = false)
     private LocalDateTime createAt;
