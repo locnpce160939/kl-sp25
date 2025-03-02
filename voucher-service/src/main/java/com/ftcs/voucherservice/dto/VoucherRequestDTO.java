@@ -29,7 +29,7 @@ public class VoucherRequestDTO {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private Integer quantity;
-    private Boolean isFirst;
+    private Boolean isFirstOrder;
     private VoucherStatus status;
     private Integer usageLimit;
     private PaymentMethod paymentMethod;

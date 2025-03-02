@@ -41,7 +41,7 @@ public class VoucherService {
                 .startDate(requestDTO.getStartDate())
                 .endDate(requestDTO.getEndDate())
                 .quantity(requestDTO.getQuantity())
-                .isFirstOrder(requestDTO.getIsFirst())
+                .isFirstOrder(requestDTO.getIsFirstOrder())
                 .status(VoucherStatus.ACTIVE)
                 .paymentMethod(requestDTO.getPaymentMethod())
                 .minKm(requestDTO.getMinKm())
@@ -99,7 +99,7 @@ public class VoucherService {
         existingVoucher.setStartDate(requestDTO.getStartDate());
         existingVoucher.setEndDate(requestDTO.getEndDate());
         existingVoucher.setQuantity(requestDTO.getQuantity());
-        existingVoucher.setIsFirstOrder(requestDTO.getIsFirst());
+        existingVoucher.setIsFirstOrder(requestDTO.getIsFirstOrder());
         existingVoucher.setPaymentMethod(requestDTO.getPaymentMethod());
         existingVoucher.setMinKm(requestDTO.getMinKm());
         existingVoucher.setUsageLimit(requestDTO.getUsageLimit());
@@ -382,7 +382,6 @@ public class VoucherService {
                 throw new BadRequestException("Discount value for fixed amount type must be greater than 0");
             }
         }
-
         if (requestDTO.getStartDate() == null || requestDTO.getEndDate() == null) {
             throw new BadRequestException("Start date and end date cannot be null");
         }
