@@ -82,6 +82,13 @@ public class VoucherService {
         return voucherRepository.findAll();
     }
 
+    public List<Voucher> findAllActiveVouchers() {
+        return voucherRepository.findAll()
+                .stream()
+                .filter(v -> v.getStatus() != VoucherStatus.INACTIVE) // Nếu status là Enum
+                .collect(Collectors.toList());
+    }
+
     private void handleUpdateVoucher(Voucher existingVoucher, VoucherRequestDTO requestDTO) {
         existingVoucher.setTitle(requestDTO.getTitle());
         existingVoucher.setDescription(requestDTO.getDescription());
@@ -96,6 +103,7 @@ public class VoucherService {
         existingVoucher.setPaymentMethod(requestDTO.getPaymentMethod());
         existingVoucher.setMinKm(requestDTO.getMinKm());
         existingVoucher.setUsageLimit(requestDTO.getUsageLimit());
+        existingVoucher.setStatus(requestDTO.getStatus());
         voucherRepository.save(existingVoucher);
     }
 

@@ -78,4 +78,9 @@ public class VoucherController {
         voucherService.deleteVoucher(voucherId);
         return new ApiResponse<>("Deleted voucher successfully");
     }
+
+    @GetMapping("/list")
+    public ApiResponse<List<Voucher>> getAllVouchersActive() {
+        return new ApiResponse<>(voucherService.findAllActiveVouchers());
+    }
 }
