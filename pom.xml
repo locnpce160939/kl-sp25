@@ -19,7 +19,8 @@
 		<module>rating-service</module>
         <module>finance-service</module>
         <module>balance-service</module>
-    </modules>
+		<module>voucher-service</module>
+	</modules>
 
 	<properties>
 		<maven.compiler.source>17</maven.compiler.source>

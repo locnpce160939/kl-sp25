@@ -42,7 +42,7 @@ public class PaymentVerificationService {
         return "Payment verification failed - No matching transaction found";
     }
 
-    @Scheduled(fixedRateString = "${payment.scan.interval}")
+//    @Scheduled(fixedRateString = "${payment.scan.interval}")
     public void scanPendingPayments() {
         log.info("Scanning pending payments...");
 
