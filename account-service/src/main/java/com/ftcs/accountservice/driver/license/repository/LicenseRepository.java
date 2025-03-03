@@ -13,4 +13,5 @@ public interface LicenseRepository extends JpaRepository<License, Integer> {
     Optional<License> findLicenseByLicenseId(Integer licenseId);
     boolean existsByAccountIdAndStatus(Integer accountId, StatusDocumentType statusDocumentType);
     boolean existsByAccountId(Integer accountId);
+
 }

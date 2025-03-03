@@ -16,6 +16,7 @@ public interface DriverIdentificationRepository extends JpaRepository<DriverIden
     //Optional<DriverIdentification> findDriverIdentificationByAccountId(Integer accountId);
 
     Optional<DriverIdentification> findDriverIdentificationByDriverIdentificationId(Integer driverIdentificationId);
+    Optional<DriverIdentification> findByAccountId(Integer accountId);
 
     boolean existsByAccountIdAndStatus(Integer accountId, StatusDocumentType statusDocumentType);
 

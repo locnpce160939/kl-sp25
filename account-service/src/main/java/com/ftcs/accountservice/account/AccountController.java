@@ -5,12 +5,21 @@ import com.ftcs.accountservice.account.dto.*;
 import com.ftcs.accountservice.account.dto.register.RegisterConfirmRequestDTO;
 import com.ftcs.accountservice.account.dto.register.RegisterRequestDTO;
 import com.ftcs.accountservice.account.serivce.AccountService;
+import com.ftcs.accountservice.account.serivce.ExportService;
 import com.ftcs.common.dto.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 public class AccountController {
 
     private final AccountService accountService;
+    private final ExportService exportService;
 
     @PostMapping("/register/send")
     public ApiResponse<?> registerSendUser(@Valid @RequestBody RegisterRequestDTO requestDTO, HttpServletRequest request) {
@@ -94,5 +104,25 @@ public class AccountController {
     public ApiResponse<?> editAccount(@Valid @RequestBody RegisterRequestDTO requestDTO,
                                       @PathVariable("accountId") Integer accountId) {
         return new ApiResponse<>(accountService.updateAccount(accountId, requestDTO));
+    }
+
+    @GetMapping("/export-excel/{accountId}")
+    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
+    public ResponseEntity<byte[]> exportAccountToExcel(@PathVariable("accountId") Integer accountId) {
+        try {
+            byte[] excelBytes = exportService.exportAccountToExcel(accountId);
+
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+            String filename = "account_" + accountId + "_" + timestamp + ".xlsx";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+            headers.setContentDispositionFormData("attachment", filename);
+            headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
+            return new ResponseEntity<>(excelBytes, headers, HttpStatus.OK);
+        } catch (IOException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

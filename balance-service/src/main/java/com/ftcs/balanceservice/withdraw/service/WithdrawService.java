@@ -13,6 +13,7 @@ import com.ftcs.balanceservice.withdraw.repository.WithdrawRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -243,6 +244,13 @@ public class WithdrawService {
 
     public List<Withdraw> getAllByStatus(WithdrawStatus status) {
         return withdrawRepository.findAllByStatus(status);
+    }
+
+    public List<Withdraw> getAllByRequestDate(LocalDate requestDate) {
+        LocalDateTime startOfDay = requestDate.atStartOfDay();  // 2025-02-19T00:00:00
+        LocalDateTime endOfDay = requestDate.atTime(23, 59, 59);  // 2025-02-19T23:59:59
+
+        return withdrawRepository.findAllByRequestDateBetween(startOfDay, endOfDay);
     }
 
     private Account findAccountByAccountId(Integer accountId) {
