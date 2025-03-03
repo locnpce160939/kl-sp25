@@ -1,6 +1,7 @@
 package com.ftcs.balanceservice.withdraw;
 
 import com.ftcs.balanceservice.BalanceURL;
+import com.ftcs.balanceservice.withdraw.constant.WithdrawStatus;
 import com.ftcs.balanceservice.withdraw.dto.BatchUpdateRequestDTO;
 import com.ftcs.balanceservice.withdraw.dto.WithdrawExportDTO;
 import com.ftcs.balanceservice.withdraw.dto.WithdrawTotalExportDTO;
@@ -11,6 +12,7 @@ import com.ftcs.balanceservice.withdraw.model.Withdraw;
 import com.ftcs.balanceservice.withdraw.service.WithdrawService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -79,6 +82,19 @@ public class WithdrawController {
                                           @RequestAttribute("accountId") Integer accountId) {
         withdrawService.updateForDriver(requestDTO, withdrawId, accountId);
         return new ApiResponse<>("Withdraw request updated successfully");
+    }
+
+    @GetMapping("/status")
+    @PreAuthorize("hasPermission(null, 'ADMIN')")
+    public ApiResponse<List<Withdraw>> getAllWithdrawsByStatus(@Valid @RequestParam("status") WithdrawStatus status) {
+        return new ApiResponse<>(withdrawService.getAllByStatus(status));
+    }
+
+    @GetMapping("/requestDate")
+    @PreAuthorize("hasPermission(null, 'ADMIN')")
+    public ApiResponse<List<Withdraw>> getAllWithdrawsByRequestDate(
+            @RequestParam("requestDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate requestDate) {
+        return new ApiResponse<>(withdrawService.getAllByRequestDate(requestDate));
     }
 
 //    @GetMapping("/export/{withdrawId}")
