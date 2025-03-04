@@ -86,6 +86,7 @@ public class TripBookingsService {
         mapRequestToTripBookings(requestDTO, tripBookings);
 
         PreviewTripBookingDTO preview = getPreviewTripBookingDTO(
+                accountId,
                 requestDTO.getPickupLocation(),
                 requestDTO.getDropoffLocation(),
                 BigDecimal.valueOf(requestDTO.getCapacity())
@@ -93,11 +94,9 @@ public class TripBookingsService {
 
         tripBookings.setTotalDistance(preview.getExpectedDistance());
 
-        // Lưu giá gốc trước khi áp dụng voucher
         Double originalPrice = preview.getPrice();
         tripBookings.setOriginalPrice(originalPrice);
 
-        // Tạo DTO kiểm tra voucher với tất cả tham số cần thiết
         VoucherValidationDTO validationDTO = VoucherValidationDTO.builder()
                 .orderValue(originalPrice)
                 .paymentMethod(requestDTO.getPaymentMethod().toString())
@@ -378,14 +377,15 @@ public class TripBookingsService {
         tripBookingsRepository.save(tripBookings);
     }
 
-    public PreviewTripBookingDTO getPreviewTripBookingDTO(String origin, String destination, BigDecimal weight) {
+    public PreviewTripBookingDTO getPreviewTripBookingDTO(Integer accountId, String origin, String destination, BigDecimal weight) {
         DirectionsResponseDTO directionsDTO = directionsService.getDirections(origin, destination);
         double distance = directionsDTO.getRoutes().get(0).getLegs().get(0).getDistance().getValue() / 1000.0;
         BasePriceProjection basePriceProjection = tripBookingsRepository.findBasePrice(BigDecimal.valueOf(distance), weight);
-        return getPreviewTripBookingDTO(weight, basePriceProjection, distance);
+        Boolean isFirstOrder = isFirstOrder(accountId);
+        return getPreviewTripBookingDTO(weight, basePriceProjection, distance, isFirstOrder);
     }
 
-    private static @NotNull PreviewTripBookingDTO getPreviewTripBookingDTO(BigDecimal weight, BasePriceProjection basePriceProjection, double distance) {
+    private static @NotNull PreviewTripBookingDTO getPreviewTripBookingDTO(BigDecimal weight, BasePriceProjection basePriceProjection, double distance, Boolean isFirstOrder) {
         if (basePriceProjection == null || basePriceProjection.getBasePrice() == null) {
             throw new RuntimeException("Base price not found for the given distance and weight");
         }
@@ -396,6 +396,7 @@ public class TripBookingsService {
         PreviewTripBookingDTO previewTripBookingDTO = new PreviewTripBookingDTO();
         previewTripBookingDTO.setPrice(totalPrice);
         previewTripBookingDTO.setExpectedDistance(distance);
+        previewTripBookingDTO.setIsFirstOrder(isFirstOrder);
         return previewTripBookingDTO;
     }
 
