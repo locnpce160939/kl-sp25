@@ -115,8 +115,8 @@ public class TripBookingsController {
     }
 
     @GetMapping("/direction")
-    public ApiResponse<?> findDirection(@RequestParam("origin") String origin, @RequestParam("destination") String destination, @RequestParam("weight") BigDecimal weight) {
-        return new ApiResponse<>(tripBookingsService.getPreviewTripBookingDTO(origin, destination, weight));
+    public ApiResponse<?> findDirection(@RequestParam("origin") String origin, @RequestParam("destination") String destination, @RequestParam("weight") BigDecimal weight, @RequestAttribute("accountId") Integer accountId) {
+        return new ApiResponse<>(tripBookingsService.getPreviewTripBookingDTO(accountId, origin, destination, weight));
     }
 
     @PutMapping("/updateStatus/{bookingId}")

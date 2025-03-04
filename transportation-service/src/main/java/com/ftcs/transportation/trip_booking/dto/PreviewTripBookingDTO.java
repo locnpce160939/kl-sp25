@@ -14,4 +14,5 @@ import java.math.BigDecimal;
 public class PreviewTripBookingDTO {
     Double price;
     Double expectedDistance;
+    Boolean isFirstOrder;
 }
