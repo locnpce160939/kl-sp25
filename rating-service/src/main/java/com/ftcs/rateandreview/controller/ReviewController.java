@@ -7,6 +7,7 @@ import com.ftcs.rateandreview.model.Review;
 import com.ftcs.rateandreview.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,14 +31,18 @@ public class ReviewController {
     }
 
     @GetMapping("/account/{accountId}")
-    public ApiResponse<?> getAllReviewsByAccountId(@PathVariable("accountId") Integer accountId) {
-        List<Review> reviews = reviewService.findAllReviewsByAccountId(accountId);
+    public ApiResponse<?> getAllReviewsByAccountId(@PathVariable("accountId") Integer accountId,
+                                                   @RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                   @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        Page<Review> reviews = reviewService.findAllReviewsByAccountId(accountId, page, size);
         return new ApiResponse<>("Fetched reviews successfully.", reviews);
     }
 
     @GetMapping("/driver/{driverId}")
-    public ApiResponse<?> getAllReviewsDriver(@PathVariable("driverId") Integer driverId) {
-        return new ApiResponse<>("Get reviews driver successfully.", reviewService.findAllReviewsDriver(driverId));
+    public ApiResponse<?> getAllReviewsDriver(@PathVariable("driverId") Integer driverId,
+                                              @RequestParam(value = "page", defaultValue = "0") Integer page,
+                                              @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        return new ApiResponse<>("Get reviews driver successfully.", reviewService.findAllReviewsDriver(driverId, page, size));
     }
 
     @PutMapping("updateReview/{reviewId}")

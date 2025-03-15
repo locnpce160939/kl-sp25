@@ -6,6 +6,7 @@ import com.ftcs.balanceservice.balance_history.service.BalanceHistoryService;
 import com.ftcs.balanceservice.withdraw.model.Withdraw;
 import com.ftcs.common.dto.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,17 +20,20 @@ public class BalanceHistoryController {
 
     @GetMapping()
     @PreAuthorize("hasPermission(null, 'ADMIN')")
-    public ApiResponse<List<BalanceHistory>> getAllBalanceHistory() {
-        return new ApiResponse<>(balanceHistoryService.findAll());
+    public ApiResponse<Page<BalanceHistory>> getAllBalanceHistory(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                                  @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        return new ApiResponse<>(balanceHistoryService.findAll(page, size));
     }
 
     @GetMapping("/account")
-    public ApiResponse<List<BalanceHistory>> getAllBalanceHistoryByAccountId(@RequestAttribute("accountId") Integer accountId) {
-        return new ApiResponse<>(balanceHistoryService.findAllByAccountId(accountId));
+    public ApiResponse<Page<BalanceHistory>> getAllBalanceHistoryByAccountId(@RequestAttribute("accountId") Integer accountId,
+                                                                             @RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                                             @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        return new ApiResponse<>(balanceHistoryService.findAllByAccountId(accountId, page, size));
     }
 
     @GetMapping("/{balanceHistoryId}")
-    public ApiResponse<BalanceHistory> getAllBalanceHistoryByid(@PathVariable("balanceHistoryId") Long balanceHistoryId) {
+    public ApiResponse<BalanceHistory> getAllBalanceHistoryById(@PathVariable("balanceHistoryId") Long balanceHistoryId) {
         return new ApiResponse<>(balanceHistoryService.findById(balanceHistoryId));
     }
 

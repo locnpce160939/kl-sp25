@@ -2,6 +2,8 @@ package com.ftcs.transportation.trip_booking.repository;
 
 import com.ftcs.transportation.trip_booking.model.TripBookings;
 import com.ftcs.transportation.trip_booking.projection.BasePriceProjection;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,7 +20,7 @@ public interface TripBookingsRepository extends JpaRepository<TripBookings, Long
 //    List<TripBookings> findAllByStatus(String status);
     boolean existsByAccountId(Integer accountId);
     List<TripBookings> findAllByBookingDateBetween(LocalDateTime startDate, LocalDateTime endDate);
-    List<TripBookings> findAllByAccountId(Integer accountId);
+    Page<TripBookings> findAllByAccountId(Integer accountId, Pageable pageable);
 
     @Query(value = "EXEC dbo.GetBasePrice @Km = :km, @Kg = :kg", nativeQuery = true)
     BasePriceProjection findBasePrice(@Param("km") BigDecimal km, @Param("kg") BigDecimal kg);

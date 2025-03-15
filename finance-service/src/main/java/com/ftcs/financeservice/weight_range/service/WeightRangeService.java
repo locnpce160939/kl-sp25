@@ -8,6 +8,9 @@ import com.ftcs.financeservice.weight_range.dto.WeightRangeRequestDTO;
 import com.ftcs.financeservice.weight_range.model.WeightRange;
 import com.ftcs.financeservice.weight_range.repository.WeightRangeRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,8 +22,9 @@ public class WeightRangeService {
 
     private final WeightRangeRepository weightRangeRepository;
 
-    public List<WeightRange> getAllWeightRanges() {
-        return weightRangeRepository.findAll();
+    public Page<WeightRange> getAllWeightRanges(Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return weightRangeRepository.findAll(pageable);
     }
 
     public WeightRange findByWeightRangeId(Integer weightRangeId) {

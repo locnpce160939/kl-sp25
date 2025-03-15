@@ -3,6 +3,7 @@ package com.ftcs.voucherservice;
 import com.ftcs.balanceservice.BalanceURL;
 import com.ftcs.balanceservice.payment.model.Payment;
 import com.ftcs.common.dto.ApiResponse;
+import com.ftcs.voucherservice.constant.UserType;
 import com.ftcs.voucherservice.constant.VoucherStatus;
 import com.ftcs.voucherservice.dto.UpdateStatusVoucherRequestDTO;
 import com.ftcs.voucherservice.dto.VoucherRequestDTO;
@@ -11,6 +12,8 @@ import com.ftcs.voucherservice.model.Voucher;
 import com.ftcs.voucherservice.service.VoucherService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.units.qual.A;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,13 +59,16 @@ public class VoucherController {
     }
 
     @GetMapping("/status/{status}")
-    public ApiResponse<List<Voucher>> getVouchersByStatus(@PathVariable("status") VoucherStatus status) {
-        return new ApiResponse<>(voucherService.findAllByStatus(status));
+    public ApiResponse<Page<Voucher>> getVouchersByStatus(@PathVariable("status") VoucherStatus status,
+                                                          @RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                          @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        return new ApiResponse<>(voucherService.findAllByStatusManagement(status, page, size));
     }
 
     @GetMapping
-    public ApiResponse<List<Voucher>> getAllVouchers() {
-        return new ApiResponse<>(voucherService.findAll());
+    public ApiResponse<Page<Voucher>> getAllVouchers(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                     @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        return new ApiResponse<>(voucherService.findAll(page, size));
     }
 
     @PostMapping("/applicable")
@@ -80,7 +86,29 @@ public class VoucherController {
     }
 
     @GetMapping("/list")
-    public ApiResponse<List<Voucher>> getAllVouchersActive() {
-        return new ApiResponse<>(voucherService.findAllActiveVouchers());
+    public ApiResponse<Page<Voucher>> getAllVouchersActive(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                           @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        return new ApiResponse<>(voucherService.findAllActiveVouchers(page, size));
     }
+
+    @GetMapping("/redeem")
+    public ApiResponse<Page<Voucher>> getAllVoucherRedeem(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                          @RequestParam(value = "size", defaultValue = "10") Integer size,
+                                                          @RequestParam(required = false) Boolean isRedeemable){
+        return new ApiResponse<>(voucherService.getAllVouchers(isRedeemable, page, size));
+    }
+
+    @GetMapping("/canRedemption")
+    public ApiResponse<List<Voucher>> getCanRedemptionVouchers(@RequestAttribute("accountId") Integer accountId,
+                                                               @RequestAttribute("role") UserType userType) {
+        return new ApiResponse<>(voucherService.getVouchersAvailableForRedemption(accountId, userType));
+    }
+
+    @PutMapping("/redeem/{voucherId}")
+    public ApiResponse<Voucher> redeemVoucherWithPoints(
+            @RequestAttribute("accountId") Integer accountId,
+            @PathVariable("voucherId") Long voucherId) {
+        return new ApiResponse<>(voucherService.redeemVoucherWithPoints(accountId, voucherId));
+    }
+
 }

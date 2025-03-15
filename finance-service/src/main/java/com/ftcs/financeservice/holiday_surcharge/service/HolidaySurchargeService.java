@@ -5,6 +5,9 @@ import com.ftcs.financeservice.holiday_surcharge.dto.HolidaySurchargeRequestDTO;
 import com.ftcs.financeservice.holiday_surcharge.model.HolidaySurcharge;
 import com.ftcs.financeservice.holiday_surcharge.repository.HolidaySurchargeRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -16,8 +19,9 @@ import java.util.Optional;
 public class HolidaySurchargeService {
     private final HolidaySurchargeRepository holidaySurchargeRepository;
 
-    public List<HolidaySurcharge> getAllHolidaySurcharges() {
-        return holidaySurchargeRepository.findAll();
+    public Page<HolidaySurcharge> getAllHolidaySurcharges(Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return holidaySurchargeRepository.findAll(pageable);
     }
 
     public HolidaySurcharge getHolidaySurchargeById(Integer holidaySurchargeId) {

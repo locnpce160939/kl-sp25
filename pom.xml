@@ -20,7 +20,8 @@
         <module>finance-service</module>
         <module>balance-service</module>
 		<module>voucher-service</module>
-	</modules>
+        <module>bonus-service</module>
+    </modules>
 
 	<properties>
 		<maven.compiler.source>17</maven.compiler.source>
@@ -94,6 +95,11 @@
 			<dependency>
 				<groupId>com.ftcs</groupId>
 				<artifactId>balance-service</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.ftcs</groupId>
+				<artifactId>bonus-service</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 		</dependencies>

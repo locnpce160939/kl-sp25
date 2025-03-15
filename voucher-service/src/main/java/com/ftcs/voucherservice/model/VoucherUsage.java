@@ -35,4 +35,10 @@ public class VoucherUsage {
 
     @Column(name = "UpdateAt", nullable = false)
     private LocalDateTime updateAt;
+
+    @Column(name = "IsRedeemed", nullable = false)
+    private Boolean isRedeemed;
+
+    @Column(name = "RedemptionDate")
+    private LocalDateTime redemptionDate;
 }

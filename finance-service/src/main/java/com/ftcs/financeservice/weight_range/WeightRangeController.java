@@ -7,6 +7,7 @@ import com.ftcs.financeservice.weight_range.model.WeightRange;
 import com.ftcs.financeservice.weight_range.service.WeightRangeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,8 +23,9 @@ public class WeightRangeController {
 
     @GetMapping
     @PreAuthorize("hasPermission(null, 'FINANCE') or hasPermission(null, 'ADMIN')")
-    public ApiResponse<?> getAllWeightRages() {
-        List<WeightRange> weightRanges = weightRangeService.getAllWeightRanges();
+    public ApiResponse<?> getAllWeightRages(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                            @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        Page<WeightRange> weightRanges = weightRangeService.getAllWeightRanges(page, size);
         return new ApiResponse<>("Fetched weight rages surcharges successfully.", weightRanges);
     }
 

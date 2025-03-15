@@ -1,5 +1,6 @@
 package com.ftcs.authservice.features.account;
 
+import com.ftcs.authservice.features.account.contacts.Rank;
 import com.ftcs.authservice.features.account.contacts.RoleType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -54,6 +55,16 @@ public class Account {
     @Column(name = "Notes", length = 255)
     private String notes;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "Ranking", length = 50, nullable = false)
+    private Rank ranking;
+
+    @Column(name = "LoyaltyPoints", nullable = false)
+    private Integer loyaltyPoints;
+
+    @Column(name = "RedeemablePoints", nullable = false)
+    private Integer redeemablePoints; // Điểm có thể đổi voucher
+
     @Column(name = "LastLogin")
     private LocalDateTime lastLogin;
 
@@ -69,6 +80,8 @@ public class Account {
     protected void onCreate() {
         createAt = LocalDateTime.now();
         updateAt = LocalDateTime.now();
+        loyaltyPoints = 0; // Mặc định điểm tích lũy là 0
+        ranking = Rank.BRONZE; // Mặc định hạng ban đầu là Bronze
     }
 
     @PreUpdate

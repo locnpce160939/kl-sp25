@@ -12,6 +12,7 @@ import com.ftcs.balanceservice.withdraw.model.Withdraw;
 import com.ftcs.balanceservice.withdraw.service.WithdrawService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -34,8 +35,9 @@ public class WithdrawController {
 
     @GetMapping()
     @PreAuthorize("hasPermission(null, 'ADMIN')")
-    public ApiResponse<List<Withdraw>> getAllWithdraws() {
-        return new ApiResponse<>(withdrawService.getAll());
+    public ApiResponse<Page<Withdraw>> getAllWithdraws(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                       @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        return new ApiResponse<>(withdrawService.getAll(page, size));
     }
 
     @GetMapping("/{withdrawId}")
@@ -86,15 +88,19 @@ public class WithdrawController {
 
     @GetMapping("/status")
     @PreAuthorize("hasPermission(null, 'ADMIN')")
-    public ApiResponse<List<Withdraw>> getAllWithdrawsByStatus(@Valid @RequestParam("status") WithdrawStatus status) {
-        return new ApiResponse<>(withdrawService.getAllByStatus(status));
+    public ApiResponse<Page<Withdraw>> getAllWithdrawsByStatus(@Valid @RequestParam("status") WithdrawStatus status,
+                                                               @RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                               @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        return new ApiResponse<>(withdrawService.getAllByStatusManagement(status, page, size));
     }
 
     @GetMapping("/requestDate")
     @PreAuthorize("hasPermission(null, 'ADMIN')")
-    public ApiResponse<List<Withdraw>> getAllWithdrawsByRequestDate(
-            @RequestParam("requestDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate requestDate) {
-        return new ApiResponse<>(withdrawService.getAllByRequestDate(requestDate));
+    public ApiResponse<Page<Withdraw>> getAllWithdrawsByRequestDate(
+            @RequestParam("requestDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate requestDate,
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
+            @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        return new ApiResponse<>(withdrawService.getAllByRequestDateManagement(requestDate, page, size));
     }
 
 //    @GetMapping("/export/{withdrawId}")

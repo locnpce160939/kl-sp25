@@ -1,8 +1,7 @@
 package com.ftcs.voucherservice.model;
 
-import com.ftcs.voucherservice.constant.DiscountType;
-import com.ftcs.voucherservice.constant.PaymentMethod;
-import com.ftcs.voucherservice.constant.VoucherStatus;
+import com.ftcs.authservice.features.account.contacts.Rank;
+import com.ftcs.voucherservice.constant.*;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -71,6 +70,21 @@ public class Voucher {
 
     @Column(name = "UsageLimit")
     private Integer usageLimit;
+
+    @Column(name = "UserType", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private UserType userType;  // CUSTOMER or DRIVER
+
+    @Column(name = "PointsRequired")
+    private Integer pointsRequired; // Points needed to redeem this voucher
+
+    @Column(name = "MinimumRank")
+    @Enumerated(EnumType.STRING)
+    private Rank minimumRank;
+
+    @Column(name = "VoucherType", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private VoucherType voucherType;  // SYSTEM, REDEMPTION
 
     @CreationTimestamp
     @Column(name = "CreatedAt", updatable = false)

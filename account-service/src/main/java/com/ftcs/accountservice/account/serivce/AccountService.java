@@ -11,6 +11,9 @@ import com.ftcs.common.exception.NotFoundException;
 import com.ftcs.common.service.SendMailService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -105,8 +108,9 @@ public class AccountService {
         return account;
     }
 
-    public List<Account> getAllAccounts() {
-        List<Account> accounts = accountRepository.findAll();
+    public Page<Account> getAllAccounts(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Account> accounts = accountRepository.findAll(pageable);
         accounts.forEach(account -> account.setPassword(""));
         return accounts;
     }
@@ -159,8 +163,9 @@ public class AccountService {
         accountRepository.save(account);
     }
 
-    public List<Account> findAllByRole(RoleType role) {
-        List<Account> accounts = accountRepository.findAllByRoleAndStatusNot(role, "isDisabled");
+    public Page<Account> findAllByRole(RoleType role, Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Account> accounts = accountRepository.findAllByRoleAndStatusNot(role, "isDisabled", pageable);
         if (accounts.isEmpty()) {
             throw new NotFoundException("No accounts found for the role: " + role);
         }
@@ -185,4 +190,5 @@ public class AccountService {
             throw new BadRequestException("Email Exists!");
         }
     }
+
 }

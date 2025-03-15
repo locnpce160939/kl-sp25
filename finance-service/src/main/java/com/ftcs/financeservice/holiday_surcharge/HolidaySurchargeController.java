@@ -6,6 +6,7 @@ import com.ftcs.financeservice.holiday_surcharge.model.HolidaySurcharge;
 import com.ftcs.financeservice.holiday_surcharge.service.HolidaySurchargeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,8 +28,9 @@ public class HolidaySurchargeController {
 
     @GetMapping
     @PreAuthorize("hasPermission(null, 'FINANCE') or hasPermission(null, 'ADMIN')")
-    public ApiResponse<?> getAllHolidaySurcharges() {
-        List<HolidaySurcharge> holidaySurcharges = holidaySurchargeService.getAllHolidaySurcharges();
+    public ApiResponse<?> getAllHolidaySurcharges(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                  @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        Page<HolidaySurcharge> holidaySurcharges = holidaySurchargeService.getAllHolidaySurcharges(page, size);
         return new ApiResponse<>("Fetched holiday surcharges successfully.", holidaySurcharges);
     }
 

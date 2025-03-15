@@ -19,8 +19,9 @@ public class PricingController {
 
     @GetMapping
     @PreAuthorize("hasPermission(null, 'FINANCE') or hasPermission(null, 'ADMIN')")
-    public ApiResponse<?> getAll(){
-        return new ApiResponse<>("Get All Pricing", pricingService.getAllPricing());
+    public ApiResponse<?> getAll(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                 @RequestParam(value = "size", defaultValue = "10") Integer size){
+        return new ApiResponse<>("Get All Pricing", pricingService.getAllPricing(page, size));
     }
 
     @GetMapping("/{pricingId}")

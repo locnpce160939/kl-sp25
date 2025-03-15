@@ -6,6 +6,7 @@ import com.ftcs.balanceservice.withdraw.constant.WithdrawStatus;
 import com.ftcs.balanceservice.withdraw.dto.WithdrawExportDTO;
 import com.ftcs.balanceservice.withdraw.dto.WithdrawTotalExportDTO;
 import com.ftcs.balanceservice.withdraw.model.Withdraw;
+import com.ftcs.balanceservice.withdraw.repository.WithdrawRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 public class ExcelExportService {
     private final WithdrawService withdrawService;
     private final AccountRepository accountRepository;
+    private final WithdrawRepository withdrawRepository;
 
     /**
      * Export a single withdrawal to Excel
@@ -342,7 +344,7 @@ public class ExcelExportService {
      * Export all withdrawals across all accounts to Excel (Admin only)
      */
     public byte[] exportAllWithdrawalsToExcel() throws IOException {
-        List<Withdraw> allWithdrawals = withdrawService.getAll();
+        List<Withdraw> allWithdrawals = withdrawRepository.findAll();
 
         try (Workbook workbook = new XSSFWorkbook()) {
             // Create summary sheet
