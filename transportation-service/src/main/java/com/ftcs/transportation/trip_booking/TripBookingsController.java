@@ -13,6 +13,7 @@ import com.ftcs.voucherservice.dto.VoucherValidationDTO;
 import com.ftcs.voucherservice.model.Voucher;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -52,8 +53,9 @@ public class TripBookingsController {
 
     @GetMapping("/all")
     @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
-    public ApiResponse<List<TripBookings>> getAllTripBookings() {
-        List<TripBookings> tripBookings = tripBookingsService.getAllTripBookings();
+    public ApiResponse<Page<TripBookings>> getAllTripBookings(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                              @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        Page<TripBookings> tripBookings = tripBookingsService.getAllTripBookings(page, size);
         return new ApiResponse<>(tripBookings);
     }
 
@@ -99,14 +101,18 @@ public class TripBookingsController {
 
     @GetMapping("/getByAccountId")
     @PreAuthorize("hasPermission(null, 'CUSTOMER')")
-    public ApiResponse<List<TripBookings>> getByAccountId(@RequestAttribute("accountId") Integer accountId) {
-        return new ApiResponse<>(tripBookingsService.getTripBookingsByAccountId(accountId));
+    public ApiResponse<Page<TripBookings>> getByAccountId(@RequestAttribute("accountId") Integer accountId,
+                                                          @RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                          @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        return new ApiResponse<>(tripBookingsService.getTripBookingsByAccountId(accountId, page, size));
     }
 
     @GetMapping("/getByAccountId/{accountId}")
     @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
-    public ApiResponse<List<TripBookings>> getByAccountIdOfAdminRole(@PathVariable("accountId") Integer accountId) {
-        return new ApiResponse<>(tripBookingsService.getTripBookingsByAccountIdOfAdminRole(accountId));
+    public ApiResponse<Page<TripBookings>> getByAccountIdOfAdminRole(@PathVariable("accountId") Integer accountId,
+                                                                     @RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                                     @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        return new ApiResponse<>(tripBookingsService.getTripBookingsByAccountIdOfAdminRole(accountId, page, size));
     }
 
     @GetMapping("/schedule/{scheduleId}")

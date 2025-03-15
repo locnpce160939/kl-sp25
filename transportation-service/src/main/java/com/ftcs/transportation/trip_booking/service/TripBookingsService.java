@@ -1,10 +1,19 @@
 package com.ftcs.transportation.trip_booking.service;
 
+import com.ftcs.accountservice.account.serivce.AccountService;
 import com.ftcs.authservice.features.account.Account;
 import com.ftcs.authservice.features.account.AccountRepository;
+import com.ftcs.authservice.features.account.contacts.Rank;
 import com.ftcs.balanceservice.balance_history.service.BalanceHistoryService;
 import com.ftcs.balanceservice.payment.model.Payment;
 import com.ftcs.balanceservice.payment.service.PaymentService;
+import com.ftcs.bonusservice.constant.BonusTier;
+import com.ftcs.bonusservice.constant.DriverGroup;
+import com.ftcs.bonusservice.model.BonusConfiguration;
+import com.ftcs.bonusservice.model.DriverBonusProgress;
+import com.ftcs.bonusservice.repository.BonusConfigurationRepository;
+import com.ftcs.bonusservice.repository.DriverBonusProgressRepository;
+import com.ftcs.bonusservice.service.DriverBonusProgressService;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.transportation.schedule.constant.ScheduleStatus;
 import com.ftcs.transportation.schedule.model.Schedule;
@@ -20,17 +29,28 @@ import com.ftcs.transportation.trip_booking.repository.TripBookingsRepository;
 import com.ftcs.transportation.trip_matching.dto.DirectionsResponseDTO;
 import com.ftcs.transportation.trip_matching.service.DirectionsService;
 import com.ftcs.transportation.trip_matching.service.TripMatchingService;
+import com.ftcs.voucherservice.constant.UserType;
 import com.ftcs.voucherservice.constant.VoucherStatus;
+import com.ftcs.voucherservice.constant.VoucherType;
 import com.ftcs.voucherservice.dto.VoucherValidationDTO;
 import com.ftcs.voucherservice.model.Voucher;
+import com.ftcs.voucherservice.model.VoucherUsage;
+import com.ftcs.voucherservice.repository.VoucherRepository;
+import com.ftcs.voucherservice.repository.VoucherUsageRepository;
 import com.ftcs.voucherservice.service.VoucherService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import static com.ftcs.transportation.trip_booking.mapper.TripBookingsMapper.toDTO;
 import static com.ftcs.transportation.trip_booking.mapper.TripBookingsMapper.toTripBookingsDTO;
@@ -48,6 +68,13 @@ public class TripBookingsService {
     private final DirectionsService directionsService;
     private final PaymentService paymentService;
     private final VoucherService voucherService;
+    private final VoucherUsageRepository voucherUsageRepository;
+    private final BonusConfigurationRepository bonusConfigurationRepository;
+    private final DriverBonusProgressRepository driverBonusProgressRepository;
+    private final DriverBonusProgressService driverBonusProgressService;
+    private final AccountService accountService;
+    private final VoucherRepository voucherRepository;
+
 
 
 //    public TripBookingsDTO createTripBookings(TripBookingsRequestDTO requestDTO, Integer accountId) {
@@ -160,8 +187,52 @@ public class TripBookingsService {
 
     public List<Voucher> getApplicableVouchersForUser(VoucherValidationDTO validationDTO) {
         List<Voucher> activeVouchers = voucherService.findAllByStatus(VoucherStatus.ACTIVE);
+        List<Voucher> result = new ArrayList<>();
 
-        return activeVouchers.stream()
+        if (validationDTO.getAccountId() != null) {
+            List<VoucherUsage> userVoucherUsages = voucherUsageRepository.findByAccountId(validationDTO.getAccountId());
+
+            for (VoucherUsage usage : userVoucherUsages) {
+                try {
+                    Voucher voucher = voucherService.findVoucherById(usage.getVoucherId());
+
+                    System.out.println("Voucher ID: " + voucher.getVoucherId() +
+                            ", Code: " + voucher.getCode() +
+                            ", isRedeemed: " + usage.getIsRedeemed() +
+                            ", usageCount: " + usage.getUsageCount() +
+                            ", usageLimit: " + voucher.getUsageLimit());
+
+                    if (voucher.getStatus() == VoucherStatus.ACTIVE) {
+                        if (voucher.getVoucherType() == VoucherType.REDEMPTION) {
+                            if (usage.getIsRedeemed()) {
+                                if (voucher.getUsageLimit() == null || usage.getUsageCount() < voucher.getUsageLimit()) {
+                                    result.add(voucher);
+                                }
+                            }
+                        } else {
+                            if (voucher.getUsageLimit() == null || usage.getUsageCount() < voucher.getUsageLimit()) {
+                                result.add(voucher);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    throw new BadRequestException(e.getMessage());
+                }
+            }
+        }
+
+        // Thêm các voucher hệ thống (không phải redemption) vào danh sách
+        for (Voucher voucher : activeVouchers) {
+            if (voucher.getVoucherType() != VoucherType.REDEMPTION) {
+                // Kiểm tra xem voucher đã có trong danh sách kết quả chưa
+                if (result.stream().noneMatch(v -> v.getVoucherId().equals(voucher.getVoucherId()))) {
+                    result.add(voucher);
+                }
+            }
+        }
+
+        // Áp dụng các điều kiện khác
+        return result.stream()
                 .filter(voucher -> voucherService.isVoucherApplicable(voucher, validationDTO))
                 .collect(Collectors.toList());
     }
@@ -229,8 +300,9 @@ public class TripBookingsService {
     }
 
 
-    public List<TripBookings> getAllTripBookings() {
-        return tripBookingsRepository.findAll();
+    public Page<TripBookings> getAllTripBookings(Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return tripBookingsRepository.findAll(pageable);
     }
 
     public void updateStatusForDriver(UpdateStatusTripBookingsRequestDTO requestDTO, Integer accountId, Long bookingId) {
@@ -244,26 +316,207 @@ public class TripBookingsService {
 
     public void updateStatusTripBooking(UpdateStatusTripBookingsRequestDTO requestDTO, Long bookingId) {
         TripBookings tripBookings = findTripBookingsById(bookingId);
+
         if (tripBookings.getStatus() == TripBookingStatus.ORDER_COMPLETED &&
                 requestDTO.getStatus() == TripBookingStatus.ORDER_COMPLETED) {
             throw new BadRequestException("Trip booking has already been completed.");
         }
-        if(requestDTO.getStatus() == TripBookingStatus.ORDER_COMPLETED){
+
+        if (requestDTO.getStatus() == TripBookingStatus.ORDER_COMPLETED) {
             log.info("Publishing trip completion event for booking: {}", bookingId);
+
             TripAgreement tripAgreement = getTripAgreement(tripBookings.getTripAgreementId());
             Schedule schedule = findScheduleByScheduleId(tripAgreement.getScheduleId());
-            Account account = findAccountByAccountId(schedule);
-            account.setBalance(account.getBalance() + tripBookings.getPrice());
-            accountRepository.save(account);
+
+            Account driverAccount = findAccountByAccountId(schedule);
+            driverAccount.setBalance(driverAccount.getBalance() + tripBookings.getPrice());
+            accountRepository.save(driverAccount);
+
+            updateLoyaltyPointsAndRanking(driverAccount, tripBookings.getPrice());
+
+            Account customerAccount = accountRepository.findAccountByAccountId(tripBookings.getAccountId()).
+                    orElseThrow(() -> new BadRequestException("Customer account not found"));
+
+            updateLoyaltyPointsAndRanking(customerAccount, tripBookings.getPrice());
+
+            accountRepository.save(driverAccount);
+            accountRepository.save(customerAccount);
+
             balanceHistoryService.recordPaymentCredit(
                     bookingId,
-                    account.getAccountId(),
+                    driverAccount.getAccountId(),
                     tripBookings.getPrice()
             );
+
+            // Update the driver's bonus progress
+            try {
+                int currentMonth = LocalDateTime.now().getMonthValue();
+
+                // First check if the driver already has any bonus for this month
+                Optional<DriverBonusProgress> monthlyBonusOpt = driverBonusProgressRepository
+                        .findByAccountIdAndBonusMonth(
+                                driverAccount.getAccountId(),
+                                currentMonth);
+
+                if (monthlyBonusOpt.isPresent()) {
+                    // Driver already has a bonus assigned for this month, update it
+                    DriverBonusProgress progress = monthlyBonusOpt.get();
+                    Long bonusConfigId = progress.getBonusConfigId();
+
+                    // Get the bonus configuration to calculate progress
+                    BonusConfiguration bonusConfig = bonusConfigurationRepository.findById(bonusConfigId)
+                            .orElseThrow(() -> new RuntimeException("Bonus Configuration not found"));
+
+                    // Update progress
+                    progress.setCompletedTrips(progress.getCompletedTrips() + 1);
+                    progress.setCurrentRevenue(progress.getCurrentRevenue() + tripBookings.getPrice());
+
+                    // Calculate progress percentage
+                    double tripProgress = (bonusConfig.getTargetTrips() != null && bonusConfig.getTargetTrips() > 0) ?
+                            (double) progress.getCompletedTrips() / bonusConfig.getTargetTrips() * 100 : 0;
+
+                    double revenueProgress = (bonusConfig.getRevenueTarget() != null && bonusConfig.getRevenueTarget() > 0) ?
+                            progress.getCurrentRevenue() / bonusConfig.getRevenueTarget() * 100 : 0;
+
+                    // Overall progress is the minimum of both requirements
+                    double overallProgress;
+                    if (bonusConfig.getTargetTrips() != null && bonusConfig.getRevenueTarget() != null) {
+                        overallProgress = Math.min(tripProgress, revenueProgress);
+                    } else if (bonusConfig.getTargetTrips() != null) {
+                        overallProgress = tripProgress;
+                    } else if (bonusConfig.getRevenueTarget() != null) {
+                        overallProgress = revenueProgress;
+                    } else {
+                        overallProgress = 0.0;
+                    }
+                    progress.setProgressPercentage(overallProgress);
+
+                    // Check if both requirements are met
+                    boolean tripRequirementMet = (bonusConfig.getTargetTrips() == null) ||
+                            (progress.getCompletedTrips() >= bonusConfig.getTargetTrips());
+                    boolean revenueRequirementMet = (bonusConfig.getRevenueTarget() == null) ||
+                            (progress.getCurrentRevenue() >= bonusConfig.getRevenueTarget());
+
+                    // Set achieved only if both requirements are met
+                    if (tripRequirementMet && revenueRequirementMet && !progress.getIsAchieved()) {
+                        progress.setIsAchieved(true);
+                        progress.setAchievedDate(LocalDateTime.now());
+                        // Optionally, notify the driver
+                        // notificationService.sendBonusAchievedNotification(driverAccount.getAccountId(), bonusConfig);
+                    }
+
+                    progress.setUpdatedAt(LocalDateTime.now());
+                    driverBonusProgressRepository.save(progress);
+
+                    log.info("Updated existing monthly bonus progress for driver: {}, progress: {}%, achieved: {}",
+                            driverAccount.getAccountId(), progress.getProgressPercentage(), progress.getIsAchieved());
+                } else {
+                    // Driver doesn't have a bonus for this month yet, determine eligible bonus and create
+                    DriverGroup driverGroup = determineDriverGroup(driverAccount);
+                    BonusTier bonusTier = driverBonusProgressService.determineBonusTier(driverAccount);
+
+                    // Find active bonus configuration for the driver's group and tier
+                    Optional<BonusConfiguration> activeBonusOpt = bonusConfigurationRepository
+                            .findActiveConfigurationForDriverGroupAndTier(
+                                    driverGroup,
+                                    bonusTier,
+                                    LocalDateTime.now()
+                            );
+
+                    if (activeBonusOpt.isPresent()) {
+                        BonusConfiguration activeBonus = activeBonusOpt.get();
+
+                        // Create new progress record
+                        DriverBonusProgress progress = DriverBonusProgress.builder()
+                                .accountId(driverAccount.getAccountId())
+                                .bonusConfigId(activeBonus.getBonusConfigurationId())
+                                .bonusMonth(currentMonth)  // Add the month field
+                                .completedTrips(1)
+                                .currentRevenue(tripBookings.getPrice())
+                                .progressPercentage(0.0)
+                                .isAchieved(false)
+                                .isRewarded(false)
+                                .createdAt(LocalDateTime.now())
+                                .updatedAt(LocalDateTime.now())
+                                .build();
+
+                        // Calculate progress percentage
+                        double tripProgress = (activeBonus.getTargetTrips() != null && activeBonus.getTargetTrips() > 0) ?
+                                (double) progress.getCompletedTrips() / activeBonus.getTargetTrips() * 100 : 0;
+
+                        double revenueProgress = (activeBonus.getRevenueTarget() != null && activeBonus.getRevenueTarget() > 0) ?
+                                progress.getCurrentRevenue() / activeBonus.getRevenueTarget() * 100 : 0;
+
+                        // Overall progress is the minimum of both requirements
+                        double overallProgress;
+                        if (activeBonus.getTargetTrips() != null && activeBonus.getRevenueTarget() != null) {
+                            overallProgress = Math.min(tripProgress, revenueProgress);
+                        } else if (activeBonus.getTargetTrips() != null) {
+                            overallProgress = tripProgress;
+                        } else if (activeBonus.getRevenueTarget() != null) {
+                            overallProgress = revenueProgress;
+                        } else {
+                            overallProgress = 0.0;
+                        }
+                        progress.setProgressPercentage(overallProgress);
+
+                        // Check if both requirements are met
+                        boolean tripRequirementMet = (activeBonus.getTargetTrips() == null) ||
+                                (progress.getCompletedTrips() >= activeBonus.getTargetTrips());
+                        boolean revenueRequirementMet = (activeBonus.getRevenueTarget() == null) ||
+                                (progress.getCurrentRevenue() >= activeBonus.getRevenueTarget());
+
+                        // Set achieved only if both requirements are met
+                        if (tripRequirementMet && revenueRequirementMet) {
+                            progress.setIsAchieved(true);
+                            progress.setAchievedDate(LocalDateTime.now());
+                            // Optionally, notify the driver
+                            // notificationService.sendBonusAchievedNotification(driverAccount.getAccountId(), activeBonus);
+                        }
+
+                        driverBonusProgressRepository.save(progress);
+
+                        log.info("Created new monthly bonus progress for driver: {}, progress: {}%, achieved: {}",
+                                driverAccount.getAccountId(), progress.getProgressPercentage(), progress.getIsAchieved());
+                    }
+                }
+            } catch (Exception e) {
+                // Log error but don't prevent trip completion
+                log.error("Failed to update driver bonus progress: {}", e.getMessage(), e);
+            }
         }
+
         tripBookings.setStatus(requestDTO.getStatus());
         tripBookingsRepository.save(tripBookings);
     }
+
+    // Helper method for driver group determination
+    private DriverGroup determineDriverGroup(Account account) {
+        if (account.getRanking() == Rank.BRONZE && account.getLoyaltyPoints() < 500) {
+            return DriverGroup.NEWBIE;
+        } else {
+            return DriverGroup.REGULAR;
+        }
+    }
+
+    private void updateLoyaltyPointsAndRanking(Account account, Double price) {
+        int pointsEarned = price.intValue() / 1000 * 10;
+
+        account.setLoyaltyPoints(account.getLoyaltyPoints() + pointsEarned);
+        account.setRedeemablePoints(account.getRedeemablePoints() + pointsEarned);
+
+        if (account.getLoyaltyPoints() >= 50000) {
+            account.setRanking(Rank.PLATINUM);
+        } else if (account.getLoyaltyPoints() >= 20000) {
+            account.setRanking(Rank.GOLD);
+        } else if (account.getLoyaltyPoints() >= 5000) {
+            account.setRanking(Rank.SILVER);
+        } else {
+            account.setRanking(Rank.BRONZE);
+        }
+    }
+
+
 
     public void continueFindingDriver(UpdateStatusTripBookingsRequestDTO requestDTO, Long bookingId) {
         TripBookings tripBookings = findTripBookingsById(bookingId);
@@ -289,12 +542,14 @@ public class TripBookingsService {
         }
     }
 
-    public List<TripBookings> getTripBookingsByAccountId(Integer accountId) {
-        return tripBookingsRepository.findAllByAccountId(accountId);
+    public Page<TripBookings> getTripBookingsByAccountId(Integer accountId, Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return tripBookingsRepository.findAllByAccountId(accountId, pageable);
     }
 
-    public List<TripBookings> getTripBookingsByAccountIdOfAdminRole(Integer accountId) {
-        return tripBookingsRepository.findAllByAccountId(accountId);
+    public Page<TripBookings> getTripBookingsByAccountIdOfAdminRole(Integer accountId, Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return tripBookingsRepository.findAllByAccountId(accountId, pageable);
     }
 
     public List<TripBookings> getBySchedule(Long scheduleId) {

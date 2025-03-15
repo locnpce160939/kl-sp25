@@ -65,8 +65,9 @@ public class AccountController {
 
     @GetMapping("/getAllAccount")
     @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
-    public ApiResponse<?> getAllAccount() {
-        return new ApiResponse<>(accountService.getAllAccounts());
+    public ApiResponse<?> getAllAccount(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                        @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        return new ApiResponse<>(accountService.getAllAccounts(page, size));
     }
 
     @GetMapping("/getAccount/{accountId}")
@@ -95,8 +96,10 @@ public class AccountController {
 
     @PostMapping("/findByRole")
     @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
-    public ApiResponse<?> findByRole(@Valid @RequestBody FilterRequestDTO requestDTO) {
-        return new ApiResponse<>(accountService.findAllByRole(requestDTO.getRole()));
+    public ApiResponse<?> findByRole(@Valid @RequestBody FilterRequestDTO requestDTO,
+                                     @RequestParam(value = "page", defaultValue = "0") Integer page,
+                                     @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        return new ApiResponse<>(accountService.findAllByRole(requestDTO.getRole(), page, size));
     }
 
     @PutMapping("/editAccount/{accountId}")

@@ -8,6 +8,7 @@ import com.ftcs.financeservice.distance_range.service.DistanceRangeService;
 import com.ftcs.financeservice.holiday_surcharge.model.HolidaySurcharge;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,8 +22,9 @@ public class DistanceRangeController {
 
     @GetMapping
     @PreAuthorize("hasPermission(null, 'FINANCE') or hasPermission(null, 'ADMIN')")
-    public ApiResponse<?> getAllDistanceRages() {
-        List<DistanceRange> distanceRanges = distanceRangeService.getAllDistanceRanges();
+    public ApiResponse<?> getAllDistanceRages(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                              @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        Page<DistanceRange> distanceRanges = distanceRangeService.getAllDistanceRanges(page,size);
         return new ApiResponse<>("Fetched distance rages surcharges successfully.", distanceRanges);
     }
 

@@ -1,7 +1,9 @@
 package com.ftcs.voucherservice.dto;
 
+import com.ftcs.authservice.features.account.contacts.Rank;
 import com.ftcs.voucherservice.constant.DiscountType;
 import com.ftcs.voucherservice.constant.PaymentMethod;
+import com.ftcs.voucherservice.constant.UserType;
 import com.ftcs.voucherservice.constant.VoucherStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
@@ -33,4 +35,7 @@ public class VoucherRequestDTO {
     private VoucherStatus status;
     private Integer usageLimit;
     private PaymentMethod paymentMethod;
+    private UserType userType;
+    private Integer pointsRequired;
+    private Rank minimumRank;
 }

@@ -6,12 +6,14 @@ import com.ftcs.balanceservice.payment.repository.PaymentRepository;
 import com.ftcs.common.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -22,8 +24,9 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final QrCodeService qrCodeService;
 
-    public List<Payment> getAllPayments() {
-        return paymentRepository.findAll();
+    public Page<Payment> getAllPayments(Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return paymentRepository.findAll(pageable);
     }
 
     public Payment getPaymentById(Long paymentId) {

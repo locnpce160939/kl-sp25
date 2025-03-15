@@ -1,6 +1,8 @@
 package com.ftcs.authservice.features.account;
 
 import com.ftcs.authservice.features.account.contacts.RoleType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -18,5 +20,6 @@ public interface AccountRepository extends JpaRepository<Account, Integer> {
     boolean existsByEmailAndAccountIdNot(String email, Integer accountId);
     boolean existsByUsernameAndAccountIdNot(String username, Integer accountId);
     List<Account> findAllByStatusNot(String status);
-    List<Account> findAllByRoleAndStatusNot(RoleType role, String status);
+    Page<Account> findAllByRoleAndStatusNot(RoleType role, String status, Pageable pageable);
+
 }

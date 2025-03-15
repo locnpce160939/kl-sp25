@@ -11,6 +11,9 @@ import com.ftcs.balanceservice.withdraw.dto.WithdrawRequestDTO;
 import com.ftcs.balanceservice.withdraw.model.Withdraw;
 import com.ftcs.balanceservice.withdraw.repository.WithdrawRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -105,8 +108,9 @@ public class WithdrawService {
         withdrawRepository.deleteById(withdrawId);
     }
 
-    public List<Withdraw> getAll(){
-        return withdrawRepository.findAll();
+    public Page<Withdraw> getAll(Integer page, Integer size){
+        Pageable pageable = PageRequest.of(page, size);
+        return withdrawRepository.findAll(pageable);
     }
 
     public List<Withdraw> getAllByAccountId(Integer accountId) {
@@ -195,7 +199,6 @@ public class WithdrawService {
         exportDTO.setStatus(withdraw.getStatus());
         exportDTO.setRequestDate(withdraw.getRequestDate().format(formatter));
 
-        // Add processing date if available
         if (withdraw.getProcessedDate() != null) {
             exportDTO.setProcessedDate(withdraw.getProcessedDate().format(formatter));
         }
@@ -203,11 +206,6 @@ public class WithdrawService {
         return exportDTO;
     }
 
-    /**
-     * Export total withdrawal amount for a specific account
-     * @param accountId ID of the account
-     * @return WithdrawTotalExportDTO containing account information and total withdrawal amount
-     */
     public WithdrawTotalExportDTO exportTotalWithdrawByAccountId(Integer accountId) {
         Account account = findAccountByAccountId(accountId);
         List<Withdraw> withdrawals = getAllByAccountId(accountId);
@@ -246,11 +244,24 @@ public class WithdrawService {
         return withdrawRepository.findAllByStatus(status);
     }
 
+    public Page<Withdraw> getAllByStatusManagement(WithdrawStatus status, Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return withdrawRepository.findAllByStatus(status, pageable);
+    }
+
     public List<Withdraw> getAllByRequestDate(LocalDate requestDate) {
         LocalDateTime startOfDay = requestDate.atStartOfDay();  // 2025-02-19T00:00:00
         LocalDateTime endOfDay = requestDate.atTime(23, 59, 59);  // 2025-02-19T23:59:59
 
         return withdrawRepository.findAllByRequestDateBetween(startOfDay, endOfDay);
+    }
+
+    public Page<Withdraw> getAllByRequestDateManagement(LocalDate requestDate, Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size);
+        LocalDateTime startOfDay = requestDate.atStartOfDay();  // 2025-02-19T00:00:00
+        LocalDateTime endOfDay = requestDate.atTime(23, 59, 59);  // 2025-02-19T23:59:59
+
+        return withdrawRepository.findAllByRequestDateBetween(startOfDay, endOfDay, pageable);
     }
 
     private Account findAccountByAccountId(Integer accountId) {

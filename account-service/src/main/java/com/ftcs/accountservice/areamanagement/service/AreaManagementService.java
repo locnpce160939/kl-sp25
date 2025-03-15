@@ -106,7 +106,6 @@ public class AreaManagementService {
 
     public List<Integer> getProvincesByAccountId(Integer accountId) {
         List<AreaManagement> areaManagementList = areaManagementRepository.findByAccountId(accountId);
-
         if (areaManagementList.isEmpty()) {
             return new ArrayList<>();
         }

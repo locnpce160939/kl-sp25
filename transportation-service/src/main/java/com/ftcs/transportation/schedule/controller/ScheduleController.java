@@ -9,6 +9,7 @@ import com.ftcs.transportation.schedule.model.Schedule;
 import com.ftcs.transportation.schedule.service.ScheduleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -57,8 +58,9 @@ public class ScheduleController {
 
     @GetMapping("/all")
     @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
-    public ApiResponse<List<Schedule>> getAllSchedules() {
-        List<Schedule> schedules = scheduleService.getAllSchedules();
+    public ApiResponse<Page<Schedule>> getAllSchedules(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                       @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        Page<Schedule> schedules = scheduleService.getAllSchedules(page, size);
         return new ApiResponse<>(schedules);
     }
 

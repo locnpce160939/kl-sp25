@@ -9,6 +9,9 @@ import com.ftcs.common.exception.BadRequestException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -126,12 +129,14 @@ public class BalanceHistoryService {
                 .orElseThrow(() -> new BadRequestException("Account not found with ID: " + accountId));
     }
 
-    public List<BalanceHistory> findAllByAccountId(Integer accountId) {
-        return balanceHistoryRepository.findByAccountId(accountId);
+    public Page<BalanceHistory> findAllByAccountId(Integer accountId, Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return balanceHistoryRepository.findByAccountId(accountId, pageable);
     }
 
-    public List<BalanceHistory> findAll(){
-        return balanceHistoryRepository.findAll();
+    public Page<BalanceHistory> findAll(Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return balanceHistoryRepository.findAll(pageable);
     }
 
     public BalanceHistory findById(Long balanceHistoryId) {

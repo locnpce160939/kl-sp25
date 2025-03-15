@@ -9,6 +9,7 @@ import com.ftcs.balanceservice.payment.model.Payment;
 import com.ftcs.balanceservice.payment.service.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,8 +32,9 @@ public class PaymentController {
 
     @GetMapping
     @PreAuthorize("hasPermission(null, 'ADMIN')")
-    public ApiResponse<List<Payment>> getAllPayments() {
-        return new ApiResponse<>(paymentService.getAllPayments());
+    public ApiResponse<Page<Payment>> getAllPayments(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                     @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        return new ApiResponse<>(paymentService.getAllPayments(page, size));
     }
 
     @GetMapping("/{paymentId}")

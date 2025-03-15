@@ -9,6 +9,9 @@ import com.ftcs.transportation.trip_booking.constant.TripBookingStatus;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
 import com.ftcs.transportation.trip_booking.repository.TripBookingsRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -54,12 +57,14 @@ public class ReviewService {
         reviewRepository.delete(review);
     }
 
-    public List<Review> findAllReviewsByAccountId(Integer accountId) {
-        return reviewRepository.findAllByAccountId(accountId);
+    public Page<Review> findAllReviewsByAccountId(Integer accountId, Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return reviewRepository.findAllByAccountId(accountId, pageable);
     }
 
-    public List<DriverReviewProjection> findAllReviewsDriver(Integer driverId) {
-        return reviewRepository.getDriverReviews(driverId);
+    public Page<DriverReviewProjection> findAllReviewsDriver(Integer driverId, Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return reviewRepository.getDriverReviews(driverId, pageable);
     }
 
     private void validateOwnership(Integer accountId, TripBookings tripBookings) {

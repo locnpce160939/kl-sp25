@@ -6,6 +6,9 @@ import com.ftcs.financeservice.distance_range.model.DistanceRange;
 import com.ftcs.financeservice.distance_range.repository.DistanceRangeRepository;
 import com.ftcs.financeservice.holiday_surcharge.model.HolidaySurcharge;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -16,8 +19,9 @@ import java.util.List;
 public class DistanceRangeService {
     private final DistanceRangeRepository distanceRangeRepository;
 
-    public List<DistanceRange> getAllDistanceRanges() {
-        return distanceRangeRepository.findAll();
+    public Page<DistanceRange> getAllDistanceRanges(Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return distanceRangeRepository.findAll(pageable);
     }
 
     public DistanceRange findByDistanceId(Integer distanceId) {

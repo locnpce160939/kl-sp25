@@ -8,6 +8,9 @@ import com.ftcs.financeservice.pricing.model.Pricing;
 import com.ftcs.financeservice.pricing.repository.PricingRepository;
 import com.ftcs.financeservice.weight_range.repository.WeightRangeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -21,8 +24,9 @@ public class PricingService {
     private final WeightRangeRepository weightRangeRepository;
     private final DistanceRangeRepository distanceRangeRepository;
 
-    public List<Pricing> getAllPricing() {
-        return pricingRepository.findAll();
+    public Page<Pricing> getAllPricing(Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return pricingRepository.findAll(pageable);
     }
 
     public Pricing getPricingById(Integer pricingId) {

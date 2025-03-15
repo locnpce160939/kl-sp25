@@ -12,6 +12,9 @@ import com.ftcs.transportation.schedule.model.Schedule;
 import com.ftcs.transportation.schedule.repository.ScheduleRepository;
 import com.ftcs.transportation.trip_matching.service.TripMatchingService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -100,8 +103,9 @@ public class ScheduleService {
                 .orElseThrow(() -> new BadRequestException("Schedule does not exist"));
     }
 
-    public List<Schedule> getAllSchedules() {
-        return scheduleRepository.findAll();
+    public Page<Schedule> getAllSchedules(Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return scheduleRepository.findAll(pageable);
     }
 
     public List<Schedule> getSchedulesByTimeRangeAndStatus(FindScheduleByTimePeriodRequestDTO requestDTO) {
