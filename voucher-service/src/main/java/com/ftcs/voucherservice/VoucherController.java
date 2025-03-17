@@ -94,7 +94,7 @@ public class VoucherController {
     @GetMapping("/redeem")
     public ApiResponse<Page<Voucher>> getAllVoucherRedeem(@RequestParam(value = "page", defaultValue = "0") Integer page,
                                                           @RequestParam(value = "size", defaultValue = "10") Integer size,
-                                                          @RequestParam(required = false) Boolean isRedeemable){
+                                                          @RequestParam(value = "isRedeemable", required = false) Boolean isRedeemable){
         return new ApiResponse<>(voucherService.getAllVouchers(isRedeemable, page, size));
     }
 
