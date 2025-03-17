@@ -129,9 +129,13 @@ public class BalanceHistoryService {
                 .orElseThrow(() -> new BadRequestException("Account not found with ID: " + accountId));
     }
 
-    public Page<BalanceHistory> findAllByAccountId(Integer accountId, Integer page, Integer size) {
+    public Page<BalanceHistory> findAllByAccountIdManagement(Integer accountId, Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page, size);
         return balanceHistoryRepository.findByAccountId(accountId, pageable);
+    }
+
+    public List<BalanceHistory> findAllByAccountId(Integer accountId) {
+        return balanceHistoryRepository.findByAccountId(accountId);
     }
 
     public Page<BalanceHistory> findAll(Integer page, Integer size) {

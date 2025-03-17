@@ -9,4 +9,5 @@ import java.util.List;
 
 public interface BalanceHistoryRepository extends JpaRepository<BalanceHistory, Long> {
     Page<BalanceHistory> findByAccountId(Integer accountId, Pageable pageable);
+    List<BalanceHistory> findByAccountId(Integer accountId);
 }

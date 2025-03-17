@@ -29,7 +29,12 @@ public class BalanceHistoryController {
     public ApiResponse<Page<BalanceHistory>> getAllBalanceHistoryByAccountId(@RequestAttribute("accountId") Integer accountId,
                                                                              @RequestParam(value = "page", defaultValue = "0") Integer page,
                                                                              @RequestParam(value = "size", defaultValue = "10") Integer size) {
-        return new ApiResponse<>(balanceHistoryService.findAllByAccountId(accountId, page, size));
+        return new ApiResponse<>(balanceHistoryService.findAllByAccountIdManagement(accountId, page, size));
+    }
+
+    @GetMapping("/account")
+    public ApiResponse<List<BalanceHistory>> getAllBalanceHistoryByAccountIdDriver(@RequestAttribute("accountId") Integer accountId) {
+        return new ApiResponse<>(balanceHistoryService.findAllByAccountId(accountId));
     }
 
     @GetMapping("/{balanceHistoryId}")
