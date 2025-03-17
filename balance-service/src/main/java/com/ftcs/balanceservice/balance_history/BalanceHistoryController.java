@@ -25,7 +25,7 @@ public class BalanceHistoryController {
         return new ApiResponse<>(balanceHistoryService.findAll(page, size));
     }
 
-    @GetMapping("/account")
+    @GetMapping("/account/management")
     public ApiResponse<Page<BalanceHistory>> getAllBalanceHistoryByAccountId(@RequestAttribute("accountId") Integer accountId,
                                                                              @RequestParam(value = "page", defaultValue = "0") Integer page,
                                                                              @RequestParam(value = "size", defaultValue = "10") Integer size) {
