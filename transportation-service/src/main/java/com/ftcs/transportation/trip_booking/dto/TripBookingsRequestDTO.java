@@ -32,6 +32,8 @@ public class TripBookingsRequestDTO {
     @NotBlank(message = "End location cannot be blank")
     private String endLocationAddress;
 
+    private String notes;
+
     @NotNull(message = "Capacity cannot be null")
     @Min(value = 1, message = "Capacity must be greater than or equal to 1")
     private Integer capacity;

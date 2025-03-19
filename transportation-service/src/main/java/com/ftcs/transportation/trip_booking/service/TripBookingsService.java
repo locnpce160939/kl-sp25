@@ -670,6 +670,7 @@ public class TripBookingsService {
         tripBookings.setDiscountAmount(tripBookings.getDiscountAmount());
         tripBookings.setVoucherCode(tripBookings.getVoucherCode());
         tripBookings.setVoucherId(tripBookings.getVoucherId());
+        tripBookings.setNotes(requestDTO.getNotes());
     }
 
     private Boolean isFirstOrder(Integer accountId) {
