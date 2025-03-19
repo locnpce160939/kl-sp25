@@ -55,6 +55,7 @@ public class TripBookingsMapper {
                 .createAt(tripBookings.getCreateAt())
                 .updateAt(tripBookings.getUpdateAt())
                 .payment(payment)
+                .notes(tripBookings.getNotes())
                 .originalPrice(tripBookings.getOriginalPrice())
                 .discountAmount(tripBookings.getDiscountAmount())
                 .build();
