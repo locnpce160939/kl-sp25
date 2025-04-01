@@ -40,7 +40,7 @@ public interface BonusConfigurationRepository extends JpaRepository<BonusConfigu
     Page<BonusConfiguration> findByDriverGroup(DriverGroup driverGroup, Pageable pageable);
 
     // For filtering by reward type
-    List<BonusConfiguration> findByRewardType(RewardType rewardType);
+    Page<BonusConfiguration> findByRewardType(RewardType rewardType,Pageable pageable);
 
     // For filtering by date range
     List<BonusConfiguration> findByStartDateBetweenAndEndDateBetween(

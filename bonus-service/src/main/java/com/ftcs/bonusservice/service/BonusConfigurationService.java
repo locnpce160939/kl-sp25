@@ -73,11 +73,14 @@ public class BonusConfigurationService {
         return new PageImpl<>(dtoList, pageable, configPage.getTotalElements());
     }
 
-    public List<BonusConfigurationDTO> getBonusConfigurationsByRewardType(BonusConfigurationCreateRequest rewardType) {
-        return bonusConfigurationRepository.findByRewardType(rewardType.getRewardType())
+    public Page<BonusConfigurationDTO> getBonusConfigurationsByRewardType(BonusConfigurationCreateRequest rewardType, Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<BonusConfiguration> configPage = bonusConfigurationRepository.findByRewardType(rewardType.getRewardType(), pageable);
+        List<BonusConfigurationDTO> dtoList = configPage.getContent()
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
+        return new PageImpl<>(dtoList, pageable, configPage.getTotalElements());
     }
 
     public BonusConfigurationDTO getBonusConfigurationById(Long id) {

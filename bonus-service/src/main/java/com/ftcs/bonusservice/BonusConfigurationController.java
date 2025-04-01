@@ -45,6 +45,13 @@ public class BonusConfigurationController {
         return new ApiResponse<>(bonusConfigurationService.getBonusConfigurationsByDriverGroup(request, page, size));
     }
 
+    @GetMapping("/rewardType")
+    public ApiResponse<Page<BonusConfigurationDTO>> getRewardType(@Valid @RequestBody BonusConfigurationCreateRequest request,
+                                                                   @RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                                   @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        return new ApiResponse<>(bonusConfigurationService.getBonusConfigurationsByRewardType(request, page, size));
+    }
+
     @PutMapping("/{bonusConfigurationId}")
     public ApiResponse<BonusConfigurationDTO> updateBonusConfigurationId(@PathVariable("bonusConfigurationId") Long bonusConfigurationId,
                                                                          @Valid @RequestBody BonusConfigurationCreateRequest request) {

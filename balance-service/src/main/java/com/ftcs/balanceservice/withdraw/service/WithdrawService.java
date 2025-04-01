@@ -46,7 +46,6 @@ public class WithdrawService {
                 requestDTO.getAmount());
         account.setBalance(account.getBalance() - requestDTO.getAmount());
         accountRepository.save(account);
-
     }
 
 //    public void updateStatusWithdraw(WithdrawRequestDTO requestDTO, Long withdrawId) {

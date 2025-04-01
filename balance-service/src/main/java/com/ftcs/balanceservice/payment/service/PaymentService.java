@@ -29,7 +29,7 @@ public class PaymentService {
         return paymentRepository.findAll(pageable);
     }
 
-    public Payment getPaymentById(Long paymentId) {
+        public Payment getPaymentById(Long paymentId) {
         return paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new BadRequestException("Payment not found with ID: " + paymentId));
     }

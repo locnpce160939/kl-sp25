@@ -134,7 +134,6 @@ public class TripBookingsService {
 
         List<Voucher> list = getApplicableVouchersForUser(validationDTO);
 
-        // Tính toán giảm giá từ voucher
         VoucherDiscountDTO discountInfo = calculateVoucherDiscount(
                 requestDTO.getVoucherId(),
                 requestDTO.getVoucherCode(),
