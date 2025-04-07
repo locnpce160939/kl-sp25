@@ -80,7 +80,7 @@ public class Account {
     protected void onCreate() {
         createAt = LocalDateTime.now();
         updateAt = LocalDateTime.now();
-        loyaltyPoints = 0; // Mặc định điểm tích lũy là 0
+        loyaltyPoints = 0;
         ranking = Rank.BRONZE; // Mặc định hạng ban đầu là Bronze
     }
 

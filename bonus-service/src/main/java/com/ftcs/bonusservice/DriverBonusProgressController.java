@@ -5,6 +5,7 @@ import com.ftcs.bonusservice.service.DriverBonusProgressService;
 import com.ftcs.common.dto.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,11 +16,13 @@ public class DriverBonusProgressController {
 
 
     @GetMapping
+    @PreAuthorize("hasPermission(null, 'DRIVER')")
     public ApiResponse<DriverBonusProgressDTO> getEligibleBonusForDriver(@RequestAttribute("accountId") Integer accountId) {
         return new ApiResponse<>(driverBonusProgressService.getEligibleBonusForDriver(accountId));
     }
 
     @PutMapping("/approvedReward/{driverBonusProgressId}")
+    @PreAuthorize("hasPermission(null, 'DRIVER')")
     public ApiResponse<DriverBonusProgressDTO> approvedReward(@PathVariable("driverBonusProgressId") Long driverBonusProgressId) {
         return new ApiResponse<>(driverBonusProgressService.approveReward(driverBonusProgressId));
     }
@@ -32,7 +35,7 @@ public class DriverBonusProgressController {
     }
 
     @GetMapping("/bonusConfig/{bonusConfigId}")
-    public ApiResponse<Page<DriverBonusProgressDTO>> getByAccountId(@PathVariable("bonusConfigId") Long bonusConfigId,
+    public ApiResponse<Page<DriverBonusProgressDTO>> getByBonusId(@PathVariable("bonusConfigId") Long bonusConfigId,
                                                                     @RequestParam(value = "page", defaultValue = "0") Integer page,
                                                                     @RequestParam(value = "size", defaultValue = "10") Integer size) {
         return new ApiResponse<>(driverBonusProgressService.getProgressByBonusConfigId(bonusConfigId,page,size));

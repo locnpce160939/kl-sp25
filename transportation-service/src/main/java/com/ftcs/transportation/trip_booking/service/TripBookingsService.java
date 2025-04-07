@@ -105,13 +105,14 @@ public class TripBookingsService {
 //
 //    }
 
+
     public TripBookingsDTO createTripBookings(TripBookingsRequestDTO requestDTO, Integer accountId) {
         validateExpirationDate(requestDTO);
 
-        TripBookings tripBookings = new TripBookings();
-        tripBookings.setAccountId(accountId);
-        mapRequestToTripBookings(requestDTO, tripBookings);
+        // Create and initialize trip booking
+        TripBookings tripBookings = initializeNewTripBooking(accountId, requestDTO);
 
+        // Get trip preview with distance and price calculation
         PreviewTripBookingDTO preview = getPreviewTripBookingDTO(
                 accountId,
                 requestDTO.getPickupLocation(),
@@ -120,68 +121,88 @@ public class TripBookingsService {
         );
 
         tripBookings.setTotalDistance(preview.getExpectedDistance());
+        tripBookings.setOriginalPrice(preview.getPrice());
 
-        Double originalPrice = preview.getPrice();
-        tripBookings.setOriginalPrice(originalPrice);
+        // Apply voucher if available
+        applyVoucherIfAvailable(requestDTO, accountId, tripBookings, preview);
 
+        // Save the booking
+        TripBookings savedBooking = tripBookingsRepository.save(tripBookings);
+
+        // Create payment if online payment method is selected
+        Payment payment = createPaymentIfNeeded(savedBooking);
+
+        // Start the trip matching process
+        tripMatchingService.matchTripsForAll();
+
+        return toTripBookingsDTO(savedBooking, payment);
+    }
+
+    private TripBookings initializeNewTripBooking(Integer accountId, TripBookingsRequestDTO requestDTO) {
+        TripBookings tripBookings = new TripBookings();
+        tripBookings.setAccountId(accountId);
+        mapRequestToTripBookings(requestDTO, tripBookings);
+        return tripBookings;
+    }
+
+    private void applyVoucherIfAvailable(TripBookingsRequestDTO requestDTO, Integer accountId,
+                                         TripBookings tripBookings, PreviewTripBookingDTO preview) {
+        // Create validation DTO for voucher checking
         VoucherValidationDTO validationDTO = VoucherValidationDTO.builder()
-                .orderValue(originalPrice)
+                .orderValue(preview.getPrice())
                 .paymentMethod(requestDTO.getPaymentMethod().toString())
                 .distanceKm(preview.getExpectedDistance())
                 .isFirstOrder(isFirstOrder(accountId))
                 .accountId(accountId)
                 .build();
 
-        List<Voucher> list = getApplicableVouchersForUser(validationDTO);
-
+        // Calculate discount based on voucher
         VoucherDiscountDTO discountInfo = calculateVoucherDiscount(
                 requestDTO.getVoucherId(),
                 requestDTO.getVoucherCode(),
                 validationDTO
         );
 
-        boolean voucherApplied = false;
-
-        // Kiểm tra xem có áp dụng voucher không
+        // Apply voucher if discount exists
         if (discountInfo.getDiscountAmount() > 0) {
-            // Có voucher được áp dụng
-            if (requestDTO.getVoucherId() != null) {
-                Voucher voucher = voucherService.findVoucherById(requestDTO.getVoucherId());
-                tripBookings.setVoucherId(requestDTO.getVoucherId());
-                tripBookings.setVoucherCode(voucher.getCode());
-
-                // Cập nhật trạng thái sử dụng voucher
-                voucherService.updateVoucherUsage(requestDTO.getVoucherId(), accountId);
-                voucherApplied = true;
-            } else if (requestDTO.getVoucherCode() != null && !requestDTO.getVoucherCode().isEmpty()) {
-                Voucher voucher = voucherService.findVoucherByCode(requestDTO.getVoucherCode());
-                tripBookings.setVoucherId(voucher.getVoucherId());
-                tripBookings.setVoucherCode(requestDTO.getVoucherCode());
-
-                // Áp dụng voucher
-                voucherService.applyVoucher(requestDTO.getVoucherCode(), accountId);
-                voucherApplied = true;
-            }
-
-            // Cập nhật giá và số tiền được giảm
-            tripBookings.setPrice(discountInfo.getFinalPrice());
-            tripBookings.setDiscountAmount(discountInfo.getDiscountAmount());
+            applyVoucherDiscount(requestDTO, accountId, tripBookings, discountInfo);
         } else {
-            // Không có voucher được áp dụng
-            tripBookings.setPrice(originalPrice);
+            // No voucher applied
+            tripBookings.setPrice(preview.getPrice());
+        }
+    }
+
+    private void applyVoucherDiscount(TripBookingsRequestDTO requestDTO, Integer accountId,
+                                      TripBookings tripBookings, VoucherDiscountDTO discountInfo) {
+        // Apply voucher by ID if provided
+        if (requestDTO.getVoucherId() != null) {
+            Voucher voucher = voucherService.findVoucherById(requestDTO.getVoucherId());
+            tripBookings.setVoucherId(requestDTO.getVoucherId());
+            tripBookings.setVoucherCode(voucher.getCode());
+            voucherService.updateVoucherUsage(requestDTO.getVoucherId(), accountId);
+        }
+        // Apply voucher by code if provided
+        else if (requestDTO.getVoucherCode() != null && !requestDTO.getVoucherCode().isEmpty()) {
+            Voucher voucher = voucherService.findVoucherByCode(requestDTO.getVoucherCode());
+            tripBookings.setVoucherId(voucher.getVoucherId());
+            tripBookings.setVoucherCode(requestDTO.getVoucherCode());
+            voucherService.applyVoucher(requestDTO.getVoucherCode(), accountId);
         }
 
-        // Lưu booking
-        TripBookings savedBooking = tripBookingsRepository.save(tripBookings);
+        // Update price with discount
+        tripBookings.setPrice(discountInfo.getFinalPrice());
+        tripBookings.setDiscountAmount(discountInfo.getDiscountAmount());
+    }
 
-        Payment payment = null;
-        if (savedBooking.getPaymentMethod() == PaymentMethod.ONLINE_PAYMENT) {
-            // Sử dụng giá đã giảm (nếu voucher được áp dụng)
-            payment = paymentService.createPayment(savedBooking.getBookingId(), savedBooking.getPrice(), accountId);
+    private Payment createPaymentIfNeeded(TripBookings booking) {
+        if (booking.getPaymentMethod() == PaymentMethod.ONLINE_PAYMENT) {
+            return paymentService.createPayment(
+                    booking.getBookingId(),
+                    booking.getPrice(),
+                    booking.getAccountId()
+            );
         }
-
-        tripMatchingService.matchTripsForAll();
-        return toTripBookingsDTO(savedBooking, payment);
+        return null;
     }
 
     public List<Voucher> getApplicableVouchersForUser(VoucherValidationDTO validationDTO) {
@@ -314,179 +335,206 @@ public class TripBookingsService {
     }
 
     public void updateStatusTripBooking(UpdateStatusTripBookingsRequestDTO requestDTO, Long bookingId) {
-        TripBookings tripBookings = findTripBookingsById(bookingId);
+        TripBookings tripBooking = findTripBookingsById(bookingId);
 
-        if (tripBookings.getStatus() == TripBookingStatus.ORDER_COMPLETED &&
-                requestDTO.getStatus() == TripBookingStatus.ORDER_COMPLETED) {
+        // Check if booking is already completed
+        if (isAlreadyCompleted(tripBooking, requestDTO)) {
             throw new BadRequestException("Trip booking has already been completed.");
         }
 
+        // Handle trip completion if needed
         if (requestDTO.getStatus() == TripBookingStatus.ORDER_COMPLETED) {
-            log.info("Publishing trip completion event for booking: {}", bookingId);
-
-            TripAgreement tripAgreement = getTripAgreement(tripBookings.getTripAgreementId());
-            Schedule schedule = findScheduleByScheduleId(tripAgreement.getScheduleId());
-
-            Account driverAccount = findAccountByAccountId(schedule);
-            driverAccount.setBalance(driverAccount.getBalance() + tripBookings.getPrice());
-            accountRepository.save(driverAccount);
-
-            updateLoyaltyPointsAndRanking(driverAccount, tripBookings.getPrice());
-
-            Account customerAccount = accountRepository.findAccountByAccountId(tripBookings.getAccountId()).
-                    orElseThrow(() -> new BadRequestException("Customer account not found"));
-
-            updateLoyaltyPointsAndRanking(customerAccount, tripBookings.getPrice());
-
-            accountRepository.save(driverAccount);
-            accountRepository.save(customerAccount);
-
-            balanceHistoryService.recordPaymentCredit(
-                    bookingId,
-                    driverAccount.getAccountId(),
-                    tripBookings.getPrice()
-            );
-
-            // Update the driver's bonus progress
-            try {
-                int currentMonth = LocalDateTime.now().getMonthValue();
-
-                // First check if the driver already has any bonus for this month
-                Optional<DriverBonusProgress> monthlyBonusOpt = driverBonusProgressRepository
-                        .findByAccountIdAndBonusMonth(
-                                driverAccount.getAccountId(),
-                                currentMonth);
-
-                if (monthlyBonusOpt.isPresent()) {
-                    // Driver already has a bonus assigned for this month, update it
-                    DriverBonusProgress progress = monthlyBonusOpt.get();
-                    Long bonusConfigId = progress.getBonusConfigId();
-
-                    // Get the bonus configuration to calculate progress
-                    BonusConfiguration bonusConfig = bonusConfigurationRepository.findById(bonusConfigId)
-                            .orElseThrow(() -> new RuntimeException("Bonus Configuration not found"));
-
-                    // Update progress
-                    progress.setCompletedTrips(progress.getCompletedTrips() + 1);
-                    progress.setCurrentRevenue(progress.getCurrentRevenue() + tripBookings.getPrice());
-
-                    // Calculate progress percentage
-                    double tripProgress = (bonusConfig.getTargetTrips() != null && bonusConfig.getTargetTrips() > 0) ?
-                            (double) progress.getCompletedTrips() / bonusConfig.getTargetTrips() * 100 : 0;
-
-                    double revenueProgress = (bonusConfig.getRevenueTarget() != null && bonusConfig.getRevenueTarget() > 0) ?
-                            progress.getCurrentRevenue() / bonusConfig.getRevenueTarget() * 100 : 0;
-
-                    // Overall progress is the minimum of both requirements
-                    double overallProgress;
-                    if (bonusConfig.getTargetTrips() != null && bonusConfig.getRevenueTarget() != null) {
-                        overallProgress = Math.min(tripProgress, revenueProgress);
-                    } else if (bonusConfig.getTargetTrips() != null) {
-                        overallProgress = tripProgress;
-                    } else if (bonusConfig.getRevenueTarget() != null) {
-                        overallProgress = revenueProgress;
-                    } else {
-                        overallProgress = 0.0;
-                    }
-                    progress.setProgressPercentage(overallProgress);
-
-                    // Check if both requirements are met
-                    boolean tripRequirementMet = (bonusConfig.getTargetTrips() == null) ||
-                            (progress.getCompletedTrips() >= bonusConfig.getTargetTrips());
-                    boolean revenueRequirementMet = (bonusConfig.getRevenueTarget() == null) ||
-                            (progress.getCurrentRevenue() >= bonusConfig.getRevenueTarget());
-
-                    // Set achieved only if both requirements are met
-                    if (tripRequirementMet && revenueRequirementMet && !progress.getIsAchieved()) {
-                        progress.setIsAchieved(true);
-                        progress.setAchievedDate(LocalDateTime.now());
-                        // Optionally, notify the driver
-                        // notificationService.sendBonusAchievedNotification(driverAccount.getAccountId(), bonusConfig);
-                    }
-
-                    progress.setUpdatedAt(LocalDateTime.now());
-                    driverBonusProgressRepository.save(progress);
-
-                    log.info("Updated existing monthly bonus progress for driver: {}, progress: {}%, achieved: {}",
-                            driverAccount.getAccountId(), progress.getProgressPercentage(), progress.getIsAchieved());
-                } else {
-                    // Driver doesn't have a bonus for this month yet, determine eligible bonus and create
-                    DriverGroup driverGroup = determineDriverGroup(driverAccount);
-                    BonusTier bonusTier = driverBonusProgressService.determineBonusTier(driverAccount);
-
-                    // Find active bonus configuration for the driver's group and tier
-                    Optional<BonusConfiguration> activeBonusOpt = bonusConfigurationRepository
-                            .findActiveConfigurationForDriverGroupAndTier(
-                                    driverGroup,
-                                    bonusTier,
-                                    LocalDateTime.now()
-                            );
-
-                    if (activeBonusOpt.isPresent()) {
-                        BonusConfiguration activeBonus = activeBonusOpt.get();
-
-                        // Create new progress record
-                        DriverBonusProgress progress = DriverBonusProgress.builder()
-                                .accountId(driverAccount.getAccountId())
-                                .bonusConfigId(activeBonus.getBonusConfigurationId())
-                                .bonusMonth(currentMonth)  // Add the month field
-                                .completedTrips(1)
-                                .currentRevenue(tripBookings.getPrice())
-                                .progressPercentage(0.0)
-                                .isAchieved(false)
-                                .isRewarded(false)
-                                .createdAt(LocalDateTime.now())
-                                .updatedAt(LocalDateTime.now())
-                                .build();
-
-                        // Calculate progress percentage
-                        double tripProgress = (activeBonus.getTargetTrips() != null && activeBonus.getTargetTrips() > 0) ?
-                                (double) progress.getCompletedTrips() / activeBonus.getTargetTrips() * 100 : 0;
-
-                        double revenueProgress = (activeBonus.getRevenueTarget() != null && activeBonus.getRevenueTarget() > 0) ?
-                                progress.getCurrentRevenue() / activeBonus.getRevenueTarget() * 100 : 0;
-
-                        // Overall progress is the minimum of both requirements
-                        double overallProgress;
-                        if (activeBonus.getTargetTrips() != null && activeBonus.getRevenueTarget() != null) {
-                            overallProgress = Math.min(tripProgress, revenueProgress);
-                        } else if (activeBonus.getTargetTrips() != null) {
-                            overallProgress = tripProgress;
-                        } else if (activeBonus.getRevenueTarget() != null) {
-                            overallProgress = revenueProgress;
-                        } else {
-                            overallProgress = 0.0;
-                        }
-                        progress.setProgressPercentage(overallProgress);
-
-                        // Check if both requirements are met
-                        boolean tripRequirementMet = (activeBonus.getTargetTrips() == null) ||
-                                (progress.getCompletedTrips() >= activeBonus.getTargetTrips());
-                        boolean revenueRequirementMet = (activeBonus.getRevenueTarget() == null) ||
-                                (progress.getCurrentRevenue() >= activeBonus.getRevenueTarget());
-
-                        // Set achieved only if both requirements are met
-                        if (tripRequirementMet && revenueRequirementMet) {
-                            progress.setIsAchieved(true);
-                            progress.setAchievedDate(LocalDateTime.now());
-                            // Optionally, notify the driver
-                            // notificationService.sendBonusAchievedNotification(driverAccount.getAccountId(), activeBonus);
-                        }
-
-                        driverBonusProgressRepository.save(progress);
-
-                        log.info("Created new monthly bonus progress for driver: {}, progress: {}%, achieved: {}",
-                                driverAccount.getAccountId(), progress.getProgressPercentage(), progress.getIsAchieved());
-                    }
-                }
-            } catch (Exception e) {
-                // Log error but don't prevent trip completion
-                log.error("Failed to update driver bonus progress: {}", e.getMessage(), e);
-            }
+            processOrderCompletion(tripBooking, bookingId);
         }
 
-        tripBookings.setStatus(requestDTO.getStatus());
-        tripBookingsRepository.save(tripBookings);
+        // Update booking status
+        tripBooking.setStatus(requestDTO.getStatus());
+        tripBookingsRepository.save(tripBooking);
+    }
+
+    private boolean isAlreadyCompleted(TripBookings tripBooking, UpdateStatusTripBookingsRequestDTO requestDTO) {
+        return tripBooking.getStatus() == TripBookingStatus.ORDER_COMPLETED &&
+                requestDTO.getStatus() == TripBookingStatus.ORDER_COMPLETED;
+    }
+
+    private void processOrderCompletion(TripBookings tripBooking, Long bookingId) {
+        log.info("Publishing trip completion event for booking: {}", bookingId);
+
+        // Get required entities
+        TripAgreement tripAgreement = getTripAgreement(tripBooking.getTripAgreementId());
+        Schedule schedule = findScheduleByScheduleId(tripAgreement.getScheduleId());
+        Account driverAccount = findAccountByAccountId(schedule);
+        Account customerAccount = getCustomerAccount(tripBooking.getAccountId());
+
+        // Process payment to driver
+        processDriverPayment(driverAccount, tripBooking, bookingId);
+
+        // Update loyalty points for both driver and customer
+        updateLoyaltyPointsAndRanking(driverAccount, tripBooking.getPrice());
+        updateLoyaltyPointsAndRanking(customerAccount, tripBooking.getPrice());
+
+        // Save updated accounts
+        accountRepository.save(driverAccount);
+        accountRepository.save(customerAccount);
+
+        // Update driver bonus progress
+        updateDriverBonusProgress(driverAccount, tripBooking.getPrice());
+    }
+
+    private Account getCustomerAccount(Integer accountId) {
+        return accountRepository.findAccountByAccountId(accountId)
+                .orElseThrow(() -> new BadRequestException("Customer account not found"));
+    }
+
+    private void processDriverPayment(Account driverAccount, TripBookings tripBooking, Long bookingId) {
+        // Update driver balance
+        driverAccount.setBalance(driverAccount.getBalance() + tripBooking.getPrice());
+
+        // Record payment in balance history
+        balanceHistoryService.recordPaymentCredit(
+                bookingId,
+                driverAccount.getAccountId(),
+                tripBooking.getPrice()
+        );
+    }
+
+    private void updateDriverBonusProgress(Account driverAccount, Double tripPrice) {
+        try {
+            int currentMonth = LocalDateTime.now().getMonthValue();
+            Optional<DriverBonusProgress> monthlyBonusOpt = driverBonusProgressRepository
+                    .findByAccountIdAndBonusMonth(
+                            driverAccount.getAccountId(),
+                            currentMonth);
+
+            if (monthlyBonusOpt.isPresent()) {
+                updateExistingBonusProgress(monthlyBonusOpt.get(), tripPrice);
+            } else {
+                createNewBonusProgress(driverAccount, tripPrice);
+            }
+        } catch (Exception e) {
+            // Log error but don't prevent trip completion
+            log.error("Failed to update driver bonus progress: {}", e.getMessage(), e);
+        }
+    }
+
+    private void updateExistingBonusProgress(DriverBonusProgress progress, Double tripPrice) {
+        // Get the bonus configuration to calculate progress
+        BonusConfiguration bonusConfig = bonusConfigurationRepository.findById(progress.getBonusConfigId())
+                .orElseThrow(() -> new RuntimeException("Bonus Configuration not found"));
+
+        // Update progress stats
+        progress.setCompletedTrips(progress.getCompletedTrips() + 1);
+        progress.setCurrentRevenue(progress.getCurrentRevenue() + tripPrice);
+
+        // Calculate and update progress percentage
+        double overallProgress = calculateProgressPercentage(progress, bonusConfig);
+        progress.setProgressPercentage(overallProgress);
+
+        // Check if bonus is achieved
+        checkAndUpdateBonusAchievement(progress, bonusConfig);
+
+        // Save updated progress
+        progress.setUpdatedAt(LocalDateTime.now());
+        driverBonusProgressRepository.save(progress);
+
+        log.info("Updated existing monthly bonus progress for driver: {}, progress: {}%, achieved: {}",
+                progress.getAccountId(), progress.getProgressPercentage(), progress.getIsAchieved());
+    }
+
+    private void createNewBonusProgress(Account driverAccount, Double tripPrice) {
+        DriverGroup driverGroup = determineDriverGroup(driverAccount);
+        BonusTier bonusTier = driverBonusProgressService.determineBonusTier(driverAccount);
+        int currentMonth = LocalDateTime.now().getMonthValue();
+
+        // Find active bonus configuration for the driver's group and tier
+        Optional<BonusConfiguration> activeBonusOpt = bonusConfigurationRepository
+                .findActiveConfigurationForDriverGroupAndTier(
+                        driverGroup,
+                        bonusTier,
+                        LocalDateTime.now()
+                );
+
+        if (activeBonusOpt.isPresent()) {
+            BonusConfiguration activeBonus = activeBonusOpt.get();
+
+            // Create new progress record
+            DriverBonusProgress progress = createNewBonusProgressRecord(
+                    driverAccount.getAccountId(),
+                    activeBonus.getBonusConfigurationId(),
+                    currentMonth,
+                    tripPrice
+            );
+
+            // Calculate and update progress percentage
+            double overallProgress = calculateProgressPercentage(progress, activeBonus);
+            progress.setProgressPercentage(overallProgress);
+
+            // Check if bonus is achieved immediately
+            checkAndUpdateBonusAchievement(progress, activeBonus);
+
+            // Save new progress
+            driverBonusProgressRepository.save(progress);
+
+            log.info("Created new monthly bonus progress for driver: {}, progress: {}%, achieved: {}",
+                    driverAccount.getAccountId(), progress.getProgressPercentage(), progress.getIsAchieved());
+        }
+    }
+
+    private DriverBonusProgress createNewBonusProgressRecord(Integer accountId, Long bonusConfigId,
+                                                             int bonusMonth, Double initialRevenue) {
+        return DriverBonusProgress.builder()
+                .accountId(accountId)
+                .bonusConfigId(bonusConfigId)
+                .bonusMonth(bonusMonth)
+                .completedTrips(1)
+                .currentRevenue(initialRevenue)
+                .progressPercentage(0.0)
+                .isAchieved(false)
+                .isRewarded(false)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+    }
+
+    private double calculateProgressPercentage(DriverBonusProgress progress, BonusConfiguration bonusConfig) {
+        double tripProgress = 0.0;
+        double revenueProgress = 0.0;
+
+        // Calculate trip progress if there's a trip target
+        if (bonusConfig.getTargetTrips() != null && bonusConfig.getTargetTrips() > 0) {
+            tripProgress = (double) progress.getCompletedTrips() / bonusConfig.getTargetTrips() * 100;
+        }
+
+        // Calculate revenue progress if there's a revenue target
+        if (bonusConfig.getRevenueTarget() != null && bonusConfig.getRevenueTarget() > 0) {
+            revenueProgress = progress.getCurrentRevenue() / bonusConfig.getRevenueTarget() * 100;
+        }
+
+        // Overall progress is the minimum of both requirements
+        if (bonusConfig.getTargetTrips() != null && bonusConfig.getRevenueTarget() != null) {
+            return Math.min(tripProgress, revenueProgress);
+        } else if (bonusConfig.getTargetTrips() != null) {
+            return tripProgress;
+        } else if (bonusConfig.getRevenueTarget() != null) {
+            return revenueProgress;
+        } else {
+            return 0.0;
+        }
+    }
+
+    private void checkAndUpdateBonusAchievement(DriverBonusProgress progress, BonusConfiguration bonusConfig) {
+        boolean tripRequirementMet = (bonusConfig.getTargetTrips() == null) ||
+                (progress.getCompletedTrips() >= bonusConfig.getTargetTrips());
+        boolean revenueRequirementMet = (bonusConfig.getRevenueTarget() == null) ||
+                (progress.getCurrentRevenue() >= bonusConfig.getRevenueTarget());
+
+        // Set achieved only if both requirements are met and not already achieved
+        if (tripRequirementMet && revenueRequirementMet && !progress.getIsAchieved()) {
+            progress.setIsAchieved(true);
+            progress.setAchievedDate(LocalDateTime.now());
+            // Optionally, add a notification here
+            // notificationService.sendBonusAchievedNotification(progress.getAccountId(), bonusConfig);
+        }
     }
 
     // Helper method for driver group determination

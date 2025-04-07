@@ -26,7 +26,6 @@ public class ScheduleRequestDTO {
     @NotBlank(message = "End location cannot be blank")
     private String endLocationAddress;
 
-    @NotBlank(message = "Vehicle cannot be blank")
     private Integer vehicleId;
 
     @NotNull(message = "Start date cannot be null")

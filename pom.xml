@@ -21,6 +21,7 @@
         <module>balance-service</module>
 		<module>voucher-service</module>
         <module>bonus-service</module>
+        <module>insurance-service</module>
     </modules>
 
 	<properties>
@@ -100,6 +101,11 @@
 			<dependency>
 				<groupId>com.ftcs</groupId>
 				<artifactId>bonus-service</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.ftcs</groupId>
+				<artifactId>insurance-service</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 		</dependencies>
