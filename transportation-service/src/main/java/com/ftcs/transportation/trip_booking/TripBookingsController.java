@@ -121,8 +121,16 @@ public class TripBookingsController {
     }
 
     @GetMapping("/direction")
-    public ApiResponse<?> findDirection(@RequestParam("origin") String origin, @RequestParam("destination") String destination, @RequestParam("weight") BigDecimal weight, @RequestAttribute("accountId") Integer accountId) {
+    public ApiResponse<?> findDirection(@RequestParam("origin") String origin, @RequestParam("destination") String destination,
+                                        @RequestParam("weight") BigDecimal weight,
+                                        @RequestAttribute("accountId") Integer accountId) {
         return new ApiResponse<>(tripBookingsService.getPreviewTripBookingDTO(accountId, origin, destination, weight));
+    }
+
+    @GetMapping("/insurance")
+    public ApiResponse<?> findDirection(@RequestParam("originalPrice") Double originalPrice,
+                                        @RequestParam("bookingType") Long bookingType){
+        return new ApiResponse<>(tripBookingsService.getPreviewInsuranceDTO(originalPrice, bookingType));
     }
 
     @PutMapping("/updateStatus/{bookingId}")

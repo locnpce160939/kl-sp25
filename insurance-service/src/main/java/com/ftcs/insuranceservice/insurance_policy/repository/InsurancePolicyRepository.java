@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface InsurancePolicyRepository extends JpaRepository<InsurancePolicy, Long> {
     Optional<InsurancePolicy> findInsurancePolicyByPolicyId(Long policyId);
+    Optional<InsurancePolicy> findInsurancePolicyByBookingType(Long bookingType);
 }

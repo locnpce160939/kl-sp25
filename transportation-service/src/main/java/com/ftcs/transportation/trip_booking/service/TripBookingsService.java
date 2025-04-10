@@ -15,6 +15,9 @@ import com.ftcs.bonusservice.repository.BonusConfigurationRepository;
 import com.ftcs.bonusservice.repository.DriverBonusProgressRepository;
 import com.ftcs.bonusservice.service.DriverBonusProgressService;
 import com.ftcs.common.exception.BadRequestException;
+import com.ftcs.insuranceservice.booking_insurance.service.BookingInsuranceService;
+import com.ftcs.insuranceservice.insurance_policy.model.InsurancePolicy;
+import com.ftcs.insuranceservice.insurance_policy.service.InsurancePolicyService;
 import com.ftcs.transportation.schedule.constant.ScheduleStatus;
 import com.ftcs.transportation.schedule.model.Schedule;
 import com.ftcs.transportation.schedule.repository.ScheduleRepository;
@@ -72,39 +75,8 @@ public class TripBookingsService {
     private final BonusConfigurationRepository bonusConfigurationRepository;
     private final DriverBonusProgressRepository driverBonusProgressRepository;
     private final DriverBonusProgressService driverBonusProgressService;
-    private final AccountService accountService;
-    private final VoucherRepository voucherRepository;
-
-
-
-//    public TripBookingsDTO createTripBookings(TripBookingsRequestDTO requestDTO, Integer accountId) {
-//        validateExpirationDate(requestDTO);
-//
-//        TripBookings tripBookings = new TripBookings();
-//        tripBookings.setAccountId(accountId);
-//        mapRequestToTripBookings(requestDTO, tripBookings);
-//
-//        PreviewTripBookingDTO preview = getPreviewTripBookingDTO(
-//                requestDTO.getPickupLocation(),
-//                requestDTO.getDropoffLocation(),
-//                BigDecimal.valueOf(requestDTO.getCapacity())
-//        );
-//
-//        tripBookings.setTotalDistance(preview.getExpectedDistance());
-//        tripBookings.setPrice(preview.getPrice());
-//
-//        TripBookings savedBooking = tripBookingsRepository.save(tripBookings);
-//
-//        Payment payment = null;
-//        if (savedBooking.getPaymentMethod() == PaymentMethod.ONLINE_PAYMENT) {
-//            payment = paymentService.createPayment(savedBooking.getBookingId(), savedBooking.getPrice(), accountId);
-//        }
-//
-//        tripMatchingService.matchTripsForAll();
-//        return toTripBookingsDTO(savedBooking, payment);
-//
-//    }
-
+    private final InsurancePolicyService insurancePolicyService;
+    private final BookingInsuranceService bookingInsuranceService;
 
     public TripBookingsDTO createTripBookings(TripBookingsRequestDTO requestDTO, Integer accountId) {
         validateExpirationDate(requestDTO);
@@ -117,18 +89,37 @@ public class TripBookingsService {
                 accountId,
                 requestDTO.getPickupLocation(),
                 requestDTO.getDropoffLocation(),
-                BigDecimal.valueOf(requestDTO.getCapacity())
-        );
+                BigDecimal.valueOf(requestDTO.getCapacity()));
 
         tripBookings.setTotalDistance(preview.getExpectedDistance());
         tripBookings.setOriginalPrice(preview.getPrice());
 
+        double currentPrice = preview.getPrice();
+
+        PreviewInsuranceDTO previewInsuranceDTO = getPreviewInsuranceDTO(
+                currentPrice,
+                requestDTO.getBookingType()
+        );
+
+        if (Boolean.TRUE.equals(requestDTO.getUseInsurance())) {
+            tripBookings.setInsurancePrice(previewInsuranceDTO.getInsurancePrice());
+            tripBookings.setInsurancePolicyId(previewInsuranceDTO.getInsurancePolicyId());
+            tripBookings.setUseInsurance(true);
+            currentPrice += previewInsuranceDTO.getInsurancePrice();
+        } else {
+            tripBookings.setUseInsurance(false);
+            tripBookings.setInsurancePrice(0.0);
+        }
+
         // Apply voucher if available
-        applyVoucherIfAvailable(requestDTO, accountId, tripBookings, preview);
+        applyVoucherIfAvailable(requestDTO, accountId, tripBookings, currentPrice, preview);
 
         // Save the booking
         TripBookings savedBooking = tripBookingsRepository.save(tripBookings);
 
+        if (savedBooking.getUseInsurance()){
+            bookingInsuranceService.createBookingInsurance(savedBooking.getBookingType(), accountId, preview.getPrice(), savedBooking.getBookingId());
+        }
         // Create payment if online payment method is selected
         Payment payment = createPaymentIfNeeded(savedBooking);
 
@@ -146,10 +137,10 @@ public class TripBookingsService {
     }
 
     private void applyVoucherIfAvailable(TripBookingsRequestDTO requestDTO, Integer accountId,
-                                         TripBookings tripBookings, PreviewTripBookingDTO preview) {
+                                         TripBookings tripBookings, Double currentPrice, PreviewTripBookingDTO preview) {
         // Create validation DTO for voucher checking
         VoucherValidationDTO validationDTO = VoucherValidationDTO.builder()
-                .orderValue(preview.getPrice())
+                .orderValue(currentPrice)
                 .paymentMethod(requestDTO.getPaymentMethod().toString())
                 .distanceKm(preview.getExpectedDistance())
                 .isFirstOrder(isFirstOrder(accountId))
@@ -168,7 +159,7 @@ public class TripBookingsService {
             applyVoucherDiscount(requestDTO, accountId, tripBookings, discountInfo);
         } else {
             // No voucher applied
-            tripBookings.setPrice(preview.getPrice());
+            tripBookings.setPrice(currentPrice);
         }
     }
 
@@ -563,8 +554,6 @@ public class TripBookingsService {
         }
     }
 
-
-
     public void continueFindingDriver(UpdateStatusTripBookingsRequestDTO requestDTO, Long bookingId) {
         TripBookings tripBookings = findTripBookingsById(bookingId);
         if (tripBookings.getStatus() == TripBookingStatus.CANCELLED &&
@@ -700,6 +689,16 @@ public class TripBookingsService {
         previewTripBookingDTO.setExpectedDistance(distance);
         previewTripBookingDTO.setIsFirstOrder(isFirstOrder);
         return previewTripBookingDTO;
+    }
+
+    public PreviewInsuranceDTO getPreviewInsuranceDTO(Double originalPrice, Long bookingType) {
+        InsurancePolicy insurancePolicy = insurancePolicyService.getInsurancePolicyByBookingType(bookingType);
+        PreviewInsuranceDTO previewInsuranceDTO = new PreviewInsuranceDTO();
+        previewInsuranceDTO.setInsurancePrice(insurancePolicy.getPremiumPercentage() * originalPrice / 100);
+        previewInsuranceDTO.setInsurancePolicyId(insurancePolicy.getPolicyId());
+        previewInsuranceDTO.setInsuranceName(insurancePolicy.getName());
+        previewInsuranceDTO.setInsuranceDescription(insurancePolicy.getDescription());
+        return previewInsuranceDTO;
     }
 
     private void mapRequestToTripBookings(TripBookingsRequestDTO requestDTO, TripBookings tripBookings) {

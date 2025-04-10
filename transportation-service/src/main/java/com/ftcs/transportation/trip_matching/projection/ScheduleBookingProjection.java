@@ -22,7 +22,7 @@ public interface ScheduleBookingProjection {
 
     Long getBookingId();
     Integer getBookingAccountId();
-    String getBookingType();
+    Long getBookingType();
     LocalDateTime getBookingDate();
     String getPickupLocation();
     String getDropoffLocation();

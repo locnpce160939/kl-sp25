@@ -73,5 +73,9 @@
             <groupId>com.ftcs</groupId>
             <artifactId>bonus-service</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.ftcs</groupId>
+            <artifactId>insurance-service</artifactId>
+        </dependency>
     </dependencies>
 </project>

@@ -16,7 +16,7 @@ public class TripBookingsDTO {
     private Long bookingId;
     private Integer accountId;
     private Long tripAgreementId;
-    private String bookingType;
+    private Long bookingType;
     private LocalDateTime bookingDate;
     private String pickupLocation;
     private String dropoffLocation;
@@ -34,4 +34,5 @@ public class TripBookingsDTO {
     private LocalDateTime createAt;
     private LocalDateTime updateAt;
     private Payment payment;
+    private Double insurancePrice;
 }

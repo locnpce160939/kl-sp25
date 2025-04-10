@@ -14,8 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TripBookingsRequestDTO {
-    @NotBlank(message = "Booking type cannot be null")
-    private String bookingType;
+    private Long bookingType;
 
     @NotNull(message = "Booking date cannot be null")
     private LocalDateTime bookingDate;
@@ -31,6 +30,8 @@ public class TripBookingsRequestDTO {
 
     @NotBlank(message = "End location cannot be blank")
     private String endLocationAddress;
+
+    private Boolean useInsurance;
 
     private String notes;
 

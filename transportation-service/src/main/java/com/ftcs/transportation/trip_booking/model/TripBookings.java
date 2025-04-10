@@ -31,7 +31,16 @@ public class TripBookings {
     private Long tripAgreementId;
 
     @Column(name = "BookingType", length = 50, nullable = false)
-    private String bookingType;
+    private Long bookingType;
+
+    @Column(name = "InsurancePolicyId")
+    private Long insurancePolicyId;
+
+    @Column(name = "UseInsurance")
+    private Boolean useInsurance;
+
+    @Column(name = "InsurancePrice")
+    private Double insurancePrice;
 
     @Column(name = "BookingDate", nullable = false)
     private LocalDateTime bookingDate;

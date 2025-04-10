@@ -57,4 +57,10 @@ public class InsurancePolicyService {
     public void deleteInsurancePolicy(Long policyId) {
         insurancePolicyRepository.deleteById(policyId);
     }
+
+    public InsurancePolicy getInsurancePolicyByBookingType(Long bookingTypeId) {
+        return  insurancePolicyRepository.findInsurancePolicyByBookingType(bookingTypeId)
+                .orElseThrow(() -> new BadRequestException("Booking type not found"));
+    }
+
 }
