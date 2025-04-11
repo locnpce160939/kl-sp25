@@ -16,6 +16,8 @@ import com.ftcs.bonusservice.repository.DriverBonusProgressRepository;
 import com.ftcs.bonusservice.service.DriverBonusProgressService;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.insuranceservice.booking_insurance.service.BookingInsuranceService;
+import com.ftcs.insuranceservice.insurance_claim.dto.InsuranceClaimRequestDTO;
+import com.ftcs.insuranceservice.insurance_claim.service.InsuranceClaimService;
 import com.ftcs.insuranceservice.insurance_policy.model.InsurancePolicy;
 import com.ftcs.insuranceservice.insurance_policy.service.InsurancePolicyService;
 import com.ftcs.transportation.schedule.constant.ScheduleStatus;
@@ -77,6 +79,7 @@ public class TripBookingsService {
     private final DriverBonusProgressService driverBonusProgressService;
     private final InsurancePolicyService insurancePolicyService;
     private final BookingInsuranceService bookingInsuranceService;
+    private final InsuranceClaimService insuranceClaimService;
 
     public TripBookingsDTO createTripBookings(TripBookingsRequestDTO requestDTO, Integer accountId) {
         validateExpirationDate(requestDTO);
@@ -561,6 +564,14 @@ public class TripBookingsService {
             tripBookings.setStatus(TripBookingStatus.ARRANGING_DRIVER);
             tripBookingsRepository.save(tripBookings);
         }
+    }
+
+    public void createInsuranceClaim(Long bookingId, InsuranceClaimRequestDTO requestDTO) {
+        TripBookings tripBookings = findTripBookingsById(bookingId);
+        if (tripBookings.getStatus() != TripBookingStatus.ORDER_COMPLETED) {
+            throw new BadRequestException("You can not create insurance claim if you are not already completed");
+        }
+        insuranceClaimService.createInsuranceClaim(bookingId, requestDTO);
     }
 
     public void changPaymentMethod(UpdateStatusTripBookingsRequestDTO requestDTO, Long bookingId) {

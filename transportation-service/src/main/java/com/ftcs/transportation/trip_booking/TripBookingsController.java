@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ftcs.accountservice.driver.identification.dto.DriverIdentificationRequestDTO;
 import com.ftcs.common.dto.ApiResponse;
+import com.ftcs.insuranceservice.insurance_claim.dto.InsuranceClaimRequestDTO;
+import com.ftcs.insuranceservice.insurance_claim.model.InsuranceClaim;
 import com.ftcs.transportation.TransportationURL;
 import com.ftcs.transportation.trip_booking.dto.*;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
@@ -163,5 +165,12 @@ public class TripBookingsController {
             @Valid @RequestBody VoucherValidationDTO validationDTO) throws JsonProcessingException {
         return new ApiResponse<>(tripBookingsService.calculateVoucherDiscount(
                voucherId, voucherCode, validationDTO));
+    }
+
+    @PostMapping("/insuranceClaim/{bookingId}")
+    public ApiResponse<?> createInsuranceClaim(@PathVariable("bookingId") Long bookingId,
+                                                            @RequestBody InsuranceClaimRequestDTO requestDTO) {
+        tripBookingsService.createInsuranceClaim(bookingId, requestDTO);
+        return new ApiResponse<>("Create Insurance Claim successfully");
     }
 }

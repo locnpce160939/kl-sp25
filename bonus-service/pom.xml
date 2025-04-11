@@ -70,5 +70,9 @@
             <scope>runtime</scope>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>com.ftcs</groupId>
+            <artifactId>balance-service</artifactId>
+        </dependency>
     </dependencies>
 </project>

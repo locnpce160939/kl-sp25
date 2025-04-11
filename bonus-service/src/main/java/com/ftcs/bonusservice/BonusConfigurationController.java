@@ -68,8 +68,4 @@ public class BonusConfigurationController {
     public ApiResponse<BonusConfigurationDTO> deActivateBonusConfiguration(@PathVariable("bonusConfigurationId") Long bonusConfigurationId) {
         return new ApiResponse<>(bonusConfigurationService.deactivateBonusConfiguration(bonusConfigurationId));
     }
-
-
-
-
 }

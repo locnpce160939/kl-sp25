@@ -2,7 +2,9 @@ package com.ftcs.bonusservice.service;
 
 import com.ftcs.accountservice.account.serivce.AccountService;
 import com.ftcs.authservice.features.account.Account;
+import com.ftcs.authservice.features.account.AccountRepository;
 import com.ftcs.authservice.features.account.contacts.Rank;
+import com.ftcs.balanceservice.balance_history.service.BalanceHistoryService;
 import com.ftcs.bonusservice.constant.BonusTier;
 import com.ftcs.bonusservice.constant.DriverGroup;
 import com.ftcs.bonusservice.dto.AccountDTO;
@@ -34,6 +36,8 @@ public class DriverBonusProgressService {
     private final BonusConfigurationRepository bonusConfigurationRepository;
     private final BonusConfigurationService bonusConfigurationService;
     private final AccountService accountServiceClient;
+    private final AccountRepository accountRepository;
+    private final BalanceHistoryService balanceHistoryService;
 
 
     public Page<DriverBonusProgressDTO> getDriverProgressByAccountId(Integer accountId, Integer page, Integer size) {
@@ -147,12 +151,21 @@ public class DriverBonusProgressService {
         Account account = accountServiceClient.getAccountById(progress.getAccountId());
         BonusConfiguration bonusConfiguration = bonusConfigurationRepository.findById(progress.getBonusConfigId()).
                 orElseThrow(() -> new BadRequestException("Bonus Configuration not found"));
-        account.setBalance(account.getBalance() + bonusConfiguration.getBonusAmount());
+
+        Double bonusAmount = bonusConfiguration.getBonusAmount();
+        account.setBalance(account.getBalance() + bonusAmount);
+        // Update account through client
+
+
         progress.setIsRewarded(true);
         progress.setRewardedDate(LocalDateTime.now());
         progress.setUpdatedAt(LocalDateTime.now());
-
+        accountRepository.save(account);
         DriverBonusProgress updatedProgress = driverBonusProgressRepository.save(progress);
+
+        // Record the balance history for this bonus payment
+        balanceHistoryService.recordBonusPayment(progressId, progress.getAccountId(), bonusAmount);
+
         return mapToDTO(updatedProgress);
     }
 

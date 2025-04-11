@@ -5,4 +5,5 @@ public enum TransactionType {
     WITHDRAW_REQUESTED,
     WITHDRAW_APPROVED,
     WITHDRAW_REJECTED,
+    BONUS_RECEIVED
 }
