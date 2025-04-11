@@ -16,34 +16,36 @@ import java.time.LocalDateTime;
 public class TripBookingsRequestDTO {
     private Long bookingType;
 
-    @NotNull(message = "Booking date cannot be null")
+//    @NotNull(message = "Booking date cannot be null")
     private LocalDateTime bookingDate;
 
-    @NotBlank(message = "Pickup location cannot be null")
+//    @NotBlank(message = "Pickup location cannot be null")
     private String pickupLocation;
 
-    @NotBlank(message = "Dropoff location cannot be null")
+//    @NotBlank(message = "Dropoff location cannot be null")
     private String dropoffLocation;
 
-    @NotBlank(message = "Start location cannot be blank")
+//    @NotBlank(message = "Start location cannot be blank")
     private String startLocationAddress;
 
-    @NotBlank(message = "End location cannot be blank")
+//    @NotBlank(message = "End location cannot be blank")
     private String endLocationAddress;
 
     private Boolean useInsurance;
 
+    private Long selectedInsurancePolicyId;
+
     private String notes;
 
-    @NotNull(message = "Capacity cannot be null")
-    @Min(value = 1, message = "Capacity must be greater than or equal to 1")
+//    @NotNull(message = "Capacity cannot be null")
+//    @Min(value = 1, message = "Capacity must be greater than or equal to 1")
     private Integer capacity;
 
-    @NotNull(message = "PaymentMethod cannot be null")
+//    @NotNull(message = "PaymentMethod cannot be null")
     private PaymentMethod paymentMethod;
 
-    @NotNull(message = "Expiration date cannot be null")
-    @Future(message = "Expiration date must be in the future")
+//    @NotNull(message = "Expiration date cannot be null")
+//    @Future(message = "Expiration date must be in the future")
     private LocalDateTime expirationDate;
 
     private String voucherCode;

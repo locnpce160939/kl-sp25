@@ -12,6 +12,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @AllArgsConstructor
 public class InsurancePolicyService {
@@ -58,9 +60,8 @@ public class InsurancePolicyService {
         insurancePolicyRepository.deleteById(policyId);
     }
 
-    public InsurancePolicy getInsurancePolicyByBookingType(Long bookingTypeId) {
-        return  insurancePolicyRepository.findInsurancePolicyByBookingType(bookingTypeId)
-                .orElseThrow(() -> new BadRequestException("Booking type not found"));
+    public List<InsurancePolicy> getInsurancePolicyByBookingType(Long bookingTypeId) {
+        return  insurancePolicyRepository.findByBookingType(bookingTypeId);
     }
 
 }

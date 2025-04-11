@@ -47,7 +47,6 @@ public class PaymentService {
                 .paymentDate(LocalDateTime.now())
                 .paymentStatus(PaymentStatus.PENDING)
                 .build();
-
         paymentRepository.save(payment);
         String qrCode = qrCodeService.generateQrCode(payment);
         payment.setQrData(qrCode);

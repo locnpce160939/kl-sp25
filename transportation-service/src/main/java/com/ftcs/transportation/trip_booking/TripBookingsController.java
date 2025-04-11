@@ -122,18 +122,17 @@ public class TripBookingsController {
         return new ApiResponse<>(tripBookingsService.getBySchedule(scheduleId));
     }
 
-    @GetMapping("/direction")
-    public ApiResponse<?> findDirection(@RequestParam("origin") String origin, @RequestParam("destination") String destination,
-                                        @RequestParam("weight") BigDecimal weight,
+    @PostMapping("/direction")
+    public ApiResponse<?> findDirection(@RequestBody TripBookingsRequestDTO requestDTO,
                                         @RequestAttribute("accountId") Integer accountId) {
-        return new ApiResponse<>(tripBookingsService.getPreviewTripBookingDTO(accountId, origin, destination, weight));
+        return new ApiResponse<>(tripBookingsService.getPreviewTripBookingDTO(accountId, requestDTO));
     }
 
-    @GetMapping("/insurance")
-    public ApiResponse<?> findDirection(@RequestParam("originalPrice") Double originalPrice,
-                                        @RequestParam("bookingType") Long bookingType){
-        return new ApiResponse<>(tripBookingsService.getPreviewInsuranceDTO(originalPrice, bookingType));
-    }
+//    @GetMapping("/insurance")
+//    public ApiResponse<?> findDirection(@RequestParam("originalPrice") Double originalPrice,
+//                                        @RequestParam("bookingType") Long bookingType){
+//        return new ApiResponse<>(tripBookingsService.getPreviewInsuranceDTO(originalPrice, bookingType));
+//    }
 
     @PutMapping("/updateStatus/{bookingId}")
     @PreAuthorize("hasPermission(null, 'DRIVER')")

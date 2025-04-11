@@ -90,28 +90,33 @@ public class TripBookingsService {
         // Get trip preview with distance and price calculation
         PreviewTripBookingDTO preview = getPreviewTripBookingDTO(
                 accountId,
-                requestDTO.getPickupLocation(),
-                requestDTO.getDropoffLocation(),
-                BigDecimal.valueOf(requestDTO.getCapacity()));
-
+                requestDTO);
         tripBookings.setTotalDistance(preview.getExpectedDistance());
         tripBookings.setOriginalPrice(preview.getPrice());
 
         double currentPrice = preview.getPrice();
 
-        PreviewInsuranceDTO previewInsuranceDTO = getPreviewInsuranceDTO(
-                currentPrice,
-                requestDTO.getBookingType()
-        );
+        // Handle insurance if selected
+        if (requestDTO.getSelectedInsurancePolicyId() != null) {
+            // Find the selected insurance policy
+            InsurancePolicy selectedPolicy = insurancePolicyService.getInsurancePolicyByBookingType(requestDTO.getBookingType())
+                .stream()
+                .filter(policy -> policy.getPolicyId().equals(requestDTO.getSelectedInsurancePolicyId()))
+                .findFirst()
+                .orElseThrow(() -> new BadRequestException("Selected insurance policy not found"));
 
-        if (Boolean.TRUE.equals(requestDTO.getUseInsurance())) {
-            tripBookings.setInsurancePrice(previewInsuranceDTO.getInsurancePrice());
-            tripBookings.setInsurancePolicyId(previewInsuranceDTO.getInsurancePolicyId());
+            // Calculate insurance price
+            double insurancePrice = selectedPolicy.getPremiumPercentage() * currentPrice / 100;
+            
+            // Update trip booking with insurance info
+            tripBookings.setInsurancePrice(insurancePrice);
+            tripBookings.setInsurancePolicyId(selectedPolicy.getPolicyId());
             tripBookings.setUseInsurance(true);
-            currentPrice += previewInsuranceDTO.getInsurancePrice();
+            currentPrice += insurancePrice;
         } else {
             tripBookings.setUseInsurance(false);
             tripBookings.setInsurancePrice(0.0);
+            tripBookings.setInsurancePolicyId(null);
         }
 
         // Apply voucher if available
@@ -121,7 +126,7 @@ public class TripBookingsService {
         TripBookings savedBooking = tripBookingsRepository.save(tripBookings);
 
         if (savedBooking.getUseInsurance()){
-            bookingInsuranceService.createBookingInsurance(savedBooking.getBookingType(), accountId, preview.getPrice(), savedBooking.getBookingId());
+            bookingInsuranceService.createBookingInsurance(savedBooking.getInsurancePolicyId(), accountId, preview.getPrice(), savedBooking.getBookingId());
         }
         // Create payment if online payment method is selected
         Payment payment = createPaymentIfNeeded(savedBooking);
@@ -679,15 +684,22 @@ public class TripBookingsService {
         tripBookingsRepository.save(tripBookings);
     }
 
-    public PreviewTripBookingDTO getPreviewTripBookingDTO(Integer accountId, String origin, String destination, BigDecimal weight) {
-        DirectionsResponseDTO directionsDTO = directionsService.getDirections(origin, destination);
+    public PreviewTripBookingDTO getPreviewTripBookingDTO(Integer accountId, TripBookingsRequestDTO requestDTO) {
+        DirectionsResponseDTO directionsDTO = directionsService.getDirections(requestDTO.getPickupLocation(), requestDTO.getDropoffLocation());
         double distance = directionsDTO.getRoutes().get(0).getLegs().get(0).getDistance().getValue() / 1000.0;
-        BasePriceProjection basePriceProjection = tripBookingsRepository.findBasePrice(BigDecimal.valueOf(distance), weight);
+        BasePriceProjection basePriceProjection = tripBookingsRepository.findBasePrice(BigDecimal.valueOf(distance), BigDecimal.valueOf(requestDTO.getCapacity()));
         Boolean isFirstOrder = isFirstOrder(accountId);
-        return getPreviewTripBookingDTO(weight, basePriceProjection, distance, isFirstOrder);
+        return getPreviewTripBookingDTO(
+            BigDecimal.valueOf(requestDTO.getCapacity()), 
+            basePriceProjection, 
+            distance, 
+            isFirstOrder, 
+            requestDTO.getBookingType(), 
+            requestDTO.getSelectedInsurancePolicyId()
+        );
     }
 
-    private static @NotNull PreviewTripBookingDTO getPreviewTripBookingDTO(BigDecimal weight, BasePriceProjection basePriceProjection, double distance, Boolean isFirstOrder) {
+    private @NotNull PreviewTripBookingDTO getPreviewTripBookingDTO(BigDecimal weight, BasePriceProjection basePriceProjection, double distance, Boolean isFirstOrder, Long bookingType, Long selectedInsurancePolicyId) {
         if (basePriceProjection == null || basePriceProjection.getBasePrice() == null) {
             throw new RuntimeException("Base price not found for the given distance and weight");
         }
@@ -699,18 +711,39 @@ public class TripBookingsService {
         previewTripBookingDTO.setPrice(totalPrice);
         previewTripBookingDTO.setExpectedDistance(distance);
         previewTripBookingDTO.setIsFirstOrder(isFirstOrder);
+
+        List<InsurancePolicy> insurancePolicies = insurancePolicyService.getInsurancePolicyByBookingType(bookingType);
+        List<PreviewInsuranceDTO> insuranceDTOs = new ArrayList<>();
+
+        for (InsurancePolicy policy : insurancePolicies) {
+            PreviewInsuranceDTO insuranceDTO = new PreviewInsuranceDTO();
+            insuranceDTO.setInsurancePrice(policy.getPremiumPercentage() * totalPrice / 100);
+            insuranceDTO.setInsurancePolicyId(policy.getPolicyId());
+            insuranceDTO.setInsuranceName(policy.getName());
+            insuranceDTO.setInsuranceDescription(policy.getDescription());
+            insuranceDTOs.add(insuranceDTO);
+
+            // Only add insurance price if this is the selected policy
+            if (policy.getPolicyId().equals(selectedInsurancePolicyId)) {
+                totalPrice += insuranceDTO.getInsurancePrice();
+            }
+        }
+
+        previewTripBookingDTO.setInsurances(insuranceDTOs);
+        previewTripBookingDTO.setPrice(totalPrice);
+
         return previewTripBookingDTO;
     }
 
-    public PreviewInsuranceDTO getPreviewInsuranceDTO(Double originalPrice, Long bookingType) {
-        InsurancePolicy insurancePolicy = insurancePolicyService.getInsurancePolicyByBookingType(bookingType);
-        PreviewInsuranceDTO previewInsuranceDTO = new PreviewInsuranceDTO();
-        previewInsuranceDTO.setInsurancePrice(insurancePolicy.getPremiumPercentage() * originalPrice / 100);
-        previewInsuranceDTO.setInsurancePolicyId(insurancePolicy.getPolicyId());
-        previewInsuranceDTO.setInsuranceName(insurancePolicy.getName());
-        previewInsuranceDTO.setInsuranceDescription(insurancePolicy.getDescription());
-        return previewInsuranceDTO;
-    }
+//    public PreviewInsuranceDTO getPreviewInsuranceDTO(Double originalPrice, Long bookingType) {
+//        InsurancePolicy insurancePolicy = insurancePolicyService.getInsurancePolicyByBookingType(bookingType);
+//        PreviewInsuranceDTO previewInsuranceDTO = new PreviewInsuranceDTO();
+//        previewInsuranceDTO.setInsurancePrice(insurancePolicy.getPremiumPercentage() * originalPrice / 100);
+//        previewInsuranceDTO.setInsurancePolicyId(insurancePolicy.getPolicyId());
+//        previewInsuranceDTO.setInsuranceName(insurancePolicy.getName());
+//        previewInsuranceDTO.setInsuranceDescription(insurancePolicy.getDescription());
+//        return previewInsuranceDTO;
+//    }
 
     private void mapRequestToTripBookings(TripBookingsRequestDTO requestDTO, TripBookings tripBookings) {
         tripBookings.setPaymentMethod(requestDTO.getPaymentMethod());

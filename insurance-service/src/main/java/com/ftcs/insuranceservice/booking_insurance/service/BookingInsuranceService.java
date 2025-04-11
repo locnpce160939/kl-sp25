@@ -5,6 +5,7 @@ import com.ftcs.insuranceservice.booking_insurance.model.BookingInsurance;
 import com.ftcs.insuranceservice.booking_insurance.repository.BookingInsuranceRepository;
 import com.ftcs.insuranceservice.booking_type.service.BookingTypeService;
 import com.ftcs.insuranceservice.insurance_policy.model.InsurancePolicy;
+import com.ftcs.insuranceservice.insurance_policy.repository.InsurancePolicyRepository;
 import com.ftcs.insuranceservice.insurance_policy.service.InsurancePolicyService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,14 +18,15 @@ import org.springframework.stereotype.Service;
 public class BookingInsuranceService {
 
     private final BookingInsuranceRepository bookingInsuranceRepository;
-    private final InsurancePolicyService insurancePolicyService;
+    private final InsurancePolicyRepository insurancePolicyRepository;
 
-    public void createBookingInsurance(Long bookingTypeId, Integer accountId, Double price, Long bookingId) {
-        InsurancePolicy insurancePolicy = insurancePolicyService.getInsurancePolicyByBookingType(bookingTypeId);
+    public void createBookingInsurance(Long policyId, Integer accountId, Double price, Long bookingId) {
+        InsurancePolicy insurancePolicy = insurancePolicyRepository.findInsurancePolicyByPolicyId(policyId)
+                .orElseThrow(() -> new BadRequestException("Insurance policy not found"));
         BookingInsurance bookingInsurance = BookingInsurance.builder()
-                .bookingId(bookingId)
+                .bookingId(insurancePolicy.getBookingType())
                 .accountId(accountId)
-                .policyId(insurancePolicy.getPolicyId())
+                .policyId(policyId)
                 .calculatedPremium(price*insurancePolicy.getPremiumPercentage() / 100)
                 .calculateCompensation(price*insurancePolicy.getCompensationPercentage() / 100)
                 .premiumPercentage(insurancePolicy.getPremiumPercentage())
