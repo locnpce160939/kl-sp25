@@ -30,6 +30,7 @@ public class InsuranceClaimService {
     public InsuranceClaim createInsuranceClaim(Long bookingId, InsuranceClaimRequestDTO requestDTO) {
         BookingInsurance bookingInsurance = bookingInsuranceService.findByBookingId(bookingId);
         InsuranceClaim insuranceClaim = InsuranceClaim.builder()
+                .bookingId(bookingId)
                 .claimDescription(requestDTO.getClaimDescription())
                 .bookingInsuranceId(bookingInsurance.getId())
                 .claimDate(LocalDateTime.now())

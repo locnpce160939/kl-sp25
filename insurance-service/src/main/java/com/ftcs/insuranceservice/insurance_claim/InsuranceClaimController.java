@@ -64,5 +64,6 @@ public class InsuranceClaimController {
             @RequestParam(value = "size", defaultValue = "10") Integer size) {
         return new ApiResponse<>(insuranceClaimService.findByClaimDateBetween(startDate, endDate, page, size));
     }
+
 }
 

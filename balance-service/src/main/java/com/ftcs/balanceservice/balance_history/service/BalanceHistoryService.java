@@ -48,7 +48,7 @@ public class BalanceHistoryService {
 
     // Add this new method to the BalanceHistoryService class
     @Transactional
-    public void recordBonusPayment(Long bonusProgressId, Integer accountId, Double amount) {
+    public void recordBonus(Long bonusProgressId, Integer accountId, Double amount) {
         log.info("Creating balance history for driver bonus: progressId={}, accountId={}, amount={}",
                 bonusProgressId, accountId, amount);
 

@@ -17,6 +17,7 @@ import com.ftcs.bonusservice.service.DriverBonusProgressService;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.insuranceservice.booking_insurance.service.BookingInsuranceService;
 import com.ftcs.insuranceservice.insurance_claim.dto.InsuranceClaimRequestDTO;
+import com.ftcs.insuranceservice.insurance_claim.repository.InsuranceClaimRepository;
 import com.ftcs.insuranceservice.insurance_claim.service.InsuranceClaimService;
 import com.ftcs.insuranceservice.insurance_policy.model.InsurancePolicy;
 import com.ftcs.insuranceservice.insurance_policy.service.InsurancePolicyService;
@@ -80,7 +81,7 @@ public class TripBookingsService {
     private final InsurancePolicyService insurancePolicyService;
     private final BookingInsuranceService bookingInsuranceService;
     private final InsuranceClaimService insuranceClaimService;
-
+    private final InsuranceClaimRepository insuranceClaimRepository;
     public TripBookingsDTO createTripBookings(TripBookingsRequestDTO requestDTO, Integer accountId) {
         validateExpirationDate(requestDTO);
 
@@ -572,6 +573,9 @@ public class TripBookingsService {
     }
 
     public void createInsuranceClaim(Long bookingId, InsuranceClaimRequestDTO requestDTO) {
+        if(insuranceClaimRepository.existsByBookingId(bookingId)) {
+            throw new BadRequestException("You just can create insurance claim one time");
+        }
         TripBookings tripBookings = findTripBookingsById(bookingId);
         if (tripBookings.getStatus() != TripBookingStatus.ORDER_COMPLETED) {
             throw new BadRequestException("You can not create insurance claim if you are not already completed");

@@ -4,7 +4,6 @@ import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.insuranceservice.booking_type.dto.BookingTypeRequestDTO;
 import com.ftcs.insuranceservice.booking_type.model.BookingType;
 import com.ftcs.insuranceservice.booking_type.repository.BookingTypeRepository;
-import io.swagger.models.auth.In;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +18,7 @@ public class BookingTypeService {
     private final BookingTypeRepository bookingTypeRepository;
 
     public BookingType createBookingType(BookingTypeRequestDTO requestDTO){
+        validateBookingType(requestDTO);
         BookingType bookingType = BookingType.builder()
                 .bookingTypeName(requestDTO.getBookingTypeName())
                 .createdAt(LocalDateTime.now())
@@ -34,6 +34,7 @@ public class BookingTypeService {
     }
 
     public BookingType updateBookingType(BookingTypeRequestDTO requestDTO, Long bookingTypeId){
+        validateBookingType(requestDTO);
         BookingType bookingType = getBookingType(bookingTypeId);
         bookingType.setBookingTypeName(requestDTO.getBookingTypeName());
         bookingType.setUpdatedAt(LocalDateTime.now());
@@ -48,5 +49,11 @@ public class BookingTypeService {
     public BookingType getBookingType(Long bookingTypeId){
         return bookingTypeRepository.findByBookingTypeId(bookingTypeId).
                 orElseThrow(() -> new BadRequestException("Booking type not found"));
+    }
+
+    private void validateBookingType(BookingTypeRequestDTO requestDTO){
+        if(!bookingTypeRepository.existsByBookingTypeName(requestDTO.getBookingTypeName())){
+            throw new BadRequestException("Booking type name is already exits!");
+        }
     }
 }

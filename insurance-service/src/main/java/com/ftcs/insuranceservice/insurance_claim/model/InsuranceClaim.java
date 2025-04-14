@@ -19,7 +19,10 @@ public class InsuranceClaim {
     @Column(name = "Id")
     private Long id;
 
-    @JoinColumn(name = "BookingInsuranceId", nullable = false)
+    @Column(name = "BookingId")
+    private Long bookingId;
+
+    @Column(name = "BookingInsuranceId", nullable = false)
     private Long bookingInsuranceId;
 
     @Column(name = "ClaimDescription", columnDefinition = "TEXT")

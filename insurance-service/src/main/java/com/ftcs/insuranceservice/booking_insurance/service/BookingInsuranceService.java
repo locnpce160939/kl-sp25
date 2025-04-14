@@ -24,7 +24,7 @@ public class BookingInsuranceService {
         InsurancePolicy insurancePolicy = insurancePolicyRepository.findInsurancePolicyByPolicyId(policyId)
                 .orElseThrow(() -> new BadRequestException("Insurance policy not found"));
         BookingInsurance bookingInsurance = BookingInsurance.builder()
-                .bookingId(insurancePolicy.getBookingType())
+                .bookingId(bookingId)
                 .accountId(accountId)
                 .policyId(policyId)
                 .calculatedPremium(price*insurancePolicy.getPremiumPercentage() / 100)
@@ -55,6 +55,4 @@ public class BookingInsuranceService {
         return bookingInsuranceRepository.findByBookingId(bookingId)
                 .orElseThrow(() -> new BadRequestException("BookingInsurance not found"));
     }
-
-
 }

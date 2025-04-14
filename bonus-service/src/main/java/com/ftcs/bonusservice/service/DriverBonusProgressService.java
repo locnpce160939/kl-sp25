@@ -164,7 +164,7 @@ public class DriverBonusProgressService {
         DriverBonusProgress updatedProgress = driverBonusProgressRepository.save(progress);
 
         // Record the balance history for this bonus payment
-        balanceHistoryService.recordBonusPayment(progressId, progress.getAccountId(), bonusAmount);
+        balanceHistoryService.recordBonus(progressId, progress.getAccountId(), bonusAmount);
 
         return mapToDTO(updatedProgress);
     }
