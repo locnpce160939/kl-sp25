@@ -21,6 +21,8 @@ import com.ftcs.insuranceservice.insurance_claim.repository.InsuranceClaimReposi
 import com.ftcs.insuranceservice.insurance_claim.service.InsuranceClaimService;
 import com.ftcs.insuranceservice.insurance_policy.model.InsurancePolicy;
 import com.ftcs.insuranceservice.insurance_policy.service.InsurancePolicyService;
+import com.ftcs.rank_setting.RankSetting;
+import com.ftcs.rank_setting.RankSettingRepository;
 import com.ftcs.transportation.schedule.constant.ScheduleStatus;
 import com.ftcs.transportation.schedule.model.Schedule;
 import com.ftcs.transportation.schedule.repository.ScheduleRepository;
@@ -82,6 +84,7 @@ public class TripBookingsService {
     private final BookingInsuranceService bookingInsuranceService;
     private final InsuranceClaimService insuranceClaimService;
     private final InsuranceClaimRepository insuranceClaimRepository;
+    private final RankSettingRepository rankSettingRepository;
     public TripBookingsDTO createTripBookings(TripBookingsRequestDTO requestDTO, Integer accountId) {
         validateExpirationDate(requestDTO);
 
@@ -552,12 +555,9 @@ public class TripBookingsService {
         account.setLoyaltyPoints(account.getLoyaltyPoints() + pointsEarned);
         account.setRedeemablePoints(account.getRedeemablePoints() + pointsEarned);
 
-        if (account.getLoyaltyPoints() >= 50000) {
-            account.setRanking(Rank.PLATINUM);
-        } else if (account.getLoyaltyPoints() >= 20000) {
-            account.setRanking(Rank.GOLD);
-        } else if (account.getLoyaltyPoints() >= 5000) {
-            account.setRanking(Rank.SILVER);
+        RankSetting rank = rankSettingRepository.findRankByPoints(account.getLoyaltyPoints());
+        if (rank != null) {
+            account.setRanking(rank.getNameRank());
         } else {
             account.setRanking(Rank.BRONZE);
         }
