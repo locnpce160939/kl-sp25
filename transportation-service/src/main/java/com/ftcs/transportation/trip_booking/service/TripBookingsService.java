@@ -37,13 +37,11 @@ import com.ftcs.transportation.trip_booking.repository.TripBookingsRepository;
 import com.ftcs.transportation.trip_matching.dto.DirectionsResponseDTO;
 import com.ftcs.transportation.trip_matching.service.DirectionsService;
 import com.ftcs.transportation.trip_matching.service.TripMatchingService;
-import com.ftcs.voucherservice.constant.UserType;
 import com.ftcs.voucherservice.constant.VoucherStatus;
 import com.ftcs.voucherservice.constant.VoucherType;
 import com.ftcs.voucherservice.dto.VoucherValidationDTO;
 import com.ftcs.voucherservice.model.Voucher;
 import com.ftcs.voucherservice.model.VoucherUsage;
-import com.ftcs.voucherservice.repository.VoucherRepository;
 import com.ftcs.voucherservice.repository.VoucherUsageRepository;
 import com.ftcs.voucherservice.service.VoucherService;
 import lombok.AllArgsConstructor;
@@ -85,53 +83,33 @@ public class TripBookingsService {
     private final InsuranceClaimService insuranceClaimService;
     private final InsuranceClaimRepository insuranceClaimRepository;
     private final RankSettingRepository rankSettingRepository;
+
     public TripBookingsDTO createTripBookings(TripBookingsRequestDTO requestDTO, Integer accountId) {
+        // Validate request data
         validateExpirationDate(requestDTO);
 
-        // Create and initialize trip booking
-        TripBookings tripBookings = initializeNewTripBooking(accountId, requestDTO);
+        // Create and initialize new booking
+        TripBookings tripBooking = initializeNewTripBooking(accountId, requestDTO);
 
-        // Get trip preview with distance and price calculation
-        PreviewTripBookingDTO preview = getPreviewTripBookingDTO(
-                accountId,
-                requestDTO);
-        tripBookings.setTotalDistance(preview.getExpectedDistance());
-        tripBookings.setOriginalPrice(preview.getPrice());
+        // Calculate trip details (distance, price)
+        PreviewTripBookingDTO preview = getPreviewTripBookingDTO(accountId, requestDTO);
+        tripBooking.setTotalDistance(preview.getExpectedDistance());
+        tripBooking.setOriginalPrice(preview.getPrice());
 
-        double currentPrice = preview.getPrice();
-
-        // Handle insurance if selected
-        if (requestDTO.getSelectedInsurancePolicyId() != null) {
-            // Find the selected insurance policy
-            InsurancePolicy selectedPolicy = insurancePolicyService.getInsurancePolicyByBookingType(requestDTO.getBookingType())
-                .stream()
-                .filter(policy -> policy.getPolicyId().equals(requestDTO.getSelectedInsurancePolicyId()))
-                .findFirst()
-                .orElseThrow(() -> new BadRequestException("Selected insurance policy not found"));
-
-            // Calculate insurance price
-            double insurancePrice = selectedPolicy.getPremiumPercentage() * currentPrice / 100;
-            
-            // Update trip booking with insurance info
-            tripBookings.setInsurancePrice(insurancePrice);
-            tripBookings.setInsurancePolicyId(selectedPolicy.getPolicyId());
-            tripBookings.setUseInsurance(true);
-            currentPrice += insurancePrice;
-        } else {
-            tripBookings.setUseInsurance(false);
-            tripBookings.setInsurancePrice(0.0);
-            tripBookings.setInsurancePolicyId(null);
-        }
+        // Apply insurance if selected
+        double currentPrice = applyInsuranceIfSelected(requestDTO, tripBooking, preview.getPrice());
 
         // Apply voucher if available
-        applyVoucherIfAvailable(requestDTO, accountId, tripBookings, currentPrice, preview);
+        applyVoucherIfAvailable(requestDTO, accountId, tripBooking, currentPrice, preview);
 
         // Save the booking
-        TripBookings savedBooking = tripBookingsRepository.save(tripBookings);
+        TripBookings savedBooking = tripBookingsRepository.save(tripBooking);
 
-        if (savedBooking.getUseInsurance()){
-            bookingInsuranceService.createBookingInsurance(savedBooking.getInsurancePolicyId(), accountId, preview.getPrice(), savedBooking.getBookingId());
+        // Create insurance record if insurance was selected
+        if (savedBooking.getUseInsurance()) {
+            createBookingInsurance(savedBooking);
         }
+
         // Create payment if online payment method is selected
         Payment payment = createPaymentIfNeeded(savedBooking);
 
@@ -139,6 +117,52 @@ public class TripBookingsService {
         tripMatchingService.matchTripsForAll();
 
         return toTripBookingsDTO(savedBooking, payment);
+    }
+
+    private double applyInsuranceIfSelected(TripBookingsRequestDTO requestDTO, TripBookings tripBooking, double basePrice) {
+        double updatedPrice = basePrice;
+
+        if (requestDTO.getSelectedInsurancePolicyId() != null) {
+            // Find the selected insurance policy
+            InsurancePolicy selectedPolicy = findSelectedInsurancePolicy(requestDTO);
+
+            // Calculate insurance price
+            double insurancePrice = calculateInsurancePrice(selectedPolicy, basePrice);
+
+            // Update trip booking with insurance info
+            tripBooking.setInsurancePrice(insurancePrice);
+            tripBooking.setInsurancePolicyId(selectedPolicy.getPolicyId());
+            tripBooking.setUseInsurance(true);
+
+            updatedPrice += insurancePrice;
+        } else {
+            tripBooking.setUseInsurance(false);
+            tripBooking.setInsurancePrice(0.0);
+            tripBooking.setInsurancePolicyId(null);
+        }
+
+        return updatedPrice;
+    }
+
+    private InsurancePolicy findSelectedInsurancePolicy(TripBookingsRequestDTO requestDTO) {
+        return insurancePolicyService.getInsurancePolicyByBookingType(requestDTO.getBookingType())
+                .stream()
+                .filter(policy -> policy.getPolicyId().equals(requestDTO.getSelectedInsurancePolicyId()))
+                .findFirst()
+                .orElseThrow(() -> new BadRequestException("Selected insurance policy not found"));
+    }
+
+    private double calculateInsurancePrice(InsurancePolicy policy, double basePrice) {
+        return policy.getPremiumPercentage() * basePrice / 100;
+    }
+
+    private void createBookingInsurance(TripBookings booking) {
+        bookingInsuranceService.createBookingInsurance(
+                booking.getInsurancePolicyId(),
+                booking.getAccountId(),
+                booking.getOriginalPrice(),
+                booking.getBookingId()
+        );
     }
 
     private TripBookings initializeNewTripBooking(Integer accountId, TripBookingsRequestDTO requestDTO) {

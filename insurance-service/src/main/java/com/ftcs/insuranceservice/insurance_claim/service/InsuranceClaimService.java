@@ -51,9 +51,7 @@ public class InsuranceClaimService {
 
     public void updateStatus(Long id, InsuranceClaimRequestDTO requestDTO) {
         InsuranceClaim insuranceClaim = getInsuranceClaim(id);
-        if (insuranceClaim.getClaimStatus() == ClaimStatus.APPROVED && requestDTO.getClaimStatus() == ClaimStatus.APPROVED) {
-            throw new BadRequestException("This claim has already been approved and cannot be approved again");
-        }
+        validate(insuranceClaim, requestDTO);
         BookingInsurance bookingInsurance = bookingInsuranceService.getBookingInsuranceById(insuranceClaim.getBookingInsuranceId());
         if (requestDTO.getClaimStatus() == ClaimStatus.APPROVED){
             Account account = accountService.getAccountById(bookingInsurance.getAccountId());
@@ -77,5 +75,11 @@ public class InsuranceClaimService {
         LocalDateTime start = startDate.atStartOfDay();
         LocalDateTime end = endDate.atStartOfDay();
         return insuranceClaimRepository.findByClaimDateBetween(start, end, pageable);
+    }
+
+    public void validate(InsuranceClaim insuranceClaim, InsuranceClaimRequestDTO requestDTO) {
+        if (insuranceClaim.getClaimStatus() == ClaimStatus.APPROVED && requestDTO.getClaimStatus() == ClaimStatus.APPROVED) {
+            throw new BadRequestException("This claim has already been approved and cannot be approved again");
+        }
     }
 }
