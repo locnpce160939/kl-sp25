@@ -18,7 +18,13 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Page<Review> findAllByAccountId(@Param("accountId") Integer accountId, Pageable pageable);
 
     @Query(value = """
-        EXEC [dbo].[GetDriverReviews] @DriverId = :driverId
+        SELECT a.FullName, r.Rating, r.ReviewText, r.CreateAt, r.UpdateAt
+        FROM Review r
+        JOIN TripBookings t ON r.BookingId = t.BookingId
+        JOIN Account a ON t.AccountId = a.AccountId
+        JOIN TripAgreement ta ON t.TripAgreementId = ta.Id
+        WHERE ta.DriverId = :driverId
+        ORDER BY r.CreateAt DESC
         """, nativeQuery = true)
     Page<DriverReviewProjection> getDriverReviews(@Param("driverId") Integer driverId, Pageable pageable);
 }

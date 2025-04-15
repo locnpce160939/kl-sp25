@@ -292,8 +292,6 @@ public class VoucherService {
 
     public void updateVoucherUsage(Long voucherId, Integer accountId) {
         Voucher voucher = findVoucherById(voucherId);
-
-        // Update voucher quantities and status if needed
         if (voucher.getQuantity() != null) {
             voucher.setQuantity(voucher.getQuantity() - 1);
 
@@ -304,8 +302,6 @@ public class VoucherService {
             voucher.setUpdatedAt(LocalDateTime.now());
             voucherRepository.save(voucher);
         }
-
-        // Track the usage by the account
         trackVoucherUsageByAccount(accountId, voucherId);
     }
 
