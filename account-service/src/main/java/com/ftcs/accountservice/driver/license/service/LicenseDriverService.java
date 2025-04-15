@@ -30,6 +30,7 @@ public class LicenseDriverService {
 
     public void updateLicense(Integer accountId, LicenseRequestDTO requestDTO, Integer licenseId) {
         License license = findLicenseByLicenseId(licenseId);
+        validateDate(requestDTO);
         validateAccountOwnership(accountId, license);
         updateLicenseDetails(license, requestDTO);
         licenseRepository.save(license);
@@ -63,7 +64,7 @@ public class LicenseDriverService {
         if (licenseRepository.existsByAccountId(accountId)) {
             throw new BadRequestException("Account already has a license.");
         }
-
+        validateDate(requestDTO);
         License newLicense = License.builder()
                 .accountId(accountId)
                 .licenseNumber(requestDTO.getLicenseNumber())
@@ -143,6 +144,18 @@ public class LicenseDriverService {
     public void validateAccountOwnership(Integer accountId, License license) {
         if (!license.getAccountId().equals(accountId)) {
             throw new BadRequestException("This license does not belong to the specified account.");
+        }
+    }
+
+    public void validateDate(LicenseRequestDTO requestDTO) {
+        if(requestDTO.getIssuedDate().isAfter(LocalDateTime.now())) {
+            throw new BadRequestException("Ngày cấp phép phải là ngày trong quá khứ");
+        }
+        if(requestDTO.getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("Ngày hết hạn phải là ngày trong tương lai");
+        }
+        if(requestDTO.getIssuedDate().isAfter(requestDTO.getExpiryDate())) {
+            throw new BadRequestException("Ngày cấp phép phải trước ngày hết hạn");
         }
     }
 }

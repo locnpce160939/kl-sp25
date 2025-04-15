@@ -431,79 +431,108 @@ public class VoucherService {
     }
 
     public Voucher redeemVoucherWithPoints(Integer accountId, Long voucherId) {
-        // Find the voucher
-        Voucher voucher = findVoucherById(voucherId);
+        // Validate voucher and account
+        Voucher voucher = validateVoucherForRedemption(voucherId);
+        Account account = validateAccountForRedemption(accountId, voucher);
+        
+        // Check redemption limits
+        validateRedemptionLimits(accountId, voucherId, voucher);
+        
+        // Process redemption
+        return processVoucherRedemption(accountId, voucherId, voucher, account);
+    }
 
+    private Voucher validateVoucherForRedemption(Long voucherId) {
+        Voucher voucher = findVoucherById(voucherId);
+        
         if (voucher.getVoucherType() != VoucherType.REDEMPTION) {
             throw new BadRequestException("This voucher cannot be redeemed with points");
         }
 
-        // Check if voucher is valid and available
         if (voucher.getStatus() != VoucherStatus.ACTIVE) {
             throw new BadRequestException("Voucher is not active");
         }
 
-        // Check if voucher quantity is available
         if (voucher.getQuantity() != null && voucher.getQuantity() <= 0) {
             throw new BadRequestException("Voucher is out of stock");
         }
 
-        // Get account details
+        return voucher;
+    }
+
+    private Account validateAccountForRedemption(Integer accountId, Voucher voucher) {
         Account account = accountService.getAccountById(accountId);
 
-        // Check if account has sufficient rank
-        if (voucher.getMinimumRank() != null &&
-                !isRankSufficient(account.getRanking(), voucher.getMinimumRank())) {
-            throw new BadRequestException("Your rank is insufficient for this voucher. Required: " +
+        if (voucher.getMinimumRank() != null && 
+            !isRankSufficient(account.getRanking(), voucher.getMinimumRank())) {
+            throw new BadRequestException("Your rank is insufficient for this voucher. Required: " + 
                     voucher.getMinimumRank());
         }
 
-        // Check if account has sufficient points
         if (account.getRedeemablePoints() < voucher.getPointsRequired()) {
             throw new BadRequestException("Insufficient points to redeem this voucher");
         }
 
-        // Check if user has reached the maximum redemption limit
-        Optional<VoucherUsage> usageOpt =
-                voucherUsageRepository.findByAccountIdAndVoucherId(accountId, voucherId);
+        return account;
+    }
+
+    private void validateRedemptionLimits(Integer accountId, Long voucherId, Voucher voucher) {
+        Optional<VoucherUsage> usageOpt = voucherUsageRepository.findByAccountIdAndVoucherId(accountId, voucherId);
 
         if (usageOpt.isPresent()) {
             VoucherUsage usage = usageOpt.get();
+            
             if (voucher.getUsageLimit() != null && usage.getUsageCount() >= voucher.getUsageLimit()) {
                 throw new BadRequestException("You have reached the maximum redemption limit for this voucher");
             }
 
-            // If already redeemed, throw an error
             if (usage.getIsRedeemed()) {
                 throw new BadRequestException("You have already redeemed this voucher");
             }
         }
+    }
 
-        // Update account points (deduct points used)
-        account.setRedeemablePoints(account.getRedeemablePoints() - voucher.getPointsRequired());
-        accountRepository.save(account);
-
-        // Update voucher usage information
+    private Voucher processVoucherRedemption(Integer accountId, Long voucherId, Voucher voucher, Account account) {
         LocalDateTime now = LocalDateTime.now();
-        VoucherUsage usage = usageOpt.orElse(VoucherUsage.builder()
-                .accountId(accountId)
-                .voucherId(voucherId)
-                .usageCount(0) // Start with 0 usage count
-                .isRedeemed(false) // Will be set to true below
-                .createAt(now)
-                .build());
 
-        // Only update redemption info, DO NOT increment usageCount here
+        // Update account points
+        updateAccountPoints(account, voucher.getPointsRequired());
+
+        // Update voucher usage
+        updateVoucherUsageRecord(accountId, voucherId, now);
+
+        // Update voucher quantity if needed
+        updateVoucherQuantity(voucher, now);
+
+        return voucher;
+    }
+
+    private void updateAccountPoints(Account account, Integer pointsRequired) {
+        account.setRedeemablePoints(account.getRedeemablePoints() - pointsRequired);
+        accountRepository.save(account);
+    }
+
+    private void updateVoucherUsageRecord(Integer accountId, Long voucherId, LocalDateTime now) {
+        VoucherUsage usage = voucherUsageRepository
+                .findByAccountIdAndVoucherId(accountId, voucherId)
+                .orElse(VoucherUsage.builder()
+                        .accountId(accountId)
+                        .voucherId(voucherId)
+                        .usageCount(0)
+                        .isRedeemed(false)
+                        .createAt(now)
+                        .build());
+
         usage.setIsRedeemed(true);
         usage.setRedemptionDate(now);
         usage.setUpdateAt(now);
         voucherUsageRepository.save(usage);
+    }
 
-        // Update voucher quantity if needed
+    private void updateVoucherQuantity(Voucher voucher, LocalDateTime now) {
         if (voucher.getQuantity() != null) {
             voucher.setQuantity(voucher.getQuantity() - 1);
 
-            // If depleted, update status
             if (voucher.getQuantity() <= 0) {
                 voucher.setStatus(VoucherStatus.DEPLETED);
             }
@@ -511,8 +540,6 @@ public class VoucherService {
             voucher.setUpdatedAt(now);
             voucherRepository.save(voucher);
         }
-
-        return voucher;
     }
 
     public List<Voucher> getVouchersAvailableForRedemption(Integer accountId, UserType userType) {
