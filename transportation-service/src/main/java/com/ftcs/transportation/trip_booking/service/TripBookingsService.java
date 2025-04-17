@@ -233,55 +233,59 @@ public class TripBookingsService {
     }
 
     public List<Voucher> getApplicableVouchersForUser(VoucherValidationDTO validationDTO) {
-        List<Voucher> activeVouchers = voucherService.findAllByStatus(VoucherStatus.ACTIVE);
         List<Voucher> result = new ArrayList<>();
 
+        // Get user's redeemed vouchers first
         if (validationDTO.getAccountId() != null) {
             List<VoucherUsage> userVoucherUsages = voucherUsageRepository.findByAccountId(validationDTO.getAccountId());
-
+            log.info("Found {} voucher usages for account {}", userVoucherUsages.size(), validationDTO.getAccountId());
+            
             for (VoucherUsage usage : userVoucherUsages) {
-                try {
-                    Voucher voucher = voucherService.findVoucherById(usage.getVoucherId());
-
-                    System.out.println("Voucher ID: " + voucher.getVoucherId() +
-                            ", Code: " + voucher.getCode() +
-                            ", isRedeemed: " + usage.getIsRedeemed() +
-                            ", usageCount: " + usage.getUsageCount() +
-                            ", usageLimit: " + voucher.getUsageLimit());
-
-                    if (voucher.getStatus() == VoucherStatus.ACTIVE) {
-                        if (voucher.getVoucherType() == VoucherType.REDEMPTION) {
-                            if (usage.getIsRedeemed()) {
-                                if (voucher.getUsageLimit() == null || usage.getUsageCount() < voucher.getUsageLimit()) {
-                                    result.add(voucher);
-                                }
-                            }
-                        } else {
-                            if (voucher.getUsageLimit() == null || usage.getUsageCount() < voucher.getUsageLimit()) {
+                if (usage.getIsRedeemed()) {
+                    try {
+                        Voucher voucher = voucherService.findVoucherById(usage.getVoucherId());
+                        log.info("Checking redeemed voucher: {}", voucher.getVoucherId());
+                        if (voucher.getStatus() == VoucherStatus.ACTIVE) {
+                            if (voucherService.isVoucherApplicable(voucher, validationDTO)) {
+                                log.info("Redeemed voucher {} is applicable", voucher.getVoucherId());
                                 result.add(voucher);
                             }
                         }
+                    } catch (Exception e) {
+                        log.error("Error getting redeemed voucher: {}", e.getMessage());
                     }
-                } catch (Exception e) {
-                    throw new BadRequestException(e.getMessage());
                 }
             }
         }
 
-        // Thêm các voucher hệ thống (không phải redemption) vào danh sách
+        // Get active system vouchers
+        List<Voucher> activeVouchers = voucherService.findAllByStatus(VoucherStatus.ACTIVE);
+        log.info("Found {} active system vouchers", activeVouchers.size());
+        
+        // Filter and check system vouchers
         for (Voucher voucher : activeVouchers) {
-            if (voucher.getVoucherType() != VoucherType.REDEMPTION) {
-                // Kiểm tra xem voucher đã có trong danh sách kết quả chưa
-                if (result.stream().noneMatch(v -> v.getVoucherId().equals(voucher.getVoucherId()))) {
+            if (voucher.getVoucherType() == VoucherType.SYSTEM) {
+                log.info("Checking system voucher: {}", voucher.getVoucherId());
+                if (voucherService.isVoucherApplicable(voucher, validationDTO)) {
+                    log.info("System voucher {} is applicable", voucher.getVoucherId());
                     result.add(voucher);
                 }
             }
         }
 
-        // Áp dụng các điều kiện khác
-        return result.stream()
-                .filter(voucher -> voucherService.isVoucherApplicable(voucher, validationDTO))
-                .collect(Collectors.toList());
+        // Get active redemption vouchers
+        List<Voucher> redemptionVouchers = voucherService.findAllByStatusAndType(VoucherStatus.ACTIVE, VoucherType.REDEMPTION);
+        log.info("Found {} active redemption vouchers", redemptionVouchers.size());
+        
+        for (Voucher voucher : redemptionVouchers) {
+            log.info("Checking redemption voucher: {}", voucher.getVoucherId());
+            if (voucherService.isVoucherApplicable(voucher, validationDTO)) {
+                log.info("Redemption voucher {} is applicable", voucher.getVoucherId());
+                result.add(voucher);
+            }
+        }
+
+        return result;
     }
 
     public VoucherDiscountDTO calculateVoucherDiscount(Long voucherId,

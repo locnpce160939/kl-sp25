@@ -92,6 +92,10 @@ public class VoucherService {
         return voucherRepository.findAllByStatus(status);
     }
 
+    public List<Voucher> findAllByStatusAndType(VoucherStatus status, VoucherType type) {
+        return voucherRepository.findAllByStatusAndVoucherType(status, type);
+    }
+
     public Page<Voucher> findAllByStatusManagement(VoucherStatus status, Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page, size);
         return voucherRepository.findAllByStatus(status, pageable);
@@ -146,72 +150,103 @@ public class VoucherService {
     }
 
     public boolean isVoucherApplicable(Voucher voucher, VoucherValidationDTO validationDTO) {
+        log.info("Checking voucher: {}", voucher.getVoucherId());
+        log.info("Voucher details - Code: {}, Type: {}, Status: {}", 
+            voucher.getCode(), voucher.getVoucherType(), voucher.getStatus());
+        
         if (voucher.getStatus() != VoucherStatus.ACTIVE) {
+            log.info("Voucher not active");
             return false;
         }
 
         LocalDateTime now = LocalDateTime.now();
         if (now.isBefore(voucher.getStartDate()) || now.isAfter(voucher.getEndDate())) {
+            log.info("Voucher expired - Start: {}, End: {}, Now: {}", 
+                voucher.getStartDate(), voucher.getEndDate(), now);
             return false;
         }
 
         if (voucher.getQuantity() != null && voucher.getQuantity() <= 0) {
+            log.info("Voucher quantity depleted - Quantity: {}", voucher.getQuantity());
             return false;
         }
 
         // Check minimum order value
         if (voucher.getMinOrderValue() != null && validationDTO.getOrderValue() < voucher.getMinOrderValue()) {
+            log.info("Order value too low - Order: {}, Min: {}", 
+                validationDTO.getOrderValue(), voucher.getMinOrderValue());
             return false;
         }
 
         PaymentMethod mappedPaymentMethod = mapTripPaymentMethod(validationDTO.getPaymentMethod());
-
         if (voucher.getPaymentMethod() != PaymentMethod.ALL &&
                 voucher.getPaymentMethod() != mappedPaymentMethod) {
+            log.info("Payment method not matched - Voucher: {}, Order: {}", 
+                voucher.getPaymentMethod(), mappedPaymentMethod);
             return false;
         }
 
         // Check minimum distance
         if (voucher.getMinKm() != null && validationDTO.getDistanceKm() < voucher.getMinKm()) {
+            log.info("Distance too low - Order: {}, Min: {}", 
+                validationDTO.getDistanceKm(), voucher.getMinKm());
             return false;
         }
 
         // Check first order condition
         if (voucher.getIsFirstOrder() != null && voucher.getIsFirstOrder() && !validationDTO.getIsFirstOrder()) {
+            log.info("Not first order - Voucher requires first order");
             return false;
         }
 
         // Check for account specific validation
         if (validationDTO.getAccountId() != null) {
-            Optional<VoucherUsage> usageOpt =
-                    voucherUsageRepository.findByAccountIdAndVoucherId(validationDTO.getAccountId(), voucher.getVoucherId());
+            log.info("Checking account validation for accountId: {}", validationDTO.getAccountId());
+            Optional<VoucherUsage> usageOpt = voucherUsageRepository.findByAccountIdAndVoucherId(
+                validationDTO.getAccountId(), 
+                voucher.getVoucherId()
+            );
 
-            // Check usage limit - applicable to all voucher types
+            log.info("Voucher usage found: {}", usageOpt.isPresent());
+            if (usageOpt.isPresent()) {
+                VoucherUsage usage = usageOpt.get();
+                log.info("Usage details - Count: {}, IsRedeemed: {}", 
+                    usage.getUsageCount(), usage.getIsRedeemed());
+            }
+
+            // Check usage limit
             if (voucher.getUsageLimit() != null && usageOpt.isPresent()) {
                 VoucherUsage usage = usageOpt.get();
                 if (usage.getUsageCount() >= voucher.getUsageLimit()) {
+                    log.info("Usage limit reached - Count: {}, Limit: {}", 
+                        usage.getUsageCount(), voucher.getUsageLimit());
                     return false;
                 }
             }
 
-            // Check rank if required
+            // Check rank
             if (voucher.getMinimumRank() != null) {
                 Account account = accountService.getAccountById(validationDTO.getAccountId());
+                log.info("Rank check - User: {}, Required: {}", 
+                    account.getRanking(), voucher.getMinimumRank());
                 if (!isRankSufficient(account.getRanking(), voucher.getMinimumRank())) {
+                    log.info("Rank not sufficient");
                     return false;
                 }
             }
 
-            // Special check for redemption vouchers
+            // Check redemption
             if (voucher.getVoucherType() == VoucherType.REDEMPTION) {
-                // For redemption vouchers, the voucher must be redeemed before use
                 boolean hasRedeemed = usageOpt.map(VoucherUsage::getIsRedeemed).orElse(false);
+                log.info("Redemption check - IsRedeemed: {}", hasRedeemed);
                 if (!hasRedeemed) {
+                    log.info("Voucher not redeemed");
                     return false;
                 }
             }
         }
 
+        log.info("Voucher is applicable");
         return true;
     }
 
@@ -309,14 +344,13 @@ public class VoucherService {
     public void trackVoucherUsageByAccount(Integer accountId, Long voucherId) {
         LocalDateTime now = LocalDateTime.now();
 
-        // Find existing usage record or create new one
         VoucherUsage usage = voucherUsageRepository
                 .findByAccountIdAndVoucherId(accountId, voucherId)
                 .orElse(VoucherUsage.builder()
                         .accountId(accountId)
                         .voucherId(voucherId)
                         .usageCount(0)
-                        .isRedeemed(false) // Default to false for non-redeemed vouchers
+                        .isRedeemed(false)
                         .createAt(now)
                         .build());
 
@@ -381,7 +415,6 @@ public class VoucherService {
                 voucher.setStatus(VoucherStatus.EXPIRED);
                 voucher.setUpdatedAt(now);
                 voucherRepository.save(voucher);
-                log.info("Voucher {} automatically updated to EXPIRED status", voucher.getCode());
             }
 
             // Check if voucher quantity is depleted
@@ -389,7 +422,6 @@ public class VoucherService {
                 voucher.setStatus(VoucherStatus.DEPLETED);
                 voucher.setUpdatedAt(now);
                 voucherRepository.save(voucher);
-                log.info("Voucher {} automatically updated to DEPLETED status", voucher.getCode());
             }
 
             // Check if voucher usage limit is depleted
@@ -397,13 +429,12 @@ public class VoucherService {
                 voucher.setStatus(VoucherStatus.DEPLETED);
                 voucher.setUpdatedAt(now);
                 voucherRepository.save(voucher);
-                log.info("Voucher {} automatically updated to DEPLETED status", voucher.getCode());
             }
         }
     }
 
     // Scheduled task to update voucher status
-    @Scheduled(cron = "0 */5 * * * *") // Run every 5 minutes
+    @Scheduled(cron = "0 */5 * * * *")
     public void scheduledStatusUpdate() {
         log.info("Running scheduled voucher status update");
         autoUpdateVoucherStatus();
