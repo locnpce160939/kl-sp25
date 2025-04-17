@@ -5,6 +5,7 @@ import com.ftcs.accountservice.account.dto.register.RegisterConfirmRequestDTO;
 import com.ftcs.accountservice.account.dto.register.RegisterRequestDTO;
 import com.ftcs.authservice.features.account.Account;
 import com.ftcs.authservice.features.account.AccountRepository;
+import com.ftcs.authservice.features.account.contacts.Rank;
 import com.ftcs.authservice.features.account.contacts.RoleType;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.common.exception.NotFoundException;
@@ -16,7 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import java.util.List;
+
 import java.util.Random;
 
 @Service
@@ -49,6 +50,9 @@ public class AccountService {
         account.setStatus("Active");
         account.setRole(requestDTO.getRole());
         account.setBalance(0.00);
+        account.setRedeemablePoints(0);
+        account.setLoyaltyPoints(0);
+        account.setRanking(Rank.BRONZE);
         return accountRepository.save(account);
     }
 

@@ -36,9 +36,6 @@ public class FileService {
     ) {
         String finalFileName = generateUniqueFileName(fileName);
 
-//        final var localAsyncTask = CompletableFuture.runAsync(() ->
-//                fileUploadLocal.upload(finalFileName, folderEnum.getLocalPath(), file)
-//        );
         final var internalAsyncTask = CompletableFuture.runAsync(() ->
                 internalMinio.upload(finalFileName, folderEnum.getFolderName(), file));
 
