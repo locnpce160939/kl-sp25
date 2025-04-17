@@ -52,7 +52,7 @@ public class BookingTypeService {
     }
 
     private void validateBookingType(BookingTypeRequestDTO requestDTO){
-        if(!bookingTypeRepository.existsByBookingTypeName(requestDTO.getBookingTypeName())){
+        if(bookingTypeRepository.existsByBookingTypeName(requestDTO.getBookingTypeName())){
             throw new BadRequestException("Booking type name is already exits!");
         }
     }
