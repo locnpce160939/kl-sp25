@@ -27,4 +27,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
         ORDER BY r.CreateAt DESC
         """, nativeQuery = true)
     Page<DriverReviewProjection> getDriverReviews(@Param("driverId") Integer driverId, Pageable pageable);
+
+    boolean existsByBookingId(Long bookingId);
 }

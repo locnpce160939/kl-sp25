@@ -72,7 +72,7 @@ public class AddressService {
 
     private Address findAddressByAddressId(Integer addressId) {
         return addressRepository.findAddressByAddressId(addressId)
-                .orElseThrow(() -> new IllegalArgumentException("Address not found with ID: " + addressId));
+                .orElseThrow(() -> new BadRequestException("Address not found with ID: " + addressId));
     }
 
     private void validateAccountOwnership(Integer accountId, Address address) {

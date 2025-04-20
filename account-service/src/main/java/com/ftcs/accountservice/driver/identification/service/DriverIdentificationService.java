@@ -118,8 +118,7 @@ public class DriverIdentificationService {
     }
 
     public DriverIdentificationResponseDTO findDriverIdentification(Integer accountId) {
-        DriverIdentification identification = driverIdentificationRepository.findDriverIdentificationByAccountId(accountId)
-                .orElse(null);
+        DriverIdentification identification = findDriverIdentificationByAccountIdOptional(accountId);
 
         if (identification == null) {
             return new DriverIdentificationResponseDTO();
@@ -160,12 +159,6 @@ public class DriverIdentificationService {
     }
 
     public void updateStatus(Integer driverIdentificationId, UpdateStatusDriverIdentificationRequestDTO requestDTO) {
-//        boolean isValidStatus = Arrays.stream(StatusDocumentType.values())
-//                .anyMatch(status -> status == requestDTO.getStatus());
-//
-//        if (!isValidStatus) {
-//            throw new BadRequestException("Invalid status: " + requestDTO.getStatus());
-//        }
         DriverIdentification driverIdentification = findDriverIdentificationByDriverIdentificationId(driverIdentificationId);
         driverIdentification.setStatus(requestDTO.getStatus());
         driverIdentificationRepository.save(driverIdentification);

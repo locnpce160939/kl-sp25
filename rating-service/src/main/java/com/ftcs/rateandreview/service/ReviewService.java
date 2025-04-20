@@ -1,6 +1,7 @@
 package com.ftcs.rateandreview.service;
 
 import com.ftcs.common.exception.BadRequestException;
+import com.ftcs.common.exception.UnauthorizedException;
 import com.ftcs.rateandreview.dto.ReviewRequestDTO;
 import com.ftcs.rateandreview.model.Review;
 import com.ftcs.rateandreview.projection.DriverReviewProjection;
@@ -26,6 +27,7 @@ public class ReviewService {
 
     public void createRateAndReview(Integer accountId, ReviewRequestDTO requestDTO, Long bookingId, String role) {
         TripBookings tripBookings = getTripBookingsByBookingId(bookingId);
+        isExistingReview(bookingId);
         validateReviewRequest(requestDTO);
         validateOwnership(accountId, tripBookings);
         if (TripBookingStatus.ORDER_COMPLETED == tripBookings.getStatus()) {
@@ -69,20 +71,26 @@ public class ReviewService {
 
     private void validateOwnership(Integer accountId, TripBookings tripBookings) {
         if (!Objects.equals(tripBookings.getAccountId(), accountId)) {
-            throw new BadRequestException("You are not authorized to perform this action.");
+            throw new UnauthorizedException("You are not authorized to perform this action.");
         }
     }
 
     private void validateReviewRequest(ReviewRequestDTO requestDTO) {
         if (requestDTO.getReviewText() != null && !requestDTO.getReviewText().isEmpty()
                 && requestDTO.getRating() == null) {
-            throw new IllegalArgumentException("Rating cannot be null when review text is provided.");
+            throw new BadRequestException("Rating cannot be null when review text is provided.");
+        }
+    }
+
+    private void isExistingReview(Long bookingId) {
+        if (reviewRepository.existsByBookingId(bookingId)) {
+            throw new BadRequestException("A review already exists for this booking.");
         }
     }
 
     private TripBookings getTripBookingsByBookingId(Long bookingId) {
         return tripBookingsRepository.findTripBookingsByBookingId(bookingId)
-                .orElseThrow(() -> new RuntimeException("Trip booking not found."));
+                .orElseThrow(() -> new BadRequestException("Trip booking not found."));
     }
 
     private Review getReviewById(Integer reviewId) {
