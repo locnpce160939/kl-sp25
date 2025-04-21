@@ -39,8 +39,8 @@ public class LicenseDriverService {
     public void updateLicenseByAccountId(LicenseRequestDTO requestDTO, Integer accountId,
                                          MultipartFile frontFile, MultipartFile backFile) {
         License license = findLicenseByAccountId(accountId);
+        validateDate(requestDTO);
         validateAccountOwnership(accountId, license);
-
         if (frontFile != null) {
             handleFileDelete(license.getFrontView());
             handleFileUpload(frontFile, license::setFrontView);
@@ -60,12 +60,9 @@ public class LicenseDriverService {
 
     public void createNewLicense(LicenseRequestDTO requestDTO, Integer accountId, MultipartFile frontFile,
                                  MultipartFile backFile) {
-
-        if (licenseRepository.existsByAccountId(accountId)) {
-            throw new BadRequestException("Account already has a license.");
-        }
+        isExistingLicense(accountId);
         validateDate(requestDTO);
-        License newLicense = License.builder()
+        License license = License.builder()
                 .accountId(accountId)
                 .licenseNumber(requestDTO.getLicenseNumber())
                 .licenseType(requestDTO.getLicenseType())
@@ -76,17 +73,13 @@ public class LicenseDriverService {
                 .build();
 
         if (frontFile != null) {
-            handleFileUpload(frontFile, newLicense::setFrontView);
+            handleFileUpload(frontFile, license::setFrontView);
         }
 
         if (backFile != null) {
-            handleFileUpload(backFile, newLicense::setBackView);
+            handleFileUpload(backFile, license::setBackView);
         }
-
-        licenseRepository.save(newLicense);
-
-        log.info("License created successfully for accountId: {}, frontView: {}, backView: {}",
-                accountId, newLicense.getFrontView(), newLicense.getBackView());
+        licenseRepository.save(license);
     }
 
     private void handleFileUpload(MultipartFile file, Consumer<String> callback) {
@@ -131,6 +124,12 @@ public class LicenseDriverService {
         licenseRepository.save(license);
     }
 
+    private void isExistingLicense(Integer accountId) {
+        if (licenseRepository.existsByAccountId(accountId)) {
+            throw new BadRequestException("Account already has a license.");
+        }
+    }
+
     private void updateLicenseDetails(License license, LicenseRequestDTO requestDTO) {
         license.setLicenseNumber(requestDTO.getLicenseNumber());
         license.setLicenseType(requestDTO.getLicenseType());
@@ -149,13 +148,13 @@ public class LicenseDriverService {
 
     public void validateDate(LicenseRequestDTO requestDTO) {
         if(requestDTO.getIssuedDate().isAfter(LocalDateTime.now())) {
-            throw new BadRequestException("Ngày cấp phép phải là ngày trong quá khứ");
+            throw new BadRequestException("The license date must be in the past");
         }
         if(requestDTO.getExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new BadRequestException("Ngày hết hạn phải là ngày trong tương lai");
+            throw new BadRequestException("Expiration date must be in the future");
         }
         if(requestDTO.getIssuedDate().isAfter(requestDTO.getExpiryDate())) {
-            throw new BadRequestException("Ngày cấp phép phải trước ngày hết hạn");
+            throw new BadRequestException("The license issuance date must be before the expiration date");
         }
     }
 }
