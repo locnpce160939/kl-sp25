@@ -1,6 +1,7 @@
 package com.ftcs.bonusservice.dto;
 
 import com.ftcs.authservice.features.account.contacts.Rank;
+import com.ftcs.authservice.features.account.contacts.StatusAccount;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,7 +21,7 @@ public class AccountDTO {
     private String phone;
     private String role;
     private String profilePicture;
-    private String status;
+    private StatusAccount status;
     private Double balance;
     private String notes;
     private Rank ranking;

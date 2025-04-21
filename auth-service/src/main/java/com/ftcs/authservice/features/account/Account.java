@@ -2,6 +2,7 @@ package com.ftcs.authservice.features.account;
 
 import com.ftcs.authservice.features.account.contacts.Rank;
 import com.ftcs.authservice.features.account.contacts.RoleType;
+import com.ftcs.authservice.features.account.contacts.StatusAccount;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -46,8 +47,9 @@ public class Account {
     @Column(name = "ProfilePicture", length = 255)
     private String profilePicture;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "Status", length = 20)
-    private String status;
+    private StatusAccount status;
 
     @Column(name = "Balance", nullable = false)
     private Double balance;

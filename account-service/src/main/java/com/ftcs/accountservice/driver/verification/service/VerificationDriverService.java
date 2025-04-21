@@ -1,5 +1,6 @@
 package com.ftcs.accountservice.driver.verification.service;
 
+import com.ftcs.accountservice.account.serivce.AccountService;
 import com.ftcs.accountservice.driver.identification.model.DriverIdentification;
 import com.ftcs.accountservice.driver.license.model.License;
 import com.ftcs.accountservice.driver.shared.StatusDocumentType;
@@ -9,6 +10,9 @@ import com.ftcs.accountservice.driver.license.repository.LicenseRepository;
 import com.ftcs.accountservice.driver.vehicle.repository.VehicleRepository;
 import com.ftcs.accountservice.driver.verification.dto.StatusDocumentsDTO;
 import com.ftcs.accountservice.driver.verification.dto.VerifiedDocumentRequestDTO;
+import com.ftcs.authservice.features.account.Account;
+import com.ftcs.authservice.features.account.AccountRepository;
+import com.ftcs.authservice.features.account.contacts.StatusAccount;
 import com.ftcs.common.exception.BadRequestException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +28,8 @@ public class VerificationDriverService {
     private final DriverIdentificationRepository identificationRepository;
     private final LicenseRepository licenseRepository;
     private final VehicleRepository vehicleRepository;
+    private final AccountService accountService;
+    private final AccountRepository accountRepository;
 
     public void updateVerificationStatus(Integer accountId, VerifiedDocumentRequestDTO requestDTO) {
         updateLicenseVerification(accountId, requestDTO);
@@ -80,7 +86,17 @@ public class VerificationDriverService {
         boolean hasLicense = licenseRepository.existsByAccountIdAndStatus(accountId, StatusDocumentType.APPROVED);
         boolean hasVehicle = vehicleRepository.existsByAccountIdAndStatus(accountId, StatusDocumentType.APPROVED);
         boolean hasIdentification = identificationRepository.existsByAccountIdAndStatus(accountId, StatusDocumentType.APPROVED);
-
-        return hasLicense && hasVehicle && hasIdentification;
+        Account account = accountService.getAccountById(accountId);
+        
+        boolean allApproved = hasLicense && hasVehicle && hasIdentification;
+        
+        if (allApproved) {
+            account.setStatus(StatusAccount.ACTIVE);
+        } else {
+            account.setStatus(StatusAccount.PENDING);
+        }
+        
+        accountRepository.save(account);
+        return allApproved;
     }
 }

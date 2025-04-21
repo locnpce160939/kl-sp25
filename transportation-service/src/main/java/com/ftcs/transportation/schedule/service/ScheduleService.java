@@ -1,8 +1,11 @@
 package com.ftcs.transportation.schedule.service;
 
+import com.ftcs.accountservice.account.serivce.AccountService;
 import com.ftcs.accountservice.driver.shared.StatusDocumentType;
 import com.ftcs.accountservice.driver.vehicle.model.Vehicle;
 import com.ftcs.accountservice.driver.vehicle.repository.VehicleRepository;
+import com.ftcs.authservice.features.account.Account;
+import com.ftcs.authservice.features.account.contacts.StatusAccount;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.transportation.schedule.constant.ScheduleStatus;
 import com.ftcs.transportation.schedule.dto.FindScheduleByTimePeriodRequestDTO;
@@ -27,8 +30,10 @@ public class ScheduleService {
     private final TripMatchingService tripMatchingService;
     private final ScheduleRepository scheduleRepository;
     private final VehicleRepository vehicleRepository;
+    private final AccountService accountService;
 
     public Schedule createSchedule(ScheduleRequestDTO requestDTO, Integer accountId) {
+        validateStatusAccount(accountId);
         getValidatedVehicle(requestDTO.getVehicleId(), accountId);
         validateScheduleDates(requestDTO.getStartDate(), requestDTO.getEndDate());
         validateScheduleTiming(accountId, requestDTO.getStartDate());
@@ -144,6 +149,13 @@ public class ScheduleService {
     private void validateScheduleDates(LocalDateTime startDate, LocalDateTime endDate) {
         if (!endDate.isAfter(startDate)) {
             throw new BadRequestException("End date must be after start date.");
+        }
+    }
+
+    private void validateStatusAccount(Integer accountId) {
+        Account account = accountService.getAccountById(accountId);
+        if(account.getStatus() == StatusAccount.PENDING){
+            throw new BadRequestException("Account is already pending.");
         }
     }
 }

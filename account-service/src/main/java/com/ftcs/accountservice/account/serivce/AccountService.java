@@ -7,6 +7,7 @@ import com.ftcs.authservice.features.account.Account;
 import com.ftcs.authservice.features.account.AccountRepository;
 import com.ftcs.authservice.features.account.contacts.Rank;
 import com.ftcs.authservice.features.account.contacts.RoleType;
+import com.ftcs.authservice.features.account.contacts.StatusAccount;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.common.exception.NotFoundException;
 import com.ftcs.common.service.SendMailService;
@@ -47,7 +48,12 @@ public class AccountService {
         account.setFullName(requestDTO.getFullName());
         account.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
         account.setPhone(requestDTO.getPhone());
-        account.setStatus("Active");
+        if(requestDTO.getRole() == RoleType.DRIVER){
+            account.setStatus(StatusAccount.PENDING);
+        }else if(requestDTO.getRole() == RoleType.CUSTOMER){
+            account.setStatus(StatusAccount.ACTIVE);
+        }
+
         account.setRole(requestDTO.getRole());
         account.setBalance(0.00);
         account.setRedeemablePoints(0);
@@ -66,7 +72,7 @@ public class AccountService {
         account.setFullName(requestDTO.getFullName());
         account.setRole(requestDTO.getRole());
         account.setEmail(requestDTO.getEmail());
-        account.setStatus("Active");
+        account.setStatus(StatusAccount.ACTIVE);
         account.setBalance(0.00);
         return accountRepository.save(account);
     }
@@ -92,7 +98,7 @@ public class AccountService {
 
     public void deleteAccount(Integer id) {
         Account account = findAccountByAccountId(id);
-        account.setStatus("isDisabled");
+        account.setStatus(StatusAccount.IS_DISABLED);
         accountRepository.save(account);
     }
 

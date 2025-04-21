@@ -30,8 +30,8 @@ public class VehicleDriverService {
 
     public void createNewVehicle(VehicleRequestDTO requestDTO, Integer accountId, MultipartFile frontFile,
                                  MultipartFile backFile) {
-
-        Vehicle newVehicle = Vehicle.builder()
+        validate(requestDTO);
+        Vehicle vehicle = Vehicle.builder()
                 .accountId(accountId)
                 .licensePlate(requestDTO.getLicensePlate())
                 .vehicleType(requestDTO.getVehicleType())
@@ -46,22 +46,21 @@ public class VehicleDriverService {
                 .build();
 
         if (frontFile != null) {
-            handleFileUpload(frontFile, newVehicle::setFrontView);
+            handleFileUpload(frontFile, vehicle::setFrontView);
         }
 
         if (backFile != null) {
-            handleFileUpload(backFile, newVehicle::setBackView);
+            handleFileUpload(backFile, vehicle::setBackView);
         }
 
-        vehicleRepository.save(newVehicle);
-        log.info("Vehicle created successfully for accountId: {}, frontView: {}, backView: {}",
-                accountId, newVehicle.getFrontView(), newVehicle.getBackView());
+        vehicleRepository.save(vehicle);
     }
 
     public void updateVehicle(VehicleRequestDTO requestDTO, Integer accountId,
                               MultipartFile frontFile, MultipartFile backFile) {
 
         Vehicle vehicle = findVehicleByVehicleId(requestDTO.getVehicleId());
+        validate(requestDTO);
         validateAccountOwnership(accountId, vehicle);
 
         if (frontFile != null) {
@@ -76,8 +75,6 @@ public class VehicleDriverService {
 
         updateVehicleDetails(vehicle, requestDTO);
         vehicleRepository.save(vehicle);
-        log.info("Vehicle updated successfully for accountId: {}, frontView: {}, backView: {}",
-                accountId, vehicle.getFrontView(), vehicle.getBackView());
     }
 
     public void updateStatus(Integer vehicleId, UpdateStatusVehicleRequestDTO requestDTO){
@@ -141,5 +138,11 @@ public class VehicleDriverService {
 
     public List<Vehicle> getVehicleApproved(Integer accountId){
         return vehicleRepository.findByAccountIdAndStatus(accountId, StatusDocumentType.APPROVED);
+    }
+
+    private void validate(VehicleRequestDTO requestDTO) {
+        if(requestDTO.getRegistrationExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("Registration expiry date must not be in the past.");
+        }
     }
 }

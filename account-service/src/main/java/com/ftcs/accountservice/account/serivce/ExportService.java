@@ -127,7 +127,7 @@ public class ExportService {
         dataRow.createCell(3).setCellValue(account.getEmail());
         dataRow.createCell(4).setCellValue(account.getPhone());
         dataRow.createCell(5).setCellValue(account.getRole().toString());
-        dataRow.createCell(6).setCellValue(account.getStatus());
+        dataRow.createCell(6).setCellValue(account.getStatus() != null ? account.getStatus().toString() : "");
         dataRow.createCell(7).setCellValue(account.getBalance());
         dataRow.createCell(8).setCellValue(formatLocalDateTime(account.getLastLogin()));
         dataRow.createCell(9).setCellValue(formatLocalDateTime(account.getCreateAt()));
