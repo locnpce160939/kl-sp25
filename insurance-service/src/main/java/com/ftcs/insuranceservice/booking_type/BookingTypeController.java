@@ -1,6 +1,5 @@
 package com.ftcs.insuranceservice.booking_type;
 
-import com.ftcs.bonusservice.BonusURL;
 import com.ftcs.common.dto.ApiResponse;
 import com.ftcs.insuranceservice.InsuranceURL;
 import com.ftcs.insuranceservice.booking_type.dto.BookingTypeRequestDTO;

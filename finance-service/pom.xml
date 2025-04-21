@@ -44,14 +44,6 @@
             <artifactId>lombok</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.ftcs</groupId>
-            <artifactId>auth-service</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.ftcs</groupId>
-            <artifactId>account-service</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator</artifactId>
         </dependency>

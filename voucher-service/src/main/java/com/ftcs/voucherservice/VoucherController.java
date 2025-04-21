@@ -1,7 +1,5 @@
 package com.ftcs.voucherservice;
 
-import com.ftcs.balanceservice.BalanceURL;
-import com.ftcs.balanceservice.payment.model.Payment;
 import com.ftcs.common.dto.ApiResponse;
 import com.ftcs.voucherservice.constant.UserType;
 import com.ftcs.voucherservice.constant.VoucherStatus;

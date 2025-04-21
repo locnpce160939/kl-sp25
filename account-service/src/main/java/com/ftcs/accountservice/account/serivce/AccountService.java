@@ -175,7 +175,7 @@ public class AccountService {
 
     public Page<Account> findAllByRole(RoleType role, Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Account> accounts = accountRepository.findAllByRoleAndStatusNot(role, "isDisabled", pageable);
+        Page<Account> accounts = accountRepository.findAllByRoleAndStatusNot(role, StatusAccount.IS_DISABLED, pageable);
         if (accounts.isEmpty()) {
             throw new NotFoundException("No accounts found for the role: " + role);
         }
