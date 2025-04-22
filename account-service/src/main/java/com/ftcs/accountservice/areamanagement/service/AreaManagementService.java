@@ -63,16 +63,28 @@ public class AreaManagementService {
 
     public void updateAreas(Integer accountId, AreaManagementRequestDTO requestDTO) {
         List<Integer> newProvinceIds = requestDTO.getProvinceIds();
-
-        if (newProvinceIds == null || newProvinceIds.isEmpty()) {
-            throw new BadRequestException("Province IDs must be provided.");
+        
+        // Initialize empty list if null
+        if (newProvinceIds == null) {
+            newProvinceIds = new ArrayList<>();
         }
 
-        // Validate all new province IDs exist
-        newProvinceIds.forEach(this::validateProvinceExists);
+        // Validate province IDs if any exist
+        if (!newProvinceIds.isEmpty()) {
+            newProvinceIds.forEach(this::validateProvinceExists);
+        }
 
         // Get current areas
         List<AreaManagement> currentAreas = areaManagementRepository.findByAccountId(accountId);
+        
+        if (newProvinceIds.isEmpty()) {
+            // If new list is empty, remove all existing areas
+            if (!currentAreas.isEmpty()) {
+                areaManagementRepository.deleteAll(currentAreas);
+            }
+            return;
+        }
+
         List<Integer> currentProvinceIds = currentAreas.stream()
                 .map(AreaManagement::getProvinceId)
                 .collect(Collectors.toList());
