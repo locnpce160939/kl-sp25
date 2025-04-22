@@ -62,12 +62,9 @@ public class AreaManagementService {
     }
 
     public void updateAreas(Integer accountId, AreaManagementRequestDTO requestDTO) {
-        List<Integer> newProvinceIds = requestDTO.getProvinceIds();
-        
         // Initialize empty list if null
-        if (newProvinceIds == null) {
-            newProvinceIds = new ArrayList<>();
-        }
+        List<Integer> newProvinceIds = requestDTO.getProvinceIds() != null ? 
+            requestDTO.getProvinceIds() : new ArrayList<>();
 
         // Validate province IDs if any exist
         if (!newProvinceIds.isEmpty()) {
