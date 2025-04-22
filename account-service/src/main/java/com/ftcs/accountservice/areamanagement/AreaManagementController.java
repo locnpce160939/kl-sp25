@@ -23,10 +23,10 @@ public class AreaManagementController {
 
     private final AreaManagementService areaManagementService;
 
-    @PostMapping("/addNewArea")
-    @PreAuthorize("hasPermission(null, 'AREA_MANAGEMENT')")
+    @PostMapping("/addNewArea/{accountId}")
+    @PreAuthorize("hasPermission(null, 'ADMIN')")
     public ApiResponse<?> addNewArea(@Valid @RequestBody AreaManagementRequestDTO requestDTO,
-                                     @RequestAttribute("accountId") Integer accountId) {
+                                     @PathVariable("accountId") Integer accountId) {
         areaManagementService.addNewArea(accountId, requestDTO);
         return new ApiResponse<>("Area added successfully");
     }

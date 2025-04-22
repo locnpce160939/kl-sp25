@@ -35,4 +35,5 @@ public class TripBookingsDTO {
     private LocalDateTime updateAt;
     private Payment payment;
     private Double insurancePrice;
+    private String recipientPhoneNumber;
 }

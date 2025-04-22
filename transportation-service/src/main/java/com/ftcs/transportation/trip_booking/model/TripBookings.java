@@ -42,6 +42,9 @@ public class TripBookings {
     @Column(name = "InsurancePrice")
     private Double insurancePrice;
 
+    @Column(name = "RecipientPhoneNumber")
+    private String recipientPhoneNumber;
+
     @Column(name = "BookingDate", nullable = false)
     private LocalDateTime bookingDate;
 

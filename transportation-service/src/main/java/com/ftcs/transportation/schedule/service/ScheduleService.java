@@ -83,6 +83,7 @@ public class ScheduleService {
     public void updateSchedule(ScheduleRequestDTO requestDTO, Long scheduleId) {
         Schedule schedule = getScheduleById(scheduleId);
         validateScheduleDates(requestDTO.getStartDate(), requestDTO.getEndDate());
+        validateScheduleTiming(schedule.getAccountId(), requestDTO.getStartDate());
         mapScheduleRequestToEntity(requestDTO, schedule);
         schedule.setUpdateAt(LocalDateTime.now());
         scheduleRepository.save(schedule);

@@ -733,7 +733,7 @@ public class TripBookingsService {
 
     private @NotNull PreviewTripBookingDTO getPreviewTripBookingDTO(BigDecimal weight, BasePriceProjection basePriceProjection, double distance, Boolean isFirstOrder, Long bookingType, Long selectedInsurancePolicyId) {
         if (basePriceProjection == null || basePriceProjection.getBasePrice() == null) {
-            throw new RuntimeException("Base price not found for the given distance and weight");
+            throw new BadRequestException("Base price not found for the given distance and weight");
         }
 
         BigDecimal basePrice = basePriceProjection.getBasePrice();
@@ -793,6 +793,7 @@ public class TripBookingsService {
         tripBookings.setVoucherCode(tripBookings.getVoucherCode());
         tripBookings.setVoucherId(tripBookings.getVoucherId());
         tripBookings.setNotes(requestDTO.getNotes());
+        tripBookings.setRecipientPhoneNumber(tripBookings.getRecipientPhoneNumber());
     }
 
     private Boolean isFirstOrder(Integer accountId) {

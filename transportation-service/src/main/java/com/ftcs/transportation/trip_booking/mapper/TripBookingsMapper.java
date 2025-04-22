@@ -59,6 +59,7 @@ public class TripBookingsMapper {
                 .originalPrice(tripBookings.getOriginalPrice())
                 .discountAmount(tripBookings.getDiscountAmount())
                 .insurancePrice(tripBookings.getInsurancePrice())
+                .recipientPhoneNumber(tripBookings.getRecipientPhoneNumber())
                 .build();
     }
 
