@@ -56,7 +56,7 @@ public class AreaManagementController {
     }
 
     @GetMapping("/getProvincesByAccountId/{accountId}")
-    @PreAuthorize("hasPermission(null, 'AREA_MANAGEMENT' or hasPermission(null, 'ADMIN'))")
+    @PreAuthorize("hasPermission(null, 'AREA_MANAGEMENT') or hasPermission(null, 'ADMIN')")
     public ApiResponse<?> getProvincesByAccountId(@PathVariable("accountId") Integer accountId) {
         List<Integer> provinces = areaManagementService.getProvincesByAccountId(accountId);
         return new ApiResponse<>(provinces);
