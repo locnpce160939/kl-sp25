@@ -793,7 +793,7 @@ public class TripBookingsService {
         tripBookings.setVoucherCode(tripBookings.getVoucherCode());
         tripBookings.setVoucherId(tripBookings.getVoucherId());
         tripBookings.setNotes(requestDTO.getNotes());
-        tripBookings.setRecipientPhoneNumber(tripBookings.getRecipientPhoneNumber());
+        tripBookings.setRecipientPhoneNumber(requestDTO.getRecipientPhoneNumber());
     }
 
     private Boolean isFirstOrder(Integer accountId) {
