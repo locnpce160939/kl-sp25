@@ -53,7 +53,7 @@ public class IdentificationDriverController {
     }
 
     @PutMapping("/identification/status/{driverIdentificationId}")
-    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
+    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'AREA_MANAGEMENT')")
     public ApiResponse<?> updateStatus(@Valid @RequestBody UpdateStatusDriverIdentificationRequestDTO requestDTO,
                                        @PathVariable("driverIdentificationId") Integer driverIdentificationId ) {
         driverIdentificationService.updateStatus(driverIdentificationId, requestDTO);

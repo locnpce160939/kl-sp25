@@ -66,7 +66,7 @@ public class LicenseDriverController {
     }
 
     @PutMapping("/license/status/{licenseId}")
-    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
+    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'AREA_MANAGEMENT')")
     public ApiResponse<?> updateStatus(@Valid @RequestBody UpdateStatusLicenseRequestDTO requestDTO,
                                        @PathVariable("licenseId") Integer licenseId){
         licenseDriverService.updateStatus(licenseId, requestDTO);

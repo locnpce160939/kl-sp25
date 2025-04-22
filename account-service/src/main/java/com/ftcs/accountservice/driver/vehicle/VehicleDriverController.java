@@ -57,7 +57,7 @@ public class VehicleDriverController {
     }
 
     @PutMapping("/vehicle/status/{vehicleId}")
-    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
+    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'AREA_MANAGEMENT')")
     public ApiResponse<?> updateStatus(@Valid @RequestBody UpdateStatusVehicleRequestDTO requestDTO,
                                        @PathVariable("vehicleId") Integer vehicleId) {
         vehicleDriverService.updateStatus(vehicleId, requestDTO);

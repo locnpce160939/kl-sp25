@@ -48,7 +48,7 @@ public class AccountController {
     }
 
     @PostMapping("/createAccount")
-    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
+    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'AREA_MANAGEMENT')")
     public ApiResponse<?> createNewAccount(@Valid @RequestBody RegisterRequestDTO requestDTO) {
         return new ApiResponse<>(accountService.createNewAccount(requestDTO));
     }

@@ -144,7 +144,6 @@ public class AreaManagementService {
                 .map(provinceId -> areaManagementRepository.findByAccountIdAndProvinceId(accountId, provinceId)
                         .orElseThrow(() -> new BadRequestException("Area not found for account ID: " + accountId + " and province ID: " + provinceId)))
                 .collect(Collectors.toList());
-        
         areaManagementRepository.deleteAll(areasToDelete);
     }
 }
