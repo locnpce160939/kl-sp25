@@ -51,6 +51,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -600,15 +601,32 @@ public class TripBookingsService {
         }
     }
 
-    public void createInsuranceClaim(Long bookingId, InsuranceClaimRequestDTO requestDTO) {
-        if(insuranceClaimRepository.existsByBookingId(bookingId)) {
-            throw new BadRequestException("You just can create insurance claim one time");
+    public void createInsuranceClaim(Long bookingId, InsuranceClaimRequestDTO requestDTO, List<MultipartFile> images) {
+        // Check if claim already exists
+        if (insuranceClaimRepository.existsByBookingId(bookingId)) {
+            throw new BadRequestException("You can only create one insurance claim per booking");
         }
+
+        // Validate booking status
         TripBookings tripBookings = findTripBookingsById(bookingId);
         if (tripBookings.getStatus() != TripBookingStatus.ORDER_COMPLETED) {
-            throw new BadRequestException("You can not create insurance claim if you are not already completed");
+            throw new BadRequestException("You can only create an insurance claim after the trip is completed");
         }
-        insuranceClaimService.createInsuranceClaim(bookingId, requestDTO);
+
+        // Validate if booking has insurance
+        if (!tripBookings.getUseInsurance()) {
+            throw new BadRequestException("You cannot create an insurance claim because this trip does not have insurance");
+        }
+
+        // Validate images
+        if (images == null || images.isEmpty()) {
+            throw new BadRequestException("You must attach at least 1 image for the insurance claim");
+        }
+        if (images.size() > 5) {
+            throw new BadRequestException("You can only upload up to 5 images for the insurance claim");
+        }
+
+        insuranceClaimService.createInsuranceClaim(bookingId, requestDTO, images);
     }
 
     public void changPaymentMethod(UpdateStatusTripBookingsRequestDTO requestDTO, Long bookingId) {

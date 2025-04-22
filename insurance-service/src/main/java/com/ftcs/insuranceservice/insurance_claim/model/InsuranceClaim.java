@@ -5,6 +5,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Getter
 @Setter
@@ -12,31 +15,34 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "InsuranceClaim")
+@Table(name = "InsuranceClaim", schema = "dbo")
 public class InsuranceClaim {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "Id")
+    @Column(name = "Id", nullable = false)
     private Long id;
 
-    @Column(name = "BookingId")
+    @Column(name = "BookingId", nullable = false)
     private Long bookingId;
 
     @Column(name = "BookingInsuranceId", nullable = false)
     private Long bookingInsuranceId;
 
-    @Column(name = "ClaimDescription", columnDefinition = "TEXT")
+    @Column(name = "ClaimDescription", length = 500)
     private String claimDescription;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "ClaimStatus", length = 50)
-    private ClaimStatus claimStatus;
+    @Column(name = "EvidenceImages")
+    private String evidenceImages; // Store as comma-separated string
 
-    @Column(name = "ClaimDate", nullable = false)
+    @Column(name = "ClaimDate")
     private LocalDateTime claimDate;
 
     @Column(name = "ResolutionDate")
     private LocalDateTime resolutionDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ClaimStatus")
+    private ClaimStatus claimStatus;
 
     @Column(name = "CreatedAt", updatable = false)
     private LocalDateTime createdAt;
@@ -53,5 +59,20 @@ public class InsuranceClaim {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public List<String> getEvidenceImageList() {
+        if (evidenceImages == null || evidenceImages.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return Arrays.asList(evidenceImages.split(","));
+    }
+
+    public void setEvidenceImageList(List<String> images) {
+        if (images == null || images.isEmpty()) {
+            this.evidenceImages = null;
+        } else {
+            this.evidenceImages = String.join(",", images);
+        }
     }
 }

@@ -11,9 +11,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.Valid;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,49 +23,61 @@ import java.time.LocalDateTime;
 public class InsuranceClaimController {
     private final InsuranceClaimService insuranceClaimService;
 
-    @PostMapping("/booking/{bookingId}")
-    public ApiResponse<InsuranceClaim> createInsuranceClaim(@PathVariable("bookingId") Long bookingId,
-                                                            @RequestBody InsuranceClaimRequestDTO requestDTO) {
-        return new ApiResponse<>(insuranceClaimService.createInsuranceClaim(bookingId, requestDTO));
-    }
-
-    @GetMapping
-    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'FINANCE')")
-    public ApiResponse<Page<InsuranceClaim>> getAllInsuranceClaims(@RequestParam(value = "page", defaultValue = "0") Integer page,
-                                                                   @RequestParam(value = "size", defaultValue = "10") Integer size) {
-        return new ApiResponse<>(insuranceClaimService.getAllInsuranceClaims(page, size));
-    }
-
-    @GetMapping("/{id}")
-    public ApiResponse<InsuranceClaim> getInsuranceClaim(@PathVariable("id") Long id) {
-        return new ApiResponse<>(insuranceClaimService.getInsuranceClaim(id));
+    @PostMapping("/claims/{bookingId}")
+    @PreAuthorize("hasPermission(null, 'CUSTOMER')")
+    public ApiResponse<?> createClaim(@PathVariable("bookingId") Long bookingId,
+                                    @RequestPart("data") InsuranceClaimRequestDTO requestDTO,
+                                    @RequestPart(value = "images", required = false) List<MultipartFile> images) {
+        InsuranceClaim claim = insuranceClaimService.createInsuranceClaim(bookingId, requestDTO, images);
+        return new ApiResponse<>("Insurance claim created successfully", claim);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasPermission(null, 'CUSTOMER')")
+    public ApiResponse<?> updateClaim(@PathVariable("id") Long id,
+                                    @RequestPart("data") InsuranceClaimRequestDTO requestDTO,
+                                    @RequestPart(value = "images", required = false) List<MultipartFile> images) {
+        insuranceClaimService.updateInsuranceClaim(id, requestDTO, images);
+        return new ApiResponse<>("Insurance claim updated successfully");
+    }
+
+    @GetMapping("/claims")
+    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'FINANCE')")
+    public ApiResponse<Page<InsuranceClaim>> getAllClaims(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                         @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        return new ApiResponse<>(insuranceClaimService.getAllInsuranceClaims(page, size));
+    }
+
+    @GetMapping("/claims/{id}")
+    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'CUSTOMER')")
+    public ApiResponse<InsuranceClaim> getClaimById(@PathVariable("id") Long id) {
+        return new ApiResponse<>(insuranceClaimService.getInsuranceClaim(id));
+    }
+
+    @PutMapping("/claims/{id}")
     @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'FINANCE')")
     public ApiResponse<String> updateStatus(@PathVariable("id") Long id,
-                                            @RequestBody InsuranceClaimRequestDTO requestDTO) {
+                                          @Valid @RequestBody InsuranceClaimRequestDTO requestDTO) {
         insuranceClaimService.updateStatus(id, requestDTO);
         return new ApiResponse<>("Insurance claim status updated successfully");
     }
 
-    @GetMapping("/status")
+    @GetMapping("/claims/status")
     @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'FINANCE')")
-    public ApiResponse<Page<InsuranceClaim>> getByStatus(@RequestParam("status") ClaimStatus status,
-                                                         @RequestParam(value = "page", defaultValue = "0") Integer page,
-                                                         @RequestParam(value = "size", defaultValue = "10") Integer size) {
+    public ApiResponse<Page<InsuranceClaim>> getClaimsByStatus(@RequestParam("status") ClaimStatus status,
+                                                              @RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                              @RequestParam(value = "size", defaultValue = "10") Integer size) {
         return new ApiResponse<>(insuranceClaimService.findByClaimStatus(status, page, size));
     }
 
-    @GetMapping("/date-range")
+    @GetMapping("/claims/date-range")
     @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'FINANCE')")
-    public ApiResponse<Page<InsuranceClaim>> getByDateRange(
-            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDate startDate,
-            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDate  endDate,
+    public ApiResponse<Page<InsuranceClaim>> getClaimsByDateRange(
+            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(value = "page", defaultValue = "0") Integer page,
             @RequestParam(value = "size", defaultValue = "10") Integer size) {
         return new ApiResponse<>(insuranceClaimService.findByClaimDateBetween(startDate, endDate, page, size));
     }
-
 }
 
