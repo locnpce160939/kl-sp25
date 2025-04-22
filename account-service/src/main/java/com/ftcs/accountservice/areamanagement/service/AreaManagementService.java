@@ -28,9 +28,6 @@ import static com.ftcs.accountservice.driver.management.mapper.DriverMapper.mapT
 public class AreaManagementService {
     private final AreaManagementRepository areaManagementRepository;
     private final ProvinceRepository provinceRepository;
-    private final AddressDriverRepository addressDriverRepository;
-    private final DriverIdentificationRepository driverIdentificationRepository;
-    private final AccountRepository accountRepository;
     private final DriverRepository driverRepository;
     private final VerificationDriverService verificationDriverService;
 

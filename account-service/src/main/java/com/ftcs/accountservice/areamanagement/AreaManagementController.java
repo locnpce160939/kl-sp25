@@ -32,7 +32,7 @@ public class AreaManagementController {
     }
 
     @PutMapping("/editArea/{provinceId}")
-    @PreAuthorize("hasPermission(null, 'AREA_MANAGEMENT')")
+    @PreAuthorize("hasPermission(null, 'ADMIN')")
     public ApiResponse<?> editArea(@Valid @RequestBody AreaManagementRequestDTO updatedRequestDTO,
                                    @PathVariable("provinceId") Integer provinceId,
                                    @RequestAttribute("accountId") Integer accountId) {
@@ -41,16 +41,16 @@ public class AreaManagementController {
     }
 
     @DeleteMapping("/deleteArea/{provinceId}")
-    @PreAuthorize("hasPermission(null, 'AREA_MANAGEMENT')")
+    @PreAuthorize("hasPermission(null, 'ADMIN')")
     public ApiResponse<?> deleteArea(@PathVariable("provinceId") Integer provinceId,
                                      @RequestAttribute("accountId") Integer accountId) {
         areaManagementService.deleteArea(accountId, provinceId);
         return new ApiResponse<>("Area deleted successfully");
     }
 
-    @GetMapping("/driver")
-    @PreAuthorize("hasPermission(null, 'AREA_MANAGEMENT')")
-    public ApiResponse<List<ListDriverDTO>> getDriversByAccountId(@RequestAttribute("accountId") Integer accountId) {
+    @GetMapping("/driver/{accountId}")
+    @PreAuthorize("hasPermission(null, 'ADMIN')")
+    public ApiResponse<List<ListDriverDTO>> getDriversByAccountId(@PathVariable("accountId") Integer accountId) {
         List<ListDriverDTO> driverDetails = areaManagementService.getAllDriverDetails(accountId);
         return new ApiResponse<>(driverDetails);
     }
