@@ -86,7 +86,6 @@ public class AreaManagementService {
                 .map(AreaManagement::getProvinceId)
                 .collect(Collectors.toList());
 
-        // Areas to remove - provinces that exist in current but not in new list
         List<AreaManagement> areasToRemove = currentAreas.stream()
                 .filter(area -> !newProvinceIds.contains(area.getProvinceId()))
                 .collect(Collectors.toList());
@@ -138,5 +137,14 @@ public class AreaManagementService {
                 .map(String::valueOf)
                 .collect(Collectors.joining(","));
         return mapToListDriverDTO(driverRepository.getAllDriversByProvinces(provinceString), verificationDriverService);
+    }
+
+    public void deleteAreas(Integer accountId, List<Integer> provinceIds) {
+        List<AreaManagement> areasToDelete = provinceIds.stream()
+                .map(provinceId -> areaManagementRepository.findByAccountIdAndProvinceId(accountId, provinceId)
+                        .orElseThrow(() -> new BadRequestException("Area not found for account ID: " + accountId + " and province ID: " + provinceId)))
+                .collect(Collectors.toList());
+        
+        areaManagementRepository.deleteAll(areasToDelete);
     }
 }
