@@ -48,16 +48,16 @@ public class AreaManagementController {
         return new ApiResponse<>("Area deleted successfully");
     }
 
-    @GetMapping("/driver/{accountId}")
-    @PreAuthorize("hasPermission(null, 'ADMIN')")
-    public ApiResponse<List<ListDriverDTO>> getDriversByAccountId(@PathVariable("accountId") Integer accountId) {
+    @GetMapping("/driver")
+    @PreAuthorize("hasPermission(null, 'AREA_MANAGEMENT')")
+    public ApiResponse<List<ListDriverDTO>> getDriversByAccountId(@RequestAttribute("accountId") Integer accountId) {
         List<ListDriverDTO> driverDetails = areaManagementService.getAllDriverDetails(accountId);
         return new ApiResponse<>(driverDetails);
     }
 
-    @GetMapping("/getProvincesByAccountId")
+    @GetMapping("/getProvincesByAccountId/{accountId}")
     @PreAuthorize("hasPermission(null, 'AREA_MANAGEMENT')")
-    public ApiResponse<?> getProvincesByAccountId(@RequestAttribute("accountId") Integer accountId) {
+    public ApiResponse<?> getProvincesByAccountId(@PathVariable("accountId") Integer accountId) {
         List<Integer> provinces = areaManagementService.getProvincesByAccountId(accountId);
         return new ApiResponse<>(provinces);
     }
