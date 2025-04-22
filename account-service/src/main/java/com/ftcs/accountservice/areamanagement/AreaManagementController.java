@@ -31,12 +31,11 @@ public class AreaManagementController {
         return new ApiResponse<>("Area added successfully");
     }
 
-    @PutMapping("/editArea/{provinceId}")
+    @PutMapping("/editArea")
     @PreAuthorize("hasPermission(null, 'ADMIN')")
     public ApiResponse<?> editArea(@Valid @RequestBody AreaManagementRequestDTO updatedRequestDTO,
-                                   @PathVariable("provinceId") Integer provinceId,
                                    @RequestAttribute("accountId") Integer accountId) {
-        areaManagementService.editArea(accountId, provinceId, updatedRequestDTO);
+        areaManagementService.updateAreas(accountId, updatedRequestDTO);
         return new ApiResponse<>("Area updated successfully");
     }
 

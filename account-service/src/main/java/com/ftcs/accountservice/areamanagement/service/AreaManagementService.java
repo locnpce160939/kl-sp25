@@ -32,73 +32,78 @@ public class AreaManagementService {
     private final VerificationDriverService verificationDriverService;
 
     public void addNewArea(Integer accountId, AreaManagementRequestDTO requestDTO) {
-        List<Integer> provinceIds = requestDTO.getProvinceIds();
+        List<Integer> newProvinceIds = requestDTO.getProvinceIds();
 
-        if (provinceIds == null || provinceIds.isEmpty()) {
+        if (newProvinceIds == null || newProvinceIds.isEmpty()) {
             throw new BadRequestException("Province IDs must be provided.");
         }
 
-        for (Integer provinceId : provinceIds) {
-            Province province = getProvinceById(provinceId);
+        // Validate all province IDs exist
+        newProvinceIds.forEach(this::validateProvinceExists);
 
-            if (areaExists(accountId, provinceId)) {
-                throw new BadRequestException("Area already exists for account ID: " + accountId + " and province ID: " + provinceId);
-            }
+        // Get current areas for the account
+        List<AreaManagement> currentAreas = areaManagementRepository.findByAccountId(accountId);
+        List<Integer> currentProvinceIds = currentAreas.stream()
+                .map(AreaManagement::getProvinceId)
+                .collect(Collectors.toList());
 
-            saveNewArea(accountId, provinceId);
+        // Add new areas that don't exist yet
+        List<AreaManagement> areasToAdd = newProvinceIds.stream()
+                .filter(provinceId -> !currentProvinceIds.contains(provinceId))
+                .map(provinceId -> AreaManagement.builder()
+                        .accountId(accountId)
+                        .provinceId(provinceId)
+                        .build())
+                .collect(Collectors.toList());
+
+        if (!areasToAdd.isEmpty()) {
+            areaManagementRepository.saveAll(areasToAdd);
         }
     }
 
-    public void editArea(Integer accountId, Integer provinceId, AreaManagementRequestDTO updatedRequestDTO) {
-        getProvinceById(provinceId);
+    public void updateAreas(Integer accountId, AreaManagementRequestDTO requestDTO) {
+        List<Integer> newProvinceIds = requestDTO.getProvinceIds();
 
-        AreaManagement existingArea = getExistingArea(accountId, provinceId);
-
-        Integer newProvinceId = getUpdatedProvinceId(updatedRequestDTO);
-
-        if (newProvinceId != null) {
-            Province newProvince = getProvinceById(newProvinceId);
+        if (newProvinceIds == null || newProvinceIds.isEmpty()) {
+            throw new BadRequestException("Province IDs must be provided.");
         }
 
-        if (areaExists(accountId, newProvinceId) && !existingArea.getProvinceId().equals(newProvinceId)) {
-            throw new BadRequestException("Area with the new ProvinceId already exists for this account.");
+        // Validate all new province IDs exist
+        newProvinceIds.forEach(this::validateProvinceExists);
+
+        // Get current areas
+        List<AreaManagement> currentAreas = areaManagementRepository.findByAccountId(accountId);
+        List<Integer> currentProvinceIds = currentAreas.stream()
+                .map(AreaManagement::getProvinceId)
+                .collect(Collectors.toList());
+
+        // Areas to remove - provinces that exist in current but not in new list
+        List<AreaManagement> areasToRemove = currentAreas.stream()
+                .filter(area -> !newProvinceIds.contains(area.getProvinceId()))
+                .collect(Collectors.toList());
+
+        // Areas to add - provinces that exist in new list but not in current
+        List<AreaManagement> areasToAdd = newProvinceIds.stream()
+                .filter(provinceId -> !currentProvinceIds.contains(provinceId))
+                .map(provinceId -> AreaManagement.builder()
+                        .accountId(accountId)
+                        .provinceId(provinceId)
+                        .build())
+                .collect(Collectors.toList());
+
+        // Perform the updates
+        if (!areasToRemove.isEmpty()) {
+            areaManagementRepository.deleteAll(areasToRemove);
         }
-
-        updateArea(existingArea, newProvinceId);
-    }
-
-    private Province getProvinceById(Integer provinceId) {
-        return provinceRepository.findById(provinceId)
-                .orElseThrow(() -> new BadRequestException("Province not found for ID: " + provinceId));
-    }
-
-    private boolean areaExists(Integer accountId, Integer provinceId) {
-        return areaManagementRepository.findByAccountIdAndProvinceId(accountId, provinceId).isPresent();
-    }
-
-    private void saveNewArea(Integer accountId, Integer provinceId) {
-        AreaManagement areaManagement = AreaManagement.builder()
-                .accountId(accountId)
-                .provinceId(provinceId)
-                .build();
-        areaManagementRepository.save(areaManagement);
-    }
-
-    private AreaManagement getExistingArea(Integer accountId, Integer provinceId) {
-        return areaManagementRepository.findByAccountIdAndProvinceId(accountId, provinceId)
-                .orElseThrow(() -> new BadRequestException("Area not found for account ID: " + accountId + " and province ID: " + provinceId));
-    }
-
-    private Integer getUpdatedProvinceId(AreaManagementRequestDTO updatedRequestDTO) {
-        if (updatedRequestDTO.getProvinceIds().size() != 1) {
-            throw new BadRequestException("Invalid update request. Only one ProvinceId can be updated at a time.");
+        if (!areasToAdd.isEmpty()) {
+            areaManagementRepository.saveAll(areasToAdd);
         }
-        return updatedRequestDTO.getProvinceIds().get(0);
     }
 
-    private void updateArea(AreaManagement existingArea, Integer newProvinceId) {
-        existingArea.setProvinceId(newProvinceId);
-        areaManagementRepository.save(existingArea);
+    private void validateProvinceExists(Integer provinceId) {
+        if (!provinceRepository.existsById(provinceId)) {
+            throw new BadRequestException("Province not found for ID: " + provinceId);
+        }
     }
 
     public List<Integer> getProvincesByAccountId(Integer accountId) {
@@ -113,7 +118,8 @@ public class AreaManagementService {
     }
 
     public void deleteArea(Integer accountId, Integer provinceId) {
-        AreaManagement existingArea = getExistingArea(accountId, provinceId);
+        AreaManagement existingArea = areaManagementRepository.findByAccountIdAndProvinceId(accountId, provinceId)
+                .orElseThrow(() -> new BadRequestException("Area not found for account ID: " + accountId + " and province ID: " + provinceId));
         areaManagementRepository.delete(existingArea);
     }
 
