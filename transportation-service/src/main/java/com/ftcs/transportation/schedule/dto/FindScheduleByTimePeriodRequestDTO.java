@@ -1,5 +1,6 @@
 package com.ftcs.transportation.schedule.dto;
 
+import com.ftcs.transportation.schedule.constant.ScheduleStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,5 +19,5 @@ public class FindScheduleByTimePeriodRequestDTO {
     @Future(message = "End date must be in the future")
     private LocalDateTime endDate;
 
-    private String status;
+    private ScheduleStatus status;
 }

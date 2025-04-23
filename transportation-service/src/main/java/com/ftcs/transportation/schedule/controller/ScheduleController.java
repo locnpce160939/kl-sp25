@@ -49,6 +49,7 @@ public class ScheduleController {
         List<Schedule> schedules = scheduleService.getAllSchedulesByAccountId(accountId);
         return new ApiResponse<>(schedules);
     }
+
     @GetMapping("/getScheduleByToken")
     @PreAuthorize("hasPermission(null, 'DRIVER')")
     public ApiResponse<List<Schedule>> getAllSchedulesByAccountIdOfDriver(@RequestAttribute("accountId") Integer accountId) {
@@ -75,5 +76,24 @@ public class ScheduleController {
     public ApiResponse<Schedule> getScheduleById(@PathVariable("scheduleId") Long scheduleId) {
         Schedule schedule = scheduleService.getScheduleById(scheduleId);
         return new ApiResponse<>(schedule);
+    }
+
+    @GetMapping("/listSchedule/{accountId}")
+    @PreAuthorize("hasPermission(null, 'ADMIN'  or hasPermission(null, 'HR'))")
+    public ApiResponse<Page<Schedule>> getAllSchedulesByAccountId(@PathVariable("accountId") Integer accountId,
+                                                                  @RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                                  @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        Page<Schedule> schedules = scheduleService.getSchedulesByAccountIdWithPagination(accountId, page, size);
+        return new ApiResponse<>(schedules);
+    }
+
+    @GetMapping("/account/paginated")
+    @PreAuthorize("hasPermission(null, 'DRIVER')")
+    public ApiResponse<Page<Schedule>> getSchedulesByAccountIdWithPagination(
+            @RequestAttribute("accountId") Integer accountId,
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
+            @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        Page<Schedule> schedules = scheduleService.getSchedulesByAccountIdWithPagination(accountId, page, size);
+        return new ApiResponse<>(schedules);
     }
 }

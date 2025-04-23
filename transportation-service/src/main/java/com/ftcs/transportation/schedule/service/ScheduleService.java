@@ -100,6 +100,11 @@ public class ScheduleService {
         return scheduleRepository.findAllByAccountId(accountId);
     }
 
+    public Page<Schedule> getSchedulesByAccountIdWithPagination(Integer accountId, Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return scheduleRepository.findAllByAccountId(accountId, pageable);
+    }
+
     public List<Schedule> getAllSchedulesByAccountIdOfDriver(Integer accountId) {
         return scheduleRepository.findAllByAccountId(accountId);
     }
@@ -116,7 +121,7 @@ public class ScheduleService {
 
     public List<Schedule> getSchedulesByTimeRangeAndStatus(FindScheduleByTimePeriodRequestDTO requestDTO) {
         boolean hasDateRange = requestDTO.getStartDate() != null && requestDTO.getEndDate() != null;
-        boolean hasStatus = requestDTO.getStatus() != null && !requestDTO.getStatus().isEmpty();
+        boolean hasStatus = requestDTO.getStatus() != null;
         List<Schedule> schedules;
 
         if (hasDateRange && hasStatus) {
