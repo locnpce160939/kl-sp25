@@ -16,6 +16,8 @@ import com.ftcs.bonusservice.repository.DriverBonusProgressRepository;
 import com.ftcs.bonusservice.service.DriverBonusProgressService;
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.insuranceservice.booking_insurance.service.BookingInsuranceService;
+import com.ftcs.insuranceservice.booking_type.model.BookingType;
+import com.ftcs.insuranceservice.booking_type.service.BookingTypeService;
 import com.ftcs.insuranceservice.insurance_claim.dto.InsuranceClaimRequestDTO;
 import com.ftcs.insuranceservice.insurance_claim.repository.InsuranceClaimRepository;
 import com.ftcs.insuranceservice.insurance_claim.service.InsuranceClaimService;
@@ -63,27 +65,28 @@ import static com.ftcs.transportation.trip_booking.mapper.TripBookingsMapper.toD
 import static com.ftcs.transportation.trip_booking.mapper.TripBookingsMapper.toTripBookingsDTO;
 
 @Service
-@AllArgsConstructor
 @Slf4j
+@AllArgsConstructor
 public class TripBookingsService {
-    private final TripMatchingService tripMatchingService;
-    private final BalanceHistoryService balanceHistoryService;
     private final TripBookingsRepository tripBookingsRepository;
+    private final DirectionsService directionsService;
+    private final TripMatchingService tripMatchingService;
+    private final VoucherService voucherService;
+    private final VoucherUsageRepository voucherUsageRepository;
+    private final BookingInsuranceService bookingInsuranceService;
+    private final InsuranceClaimRepository insuranceClaimRepository;
+    private final RankSettingRepository rankSettingRepository;
+    private final BookingTypeService bookingTypeService;
+    private final InsurancePolicyService insurancePolicyService;
+    private final BalanceHistoryService balanceHistoryService;
     private final ScheduleRepository scheduleRepository;
     private final TripAgreementRepository tripAgreementRepository;
     private final AccountRepository accountRepository;
-    private final DirectionsService directionsService;
     private final PaymentService paymentService;
-    private final VoucherService voucherService;
-    private final VoucherUsageRepository voucherUsageRepository;
     private final BonusConfigurationRepository bonusConfigurationRepository;
     private final DriverBonusProgressRepository driverBonusProgressRepository;
     private final DriverBonusProgressService driverBonusProgressService;
-    private final InsurancePolicyService insurancePolicyService;
-    private final BookingInsuranceService bookingInsuranceService;
     private final InsuranceClaimService insuranceClaimService;
-    private final InsuranceClaimRepository insuranceClaimRepository;
-    private final RankSettingRepository rankSettingRepository;
 
     public TripBookingsDTO createTripBookings(TripBookingsRequestDTO requestDTO, Integer accountId) {
 
@@ -641,9 +644,37 @@ public class TripBookingsService {
         }
     }
 
-    public Page<TripBookings> getTripBookingsByAccountId(Integer accountId, Integer page, Integer size) {
+    public Page<TripBookingsDTO> getTripBookingsByAccountId(Integer accountId, Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page, size);
-        return tripBookingsRepository.findAllByAccountId(accountId, pageable);
+        Page<TripBookings> bookingsPage = tripBookingsRepository.findAllByAccountId(accountId, pageable);
+        
+        return bookingsPage.map(booking -> {
+            // Get booking type name
+            String bookingTypeName = "";
+            try {
+                BookingType bookingType = bookingTypeService.getBookingType(booking.getBookingType());
+                bookingTypeName = bookingType.getBookingTypeName();
+            } catch (Exception e) {
+                // Handle case when booking type is not found
+            }
+            
+            // Get insurance name if insurance is used
+            String insuranceName = "";
+            if (booking.getUseInsurance() && booking.getInsurancePolicyId() != null) {
+                try {
+                    InsurancePolicy insurancePolicy = insurancePolicyService.getInsurancePolicy(booking.getInsurancePolicyId());
+                    insuranceName = insurancePolicy.getName();
+                } catch (Exception e) {
+                    // Handle case when insurance policy is not found
+                }
+            }
+            
+            // Convert to DTO with additional information
+            TripBookingsDTO dto = toTripBookingsDTO(booking, null);
+            dto.setBookingTypeName(bookingTypeName);
+            dto.setInsuranceName(insuranceName);
+            return dto;
+        });
     }
 
     public Page<TripBookings> getTripBookingsByAccountIdOfAdminRole(Integer accountId, Integer page, Integer size) {

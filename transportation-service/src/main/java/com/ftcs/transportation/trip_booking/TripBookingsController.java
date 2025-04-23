@@ -104,7 +104,7 @@ public class TripBookingsController {
 
     @GetMapping("/getByAccountId")
     @PreAuthorize("hasPermission(null, 'CUSTOMER')")
-    public ApiResponse<Page<TripBookings>> getByAccountId(@RequestAttribute("accountId") Integer accountId,
+    public ApiResponse<Page<TripBookingsDTO>> getByAccountId(@RequestAttribute("accountId") Integer accountId,
                                                           @RequestParam(value = "page", defaultValue = "0") Integer page,
                                                           @RequestParam(value = "size", defaultValue = "10") Integer size) {
         return new ApiResponse<>(tripBookingsService.getTripBookingsByAccountId(accountId, page, size));
