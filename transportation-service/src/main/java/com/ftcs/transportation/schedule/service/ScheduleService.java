@@ -114,6 +114,10 @@ public class ScheduleService {
                 .orElseThrow(() -> new BadRequestException("Schedule does not exist"));
     }
 
+    public void deleteScheduleById(Long scheduleId) {
+        scheduleRepository.deleteById(scheduleId);
+    }
+
     public Page<Schedule> getAllSchedules(Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page, size);
         return scheduleRepository.findAll(pageable);

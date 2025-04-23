@@ -96,4 +96,12 @@ public class ScheduleController {
         Page<Schedule> schedules = scheduleService.getSchedulesByAccountIdWithPagination(accountId, page, size);
         return new ApiResponse<>(schedules);
     }
+
+    @DeleteMapping("/{scheduleId}")
+    @PreAuthorize("hasPermission(null, 'DRIVER')")
+    public ApiResponse<String> deleteSchedule(@PathVariable("scheduleId") Long scheduleId) {
+        scheduleService.deleteScheduleById(scheduleId);
+        return new ApiResponse<>("Schedule deleted successfully");
+    }
+
 }
