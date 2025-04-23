@@ -44,7 +44,6 @@ public class ScheduleService {
         validateStatusAccount(accountId);
         getValidatedVehicle(requestDTO.getVehicleId(), accountId);
         validateScheduleDates(requestDTO.getStartDate(), requestDTO.getEndDate());
-        validateScheduleTiming(accountId, requestDTO.getStartDate());
         Schedule schedule = buildNewSchedule(requestDTO, accountId);
         scheduleRepository.save(schedule);
         tripMatchingService.matchTripsForAll();
@@ -68,17 +67,6 @@ public class ScheduleService {
         }
     }
 
-    private void validateScheduleTiming(Integer accountId, LocalDateTime startDate) {
-        List<Schedule> schedules = scheduleRepository.findAllByAccountId(accountId);
-        schedules.stream()
-                .max(Comparator.comparing(Schedule::getEndDate))
-                .ifPresent(latestSchedule -> {
-                    if (!startDate.isAfter(latestSchedule.getEndDate().plusDays(1))) {
-                        throw new BadRequestException("The new schedule must start at least one day after the last schedule's end date.");
-                    }
-                });
-    }
-
     private Schedule buildNewSchedule(ScheduleRequestDTO requestDTO, Integer accountId) {
         Schedule schedule = new Schedule();
         schedule.setAccountId(accountId);
@@ -91,7 +79,6 @@ public class ScheduleService {
     public void updateSchedule(ScheduleRequestDTO requestDTO, Long scheduleId) {
         Schedule schedule = getScheduleById(scheduleId);
         validateScheduleDates(requestDTO.getStartDate(), requestDTO.getEndDate());
-        validateScheduleTiming(schedule.getAccountId(), requestDTO.getStartDate());
         mapScheduleRequestToEntity(requestDTO, schedule);
         schedule.setUpdateAt(LocalDateTime.now());
         scheduleRepository.save(schedule);
@@ -171,7 +158,6 @@ public class ScheduleService {
         schedule.setStartLocation(requestDTO.getStartLocation());
         schedule.setEndLocation(requestDTO.getEndLocation());
         schedule.setStartDate(requestDTO.getStartDate());
-        schedule.setEndDate(requestDTO.getEndDate());
         schedule.setAvailableCapacity(requestDTO.getAvailableCapacity());
         schedule.setStartLocationAddress(requestDTO.getStartLocationAddress());
         schedule.setEndLocationAddress(requestDTO.getEndLocationAddress());

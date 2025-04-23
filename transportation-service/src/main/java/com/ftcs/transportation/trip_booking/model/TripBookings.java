@@ -71,9 +71,6 @@ public class TripBookings {
     @Column(name = "PaymentMethod", nullable = false)
     private PaymentMethod paymentMethod;
 
-    @Column(name = "ExpirationDate")
-    private LocalDateTime expirationDate;
-
     @Column(name = "TotalDistance", nullable = false)
     private Double totalDistance;
 

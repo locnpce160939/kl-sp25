@@ -40,9 +40,6 @@ public class Schedule {
     @Column(name = "StartDate", nullable = false)
     private LocalDateTime startDate;
 
-    @Column(name = "EndDate", nullable = false)
-    private LocalDateTime endDate;
-
     @Column(name = "Vehicle", nullable = false)
     private Integer vehicleId;
 

@@ -25,7 +25,6 @@ public class ScheduleBookingMapper {
         schedule.setStartLocationAddress(projection.getStartLocationAddress());
         schedule.setEndLocationAddress(projection.getEndLocationAddress());
         schedule.setStartDate(projection.getStartDate());
-        schedule.setEndDate(projection.getEndDate());
         schedule.setAvailableCapacity(projection.getAvailableCapacity());
         schedule.setStatus(projection.getScheduleStatus());
         schedule.setNotes(projection.getScheduleNotes());
@@ -46,7 +45,6 @@ public class ScheduleBookingMapper {
         tripBooking.setEndLocationAddress(projection.getBookingEndLocationAddress());
         tripBooking.setCapacity(projection.getBookingCapacity());
         tripBooking.setStatus(projection.getBookingStatus());
-        tripBooking.setExpirationDate(projection.getExpirationDate());
         //tripBooking.setTotalPrice(projection.getTotalPrice());
         tripBooking.setNotes(projection.getBookingNotes());
         tripBooking.setCreateAt(projection.getBookingCreateAt());

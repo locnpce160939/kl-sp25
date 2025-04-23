@@ -802,7 +802,6 @@ public class TripBookingsService {
         tripBookings.setPickupLocation(requestDTO.getPickupLocation());
         tripBookings.setDropoffLocation(requestDTO.getDropoffLocation());
         tripBookings.setCapacity(requestDTO.getCapacity());
-        tripBookings.setExpirationDate(requestDTO.getExpirationDate());
         tripBookings.setStartLocationAddress(requestDTO.getStartLocationAddress());
         tripBookings.setEndLocationAddress(requestDTO.getEndLocationAddress());
         tripBookings.setStatus(TripBookingStatus.ARRANGING_DRIVER);
