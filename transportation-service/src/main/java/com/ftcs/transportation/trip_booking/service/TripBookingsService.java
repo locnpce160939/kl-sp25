@@ -86,8 +86,6 @@ public class TripBookingsService {
     private final RankSettingRepository rankSettingRepository;
 
     public TripBookingsDTO createTripBookings(TripBookingsRequestDTO requestDTO, Integer accountId) {
-        // Validate request data
-        validateExpirationDate(requestDTO);
 
         // Create and initialize new booking
         TripBookings tripBooking = initializeNewTripBooking(accountId, requestDTO);
@@ -325,7 +323,6 @@ public class TripBookingsService {
     }
 
     public void updateTripBookings(TripBookingsRequestDTO requestDTO, Long bookingId) {
-        validateExpirationDate(requestDTO);
         TripBookings tripBookings = findTripBookingsById(bookingId);
         mapRequestToTripBookings(requestDTO, tripBookings);
         tripBookingsRepository.save(tripBookings);
@@ -676,13 +673,6 @@ public class TripBookingsService {
     private void updateBookingStatus(TripBookings tripBookings, TripBookingStatus status) {
         tripBookings.setStatus(status);
         tripBookingsRepository.save(tripBookings);
-    }
-
-
-    private void validateExpirationDate(TripBookingsRequestDTO requestDTO) {
-        if (!requestDTO.getExpirationDate().isAfter(requestDTO.getBookingDate())) {
-            throw new BadRequestException("Expiration date must be after booking date");
-        }
     }
 
     private TripBookings findTripBookingsById(Long bookingId) {

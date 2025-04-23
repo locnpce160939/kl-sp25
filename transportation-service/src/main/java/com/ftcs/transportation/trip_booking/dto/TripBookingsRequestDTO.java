@@ -47,7 +47,7 @@ public class TripBookingsRequestDTO {
 
 //    @NotNull(message = "Expiration date cannot be null")
 //    @Future(message = "Expiration date must be in the future")
-    private LocalDateTime expirationDate;
+    //private LocalDateTime expirationDate;
 
     private String voucherCode;
     private Long voucherId;

@@ -32,10 +32,6 @@ public class ScheduleRequestDTO {
     @Future(message = "Start date must be in the future")
     private LocalDateTime startDate;
 
-    @NotNull(message = "End date cannot be null")
-    @Future(message = "End date must be in the future")
-    private LocalDateTime endDate;
-
     @NotNull(message = "Available capacity cannot be null")
     @Min(value = 500, message = "Available capacity must be at least 500")
     private Integer availableCapacity;

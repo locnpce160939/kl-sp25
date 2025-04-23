@@ -43,7 +43,6 @@ public class ScheduleService {
     public Schedule createSchedule(ScheduleRequestDTO requestDTO, Integer accountId) {
         validateStatusAccount(accountId);
         getValidatedVehicle(requestDTO.getVehicleId(), accountId);
-        validateScheduleDates(requestDTO.getStartDate(), requestDTO.getEndDate());
         Schedule schedule = buildNewSchedule(requestDTO, accountId);
         scheduleRepository.save(schedule);
         tripMatchingService.matchTripsForAll();
@@ -78,7 +77,6 @@ public class ScheduleService {
 
     public void updateSchedule(ScheduleRequestDTO requestDTO, Long scheduleId) {
         Schedule schedule = getScheduleById(scheduleId);
-        validateScheduleDates(requestDTO.getStartDate(), requestDTO.getEndDate());
         mapScheduleRequestToEntity(requestDTO, schedule);
         schedule.setUpdateAt(LocalDateTime.now());
         scheduleRepository.save(schedule);
@@ -161,12 +159,6 @@ public class ScheduleService {
         schedule.setAvailableCapacity(requestDTO.getAvailableCapacity());
         schedule.setStartLocationAddress(requestDTO.getStartLocationAddress());
         schedule.setEndLocationAddress(requestDTO.getEndLocationAddress());
-    }
-
-    private void validateScheduleDates(LocalDateTime startDate, LocalDateTime endDate) {
-        if (!endDate.isAfter(startDate)) {
-            throw new BadRequestException("End date must be after start date.");
-        }
     }
 
     private void validateStatusAccount(Integer accountId) {
