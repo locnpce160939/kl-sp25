@@ -13,6 +13,11 @@ import com.ftcs.transportation.schedule.dto.ScheduleRequestDTO;
 import com.ftcs.transportation.schedule.dto.UpdateStatusScheduleRequestDTO;
 import com.ftcs.transportation.schedule.model.Schedule;
 import com.ftcs.transportation.schedule.repository.ScheduleRepository;
+import com.ftcs.transportation.trip_agreement.model.TripAgreement;
+import com.ftcs.transportation.trip_agreement.repository.TripAgreementRepository;
+import com.ftcs.transportation.trip_booking.constant.TripBookingStatus;
+import com.ftcs.transportation.trip_booking.repository.TripBookingsRepository;
+import com.ftcs.transportation.trip_matching.service.TripAcceptanceService;
 import com.ftcs.transportation.trip_matching.service.TripMatchingService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,6 +36,9 @@ public class ScheduleService {
     private final ScheduleRepository scheduleRepository;
     private final VehicleRepository vehicleRepository;
     private final AccountService accountService;
+    private final TripAcceptanceService tripAcceptanceService;
+    private final TripAgreementRepository tripAgreementRepository;
+    private final TripBookingsRepository tripBookingsRepository;
 
     public Schedule createSchedule(ScheduleRequestDTO requestDTO, Integer accountId) {
         validateStatusAccount(accountId);
@@ -115,6 +123,19 @@ public class ScheduleService {
     }
 
     public void deleteScheduleById(Long scheduleId) {
+        // Get all trip agreements for this schedule
+        List<TripAgreement> tripAgreements = tripAgreementRepository.findAllByScheduleId(scheduleId);
+        
+        // Check if any trip booking is not completed
+        boolean hasIncompleteBooking = tripAgreements.stream()
+            .map(agreement -> tripBookingsRepository.findTripBookingsByBookingId(agreement.getBookingId())
+                .orElseThrow(() -> new BadRequestException("Trip booking not found")))
+            .anyMatch(booking -> booking.getStatus() != TripBookingStatus.ORDER_COMPLETED);
+            
+        if (hasIncompleteBooking) {
+            throw new BadRequestException("Cannot delete schedule because there are incomplete trip bookings");
+        }
+        
         scheduleRepository.deleteById(scheduleId);
     }
 
