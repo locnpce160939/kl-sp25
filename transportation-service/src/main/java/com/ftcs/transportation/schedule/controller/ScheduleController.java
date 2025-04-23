@@ -79,7 +79,7 @@ public class ScheduleController {
     }
 
     @GetMapping("/listSchedule/{accountId}")
-    @PreAuthorize("hasPermission(null, 'ADMIN'  or hasPermission(null, 'HR'))")
+    @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'HR')")
     public ApiResponse<Page<Schedule>> getAllSchedulesByAccountId(@PathVariable("accountId") Integer accountId,
                                                                   @RequestParam(value = "page", defaultValue = "0") Integer page,
                                                                   @RequestParam(value = "size", defaultValue = "10") Integer size) {
