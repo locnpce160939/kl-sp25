@@ -29,48 +29,107 @@ public class ExcelExportService {
     private final WithdrawRepository withdrawRepository;
 
     /**
-     * Export a single withdrawal to Excel
+     * Export a single withdrawal to Excel with detailed information
+     * @param withdrawId ID of the withdrawal to export
+     * @return byte array containing the Excel file
+     * @throws IOException if there's an error writing the Excel file
      */
     public byte[] exportSingleWithdrawToExcel(Long withdrawId) throws IOException {
         WithdrawExportDTO withdrawData = withdrawService.exportWithdraw(withdrawId);
 
         try (Workbook workbook = new XSSFWorkbook()) {
-            Sheet sheet = workbook.createSheet("Withdrawal Details");
-
-            // Create header row style
-            CellStyle headerStyle = workbook.createCellStyle();
-            Font headerFont = workbook.createFont();
-            headerFont.setBold(true);
-            headerStyle.setFont(headerFont);
-            headerStyle.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
-            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-
-            // Create header row
-            Row headerRow = sheet.createRow(0);
-            createHeaderCell(headerRow, 0, "Field", headerStyle);
-            createHeaderCell(headerRow, 1, "Value", headerStyle);
-
-            // Add data rows
-            int rowNum = 1;
-            createDataRow(sheet, rowNum++, "Withdrawal ID", withdrawData.getWithdrawId().toString());
-            createDataRow(sheet, rowNum++, "Account ID", withdrawData.getAccountId().toString());
-            createDataRow(sheet, rowNum++, "Username", withdrawData.getUsername());
-            createDataRow(sheet, rowNum++, "Amount", withdrawData.getAmount().toString());
-            createDataRow(sheet, rowNum++, "Bank Name", String.valueOf(withdrawData.getBankName()));
-            createDataRow(sheet, rowNum++, "Bank Account Number", withdrawData.getBankAccountNumber());
-            createDataRow(sheet, rowNum++, "Status", withdrawData.getStatus().toString());
-            createDataRow(sheet, rowNum++, "Request Date", withdrawData.getRequestDate());
-
-            if (withdrawData.getProcessedDate() != null) {
-                createDataRow(sheet, rowNum++, "Processed Date", withdrawData.getProcessedDate());
-            }
-
-            // Auto-size columns
-            sheet.autoSizeColumn(0);
-            sheet.autoSizeColumn(1);
-
+            Sheet sheet = createWithdrawalDetailsSheet(workbook, withdrawData);
             return writeWorkbookToByteArray(workbook);
         }
+    }
+
+    /**
+     * Creates a sheet with withdrawal details
+     */
+    private Sheet createWithdrawalDetailsSheet(Workbook workbook, WithdrawExportDTO withdrawData) {
+        Sheet sheet = workbook.createSheet("Withdrawal Details");
+        
+        // Setup header
+        CellStyle headerStyle = createWithdrawalHeaderStyle(workbook);
+        createSheetHeader(sheet, headerStyle);
+        
+        // Add withdrawal data
+        populateWithdrawalData(sheet, withdrawData);
+        
+        // Format sheet
+        autoSizeSheetColumns(sheet);
+        
+        return sheet;
+    }
+
+    /**
+     * Creates the header style for withdrawal details
+     */
+    private CellStyle createWithdrawalHeaderStyle(Workbook workbook) {
+        CellStyle headerStyle = workbook.createCellStyle();
+        Font headerFont = workbook.createFont();
+        headerFont.setBold(true);
+        headerStyle.setFont(headerFont);
+        headerStyle.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
+        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        return headerStyle;
+    }
+
+    /**
+     * Creates the header row for withdrawal details
+     */
+    private void createSheetHeader(Sheet sheet, CellStyle headerStyle) {
+        Row headerRow = sheet.createRow(0);
+        createHeaderCell(headerRow, 0, "Field", headerStyle);
+        createHeaderCell(headerRow, 1, "Value", headerStyle);
+    }
+
+    /**
+     * Populates the sheet with withdrawal data
+     */
+    private void populateWithdrawalData(Sheet sheet, WithdrawExportDTO withdrawData) {
+        int rowNum = 1;
+        
+        // Add basic withdrawal information
+        rowNum = addBasicWithdrawalInfo(sheet, withdrawData, rowNum);
+        
+        // Add dates
+        rowNum = addWithdrawalDates(sheet, withdrawData, rowNum);
+    }
+
+    /**
+     * Adds basic withdrawal information to the sheet
+     */
+    private int addBasicWithdrawalInfo(Sheet sheet, WithdrawExportDTO withdrawData, int rowNum) {
+        createDataRow(sheet, rowNum++, "Withdrawal ID", withdrawData.getWithdrawId().toString());
+        createDataRow(sheet, rowNum++, "Account ID", withdrawData.getAccountId().toString());
+        createDataRow(sheet, rowNum++, "Username", withdrawData.getUsername());
+        createDataRow(sheet, rowNum++, "Amount", withdrawData.getAmount().toString());
+        createDataRow(sheet, rowNum++, "Bank Name", String.valueOf(withdrawData.getBankName()));
+        createDataRow(sheet, rowNum++, "Bank Account Number", withdrawData.getBankAccountNumber());
+        createDataRow(sheet, rowNum++, "Status", withdrawData.getStatus().toString());
+        return rowNum;
+    }
+
+    /**
+     * Adds withdrawal dates to the sheet
+     */
+    private int addWithdrawalDates(Sheet sheet, WithdrawExportDTO withdrawData, int rowNum) {
+        createDataRow(sheet, rowNum++, "Request Date", withdrawData.getRequestDate());
+        
+        if (withdrawData.getProcessedDate() != null) {
+            createDataRow(sheet, rowNum++, "Processed Date", withdrawData.getProcessedDate());
+        }
+        
+        return rowNum;
+    }
+
+    /**
+     * Auto-sizes all columns in the sheet
+     */
+    private void autoSizeSheetColumns(Sheet sheet) {
+        sheet.autoSizeColumn(0);
+        sheet.autoSizeColumn(1);
     }
 
     /**
