@@ -47,7 +47,7 @@ public class PricingService {
     }
 
     public void deletePricing(Integer pricingId) {
-        Pricing existingPricing = getPricingById(pricingId);
+        getPricingById(pricingId);
         pricingRepository.deleteById(pricingId);
     }
 

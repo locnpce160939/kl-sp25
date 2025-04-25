@@ -234,7 +234,6 @@ public class DriverBonusProgressService {
 
         if (existingProgress.isPresent()) {
             DriverBonusProgress progress = existingProgress.get();
-            // Update month if not set (for backward compatibility)
             if (progress.getBonusMonth() == null) {
                 progress.setBonusMonth(bonusMonth);
                 progress = driverBonusProgressRepository.save(progress);

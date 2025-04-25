@@ -6,6 +6,7 @@ import com.ftcs.accountservice.areamanagement.repository.AreaManagementRepositor
 import com.ftcs.accountservice.driver.identification.repository.AddressDriverRepository;
 import com.ftcs.accountservice.driver.identification.repository.DriverIdentificationRepository;
 import com.ftcs.accountservice.driver.management.dto.ListDriverDTO;
+import com.ftcs.accountservice.driver.management.projection.ListDriverProjection;
 import com.ftcs.accountservice.driver.management.repository.DriverRepository;
 import com.ftcs.accountservice.driver.vehicle.repository.VehicleRepository;
 import com.ftcs.accountservice.driver.verification.service.VerificationDriverService;
@@ -136,7 +137,8 @@ public class AreaManagementService {
         String provinceString = provinceIds.stream()
                 .map(String::valueOf)
                 .collect(Collectors.joining(","));
-        return mapToListDriverDTO(driverRepository.getAllDriversByProvinces(provinceString), verificationDriverService);
+        List<ListDriverProjection> provinces = driverRepository.getAllDriversByProvinces(provinceString);
+        return mapToListDriverDTO(provinces, verificationDriverService);
     }
 
     public void deleteAreas(Integer accountId, List<Integer> provinceIds) {

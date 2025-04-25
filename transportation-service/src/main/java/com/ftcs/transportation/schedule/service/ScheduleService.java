@@ -108,10 +108,7 @@ public class ScheduleService {
     }
 
     public void deleteScheduleById(Long scheduleId) {
-        // Get all trip agreements for this schedule
         List<TripAgreement> tripAgreements = tripAgreementRepository.findAllByScheduleId(scheduleId);
-        
-        // Check if any trip booking is not completed
         boolean hasIncompleteBooking = tripAgreements.stream()
             .map(agreement -> tripBookingsRepository.findTripBookingsByBookingId(agreement.getBookingId())
                 .orElseThrow(() -> new BadRequestException("Trip booking not found")))
