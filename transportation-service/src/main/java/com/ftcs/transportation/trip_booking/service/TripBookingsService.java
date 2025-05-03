@@ -99,7 +99,7 @@ public class TripBookingsService {
         tripBooking.setOriginalPrice(preview.getPrice());
 
         // Apply insurance if selected
-        double currentPrice = applyInsuranceIfSelected(requestDTO, tripBooking, preview.getPrice());
+        double currentPrice = Math.round(applyInsuranceIfSelected(requestDTO, tripBooking, preview.getPrice()));
 
         // Apply voucher if available
         applyVoucherIfAvailable(requestDTO, accountId, tripBooking, currentPrice, preview);
