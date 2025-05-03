@@ -2,9 +2,11 @@ package com.ftcs.rateandreview.service;
 
 import com.ftcs.common.exception.BadRequestException;
 import com.ftcs.common.exception.UnauthorizedException;
+import com.ftcs.rateandreview.dto.MainStatisticsDTO;
 import com.ftcs.rateandreview.dto.ReviewRequestDTO;
 import com.ftcs.rateandreview.model.Review;
 import com.ftcs.rateandreview.projection.DriverReviewProjection;
+import com.ftcs.rateandreview.projection.MainStatisticsProjection;
 import com.ftcs.rateandreview.repository.ReviewRepository;
 import com.ftcs.transportation.trip_booking.constant.TripBookingStatus;
 import com.ftcs.transportation.trip_booking.model.TripBookings;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -67,6 +70,15 @@ public class ReviewService {
     public Page<DriverReviewProjection> findAllReviewsDriver(Integer driverId, Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page, size);
         return reviewRepository.getDriverReviews(driverId, pageable);
+    }
+
+    public List<MainStatisticsDTO> getMainStatistics() {
+        return reviewRepository.getMainStatistics().stream()
+                .map(stat -> new MainStatisticsDTO(
+                        stat.getCategory(),
+                        stat.getMetric(),
+                        stat.getValue()))
+                .collect(Collectors.toList());
     }
 
     private void validateOwnership(Integer accountId, TripBookings tripBookings) {

@@ -2,6 +2,7 @@ package com.ftcs.rateandreview.repository;
 
 import com.ftcs.rateandreview.model.Review;
 import com.ftcs.rateandreview.projection.DriverReviewProjection;
+import com.ftcs.rateandreview.projection.MainStatisticsProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,4 +30,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Page<DriverReviewProjection> getDriverReviews(@Param("driverId") Integer driverId, Pageable pageable);
 
     boolean existsByBookingId(Long bookingId);
+
+    @Query(value = "EXEC dbo.sp_GetMainStatistics", nativeQuery = true)
+    List<MainStatisticsProjection> getMainStatistics();
 }
