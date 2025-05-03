@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -61,7 +62,7 @@ public class InsuranceClaimService {
     public void updateInsuranceClaim(Long id, InsuranceClaimRequestDTO requestDTO, List<MultipartFile> newImages) {
         validateImages(newImages);
         
-        InsuranceClaim insuranceClaim = getInsuranceClaim(id);
+        InsuranceClaim insuranceClaim = getInsuranceClaimByBookingId(id);
         
         // Delete old images if they exist
         List<String> oldImages = insuranceClaim.getEvidenceImageList();
@@ -130,6 +131,11 @@ public class InsuranceClaimService {
 
     public InsuranceClaim getInsuranceClaim(Long id) {
         return insuranceClaimRepository.findInsuranceClaimById(id)
+                .orElseThrow(() -> new BadRequestException("Insurance Claim Not Found"));
+    }
+
+    public InsuranceClaim getInsuranceClaimByBookingId(Long id) {
+        return insuranceClaimRepository.findInsuranceClaimByBookingId(id)
                 .orElseThrow(() -> new BadRequestException("Insurance Claim Not Found"));
     }
 

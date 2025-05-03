@@ -27,7 +27,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping(TransportationURL.TRIP_BOOKINGS)
 public class TripBookingsController {
-
     private final TripBookingsService tripBookingsService;
     private final ObjectMapper objectMapper;
 
@@ -171,9 +170,9 @@ public class TripBookingsController {
     @PreAuthorize("hasPermission(null, 'CUSTOMER')")
     public ApiResponse<?> createInsuranceClaim(
             @PathVariable("bookingId") Long bookingId,
-            @RequestPart("data") @Valid InsuranceClaimRequestDTO requestDTO,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images) {
-        tripBookingsService.createInsuranceClaim(bookingId, requestDTO, images);
+            @RequestPart("data") String requestDTO,
+            @RequestPart("images") List<MultipartFile> images)  throws JsonProcessingException{
+        tripBookingsService.createInsuranceClaim(bookingId, objectMapper.readValue(requestDTO, InsuranceClaimRequestDTO.class), images);
         return new ApiResponse<>("Insurance claim created successfully");
     }
 }

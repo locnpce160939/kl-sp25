@@ -1,5 +1,7 @@
 package com.ftcs.insuranceservice.insurance_claim;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ftcs.common.dto.ApiResponse;
 import com.ftcs.insuranceservice.InsuranceURL;
 import com.ftcs.insuranceservice.insurance_claim.constant.ClaimStatus;
@@ -31,22 +33,14 @@ import java.util.List;
 public class InsuranceClaimController {
     private final InsuranceClaimService insuranceClaimService;
     private final InsuranceClaimExportService insuranceClaimExportService;
-
-    @PostMapping("/claims/{bookingId}")
-    @PreAuthorize("hasPermission(null, 'CUSTOMER')")
-    public ApiResponse<?> createClaim(@PathVariable("bookingId") Long bookingId,
-                                    @RequestPart("data") InsuranceClaimRequestDTO requestDTO,
-                                    @RequestPart(value = "images", required = false) List<MultipartFile> images) {
-        InsuranceClaim claim = insuranceClaimService.createInsuranceClaim(bookingId, requestDTO, images);
-        return new ApiResponse<>("Insurance claim created successfully", claim);
-    }
+    private final ObjectMapper objectMapper;
 
     @PutMapping("/{id}")
     @PreAuthorize("hasPermission(null, 'CUSTOMER')")
     public ApiResponse<?> updateClaim(@PathVariable("id") Long id,
-                                    @RequestPart("data") InsuranceClaimRequestDTO requestDTO,
-                                    @RequestPart(value = "images", required = false) List<MultipartFile> images) {
-        insuranceClaimService.updateInsuranceClaim(id, requestDTO, images);
+                                    @RequestPart("data") String requestDTO,
+                                    @RequestPart("images") List<MultipartFile> images) throws JsonProcessingException {
+        insuranceClaimService.updateInsuranceClaim(id, objectMapper.readValue(requestDTO, InsuranceClaimRequestDTO.class), images);
         return new ApiResponse<>("Insurance claim updated successfully");
     }
 
@@ -61,6 +55,11 @@ public class InsuranceClaimController {
     @PreAuthorize("hasPermission(null, 'ADMIN') or hasPermission(null, 'CUSTOMER')")
     public ApiResponse<InsuranceClaim> getClaimById(@PathVariable("id") Long id) {
         return new ApiResponse<>(insuranceClaimService.getInsuranceClaim(id));
+    }
+
+    @GetMapping("/claims/booking/{id}")
+    public ApiResponse<InsuranceClaim> getClaimByBookingId(@PathVariable("id") Long id) {
+        return new ApiResponse<>(insuranceClaimService.getInsuranceClaimByBookingId(id));
     }
 
     @PutMapping("/claims/{id}")
