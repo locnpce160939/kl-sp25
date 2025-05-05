@@ -48,7 +48,7 @@ public class PingLocationDriverService {
             //if (isAuthenticated(client)) {
             LocationDriverDTO location = objectMapper.readValue(data.getContent(), LocationDriverDTO.class);
             driverSessionMap.put(client.getSessionId().toString(), new LocationDriverDTO(location.getId(), location.getLocationDriver()));
-            log.info("Event: LOCATION_SEND, Data: Schedule id {} in Location is {}", location.getId(), location.getLocationDriver());
+            log.info("Event: LOCATION_SEND, Data: Account Driver Id id {} in Location is {}", location.getId(), location.getLocationDriver());
             sendLocationAddressToClient(location);
             //}
         };
@@ -72,7 +72,7 @@ public class PingLocationDriverService {
     }
 
     public void sendLocationAddressToClient(LocationDriverDTO dto) {
-        List<TripAgreement> tripAgreements = tripAgreementRepository.findAllByScheduleId(dto.getId());
+        List<TripAgreement> tripAgreements = tripAgreementRepository.findAllByDriverId(dto.getId().intValue());
         for (TripAgreement tripAgreement : tripAgreements) {
             Message message = Message.builder()
                     .messageType(MessageType.LOCATION)
